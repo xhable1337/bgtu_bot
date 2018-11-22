@@ -146,7 +146,8 @@ def callback_handler(call):
         bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
         text=text,
-        reply_markup=kbbb)
+        reply_markup=kbbb,
+        parse_mode='Markdown')
         table.clear()
 
 
