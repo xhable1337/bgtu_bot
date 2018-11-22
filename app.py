@@ -7,6 +7,7 @@ wd = datetime.datetime.today().isoweekday()
 token = '633625028:AAEgHBOPx7yBaNgM9GsAYgtR85K8Jshaoos'
 bot = telebot.TeleBot(token)
 table = PrettyTable()
+server = Flask(__name__)
 
 no = '-'
 index = [1, 2, 3, 4, 5, 6, 7, 8]
