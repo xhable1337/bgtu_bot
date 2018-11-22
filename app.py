@@ -5,8 +5,8 @@ from flask import Flask, request
 import datetime
 
 wd = datetime.datetime.today().isoweekday()
-token = '633625028:AAEgHBOPx7yBaNgM9GsAYgtR85K8Jshaoos'
-bot = telebot.TeleBot(token)
+TOKEN = '633625028:AAEgHBOPx7yBaNgM9GsAYgtR85K8Jshaoos'
+bot = telebot.TeleBot(TOKEN)
 table = PrettyTable()
 server = Flask(__name__)
 
