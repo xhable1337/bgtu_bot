@@ -26,6 +26,7 @@ friday_lessons = [no, 'Физика', 'Ин.язык', 'Информатика',
 
 kbm = types.InlineKeyboardMarkup()
 kbm.row(types.InlineKeyboardButton(text='Расписание на сегодня', callback_data='today'))
+kbm.row(types.InlineKeyboardButton(text='Расписание на завтра', callback_data='tomorrow'))
 kbm.row(types.InlineKeyboardButton(text='Расписание по дням', callback_data='days'))
 
 kb_dn = types.InlineKeyboardMarkup()
@@ -106,6 +107,43 @@ def callback_handler(call):
         message_id=call.message.message_id,
         text='Выберите день недели:',
         reply_markup=kb_dn)
+    elif call.data == 'tomorrow':
+        if wd == 7:
+            wdt = 'понедельник'
+            table.add_column(fieldname="№", column=index)
+            table.add_column(fieldname="Урок", column=monday_lessons[0:8])
+            table.add_column(fieldname="Кабинет", column=monday_lessons[8])
+            text = f'Завтра: {wdt}.\n\n```{table}```'
+        elif wd == 1:
+            wdt = 'вторник'
+            table.add_column(fieldname="№", column=index)
+            table.add_column(fieldname="Урок", column=tuesday_lessons[0:8])
+            table.add_column(fieldname="Кабинет", column=tuesday_lessons[8])
+            text = f'Завтра: {wdt}.\n\n```{table}```'
+        elif wd == 2:
+            wdt = 'среда'
+            table.add_column(fieldname="№", column=index)
+            table.add_column(fieldname="Урок", column=wednesday_lessons[0:8])
+            table.add_column(fieldname="Кабинет", column=wednesday_lessons[8])
+            text = f'Завтра: {wdt}.\n\n```{table}```'
+        elif wd == 3:
+            wdt = 'четверг'
+            table.add_column(fieldname="№", column=index)
+            table.add_column(fieldname="Урок", column=thursday_lessons[0:8])
+            table.add_column(fieldname="Кабинет", column=thursday_lessons[8])
+            text = f'Завтра: {wdt}.\n\n```{table}```'
+        elif wd == 4:
+            wdt = 'пятница'
+            table.add_column(fieldname="№", column=index)
+            table.add_column(fieldname="Урок", column=friday_lessons[0:8])
+            table.add_column(fieldname="Кабинет", column=friday_lessons[8])
+            text = f'Завтра: {wdt}.\n\n```{table}```'
+        elif wd == 5:
+            wdt = 'суббота'
+            text = f'Завтра: {wdt}.\n\nУдачных выходных!'
+        elif wd == 6:
+            wdt = 'воскресенье'
+            text = f'Завтра: {wdt}.\n\nУдачных выходных!'
     elif call.data == 'today':
         if wd == 1:
             wdt = 'понедельник'
