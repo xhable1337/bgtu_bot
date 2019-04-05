@@ -9,7 +9,7 @@ from flask import Flask, request
 import os
 
 server = Flask(__name__)
-token = '633625028:AAEgHBOPx7yBaNgM9GsAYgtR85K8Jshaoos'
+token = '633625028:AAHTJfxU_b8PFOQMIj0pah48qTk_9XSgRwM'
 no = '-'
 index = [1, 2, 3, 4, 5, 6, 7, 8]
 wday_monday = [no, 'Русский язык', 'Математика', 'География', 'Химия', 'Литература', 'История', 'Физкультура', [no, 318, 219, 301, 309, 318, 229, 'б/з']]
