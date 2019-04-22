@@ -100,11 +100,11 @@ def button_func(call):
         message_id=call.message.message_id,
         text=f'Звонки на понедельник\n\n```{table_r}```',
         reply_markup=kbbb, parse_mode='Markdown')
-     elif call.data == 'r_others':
-    	table_r.clear()
-    	table_r.add_column(fieldname="№", column=index)
-    	table_r.add_column(fieldname="Время", column=time_others)
-    	bot.edit_message_text(chat_id=call.message.chat.id,
+    elif call.data == 'r_others':
+        table_r.clear()
+        table_r.add_column(fieldname="№", column=index)
+        table_r.add_column(fieldname="Время", column=time_others)
+        bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
         text=f'Звонки на вт-пт\n\n```{table_r}```',
         reply_markup=kbbb, parse_mode='Markdown')
