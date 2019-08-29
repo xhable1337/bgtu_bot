@@ -36,6 +36,19 @@ def start_handler(m):
     else:
         bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\nВот главное меню:', reply_markup=kbm)
 
+@bot.message_handler(commands=["whatis"])
+def whatis(m):
+    if m.chat.id in ADMINS:
+        raw_text = str(m.text)
+        key = raw_text.split(' ', maxsplit=1)[1]
+        try:
+            value = globals()[f'{key}']
+            bot.send_message(m.chat.id, f'Сейчас `{key}` == `{value}`', parse_mode='Markdown')
+        except KeyError:
+            bot.send_message(m.chat.id, f'Переменная `{key}` не найдена!', parse_mode='Markdown')
+
+
+
 @bot.message_handler(commands=["users"])
 def users_handler(m):
     text = '*Список пользователей бота:*\n\n'
