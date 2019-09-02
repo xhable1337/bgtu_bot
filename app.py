@@ -1,5 +1,6 @@
 # School Diary Robot by xhable
-# v2.0, fully refreshed code
+# v2.5, added MongoDB user database to provide some broadcasts
+# Now you must put your bot's token into config vars. (they're getting here by os.environ())
 import telebot
 from prettytable import PrettyTable
 from telebot import types, apihelper
@@ -7,9 +8,15 @@ import datetime
 import wdays
 from flask import Flask, request
 import os
+from pymongo import MongoClient
+
+MONGODB_URI = os.environ['MONGODB_URI']
+client = MongoClient(host=MONGODB_URI)
+db = client.diary_db
+users = db.users
 
 server = Flask(__name__)
-token = '633625028:AAHTJfxU_b8PFOQMIj0pah48qTk_9XSgRwM'
+token = os.environ['token']
 no = '-'
 index = [1, 2, 3, 4, 5, 6, 7, 8]
 wday_monday = [no, 'История', 'Обществознание', 'Информатика', 'Математика', 'Физкультура', no, no, [no, 229, 305, '202/204', 219, 'б/з', no, no]]
@@ -21,18 +28,20 @@ wday_friday = ['Ин.язык', 'Математика', 'Литература', 
 time_monday = ['8:00-8:40', '8:50-9:30', '9:50-10:30', '10:50-11:30', '11:40-12:20', '12:30-13:10', '13:20-14:00', '14:10-14:50']
 time_others = ['8:00-8:45', '8:55-9:40', '10:00-10:45', '11:05-11:50', '12:00-12:45', '12:55-13:40', '13:50-14:30', '14:40-15:20']
 
-users = []
 ADMINS = [124361528]
 bot = telebot.TeleBot(token)
 table = PrettyTable()
 table_r = PrettyTable()
-wd = datetime.datetime.today().isoweekday()
 
 @bot.message_handler(commands=["start"])
 def start_handler(m):
-    if m.chat.id not in users:
-        users.append(m.chat.id)
-        bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\nВот главное меню:', reply_markup=kbm)
+    if users.find_one({'user_id': m.from_user.id}) == None:
+        users.insert_one({
+            'first_name': m.from_user.first_name,
+            'last_name': m.from_user.last_name,
+            'user_id': m.from_user.id,
+            'username': m.from_user.username,
+        })
     else:
         bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\nВот главное меню:', reply_markup=kbm)
 
@@ -52,9 +61,11 @@ def whatis(m):
 @bot.message_handler(commands=["users"])
 def users_handler(m):
     text = '*Список пользователей бота:*\n\n'
-    for i in range(len(users)):
-        user = users[i]
-        text += f'[Пользователь №{i+1}](tg://user?id={user})\n'
+    for user in users.find():
+        first_name = user['first_name']
+        last_name = user['last_name']
+        user_id = user['user_id']
+        text += f'[{first_name} {last_name}](tg://user?id={user_id})\n'
     bot.send_message(m.chat.id, text, parse_mode='Markdown')
 
 @bot.message_handler(commands=["broadcast"])
@@ -62,7 +73,7 @@ def broadcast(m):
     if m.chat.id in ADMINS:
         raw_text = str(m.text)
         text = raw_text.split(' ', maxsplit=1)[1]
-        for user in users:
+        for user in users.find():
             bot.send_message(user, text)
 
 @bot.message_handler(commands=["exec"])
@@ -70,13 +81,15 @@ def execute(m):
     if m.chat.id in ADMINS:
         raw_text = str(m.text)
         cmd = raw_text.split(' ', maxsplit=1)[1]
-        exec(cmd)
-        bot.send_message(m.chat.id, f'{cmd} - успешно выполнено!')
+        try:
+            exec(cmd)
+            bot.send_message(m.chat.id, f'{cmd} - успешно выполнено!')
+        except Exception as e:
+            bot.send_message(m.chat.id, f'Произошла ошибка!\n\n`{e}`')
 
 kbm = types.InlineKeyboardMarkup()
-kbm.row(types.InlineKeyboardButton(text='⚡️ Расписание на сегодня', callback_data='today'))
-kbm.row(types.InlineKeyboardButton(text='⚡️ Расписание на завтра', callback_data='tomorrow'))
 kbm.row(types.InlineKeyboardButton(text='📅 Расписание по дням', callback_data='days'))
+kbm.row(types.InlineKeyboardButton(text='⚡️ Сегодня', callback_data='today'), types.InlineKeyboardButton(text='⚡️ Завтра', callback_data='tomorrow'))
 kbm.row(types.InlineKeyboardButton(text='🔔 Расписание звонков', callback_data='rings'))
 
 kb_r = types.InlineKeyboardMarkup()
@@ -85,22 +98,22 @@ kb_r.row(types.InlineKeyboardButton(text='Остальные дни', callback_d
 kb_r.row(types.InlineKeyboardButton(text='В главное меню', callback_data='tomain'))
 
 kb_dn = types.InlineKeyboardMarkup()
-kb_dn.row(types.InlineKeyboardButton(text='Пн', callback_data='wday_monday'),
-types.InlineKeyboardButton(text='Вт', callback_data='wday_tuesday'),
-types.InlineKeyboardButton(text='Ср', callback_data='wday_wednesday'))
-kb_dn.row(types.InlineKeyboardButton(text='Чт', callback_data='wday_thursday'),
-types.InlineKeyboardButton(text='Пт', callback_data='wday_friday'))
-kb_dn.row(types.InlineKeyboardButton(text='В главное меню', callback_data='tomain'))
+kb_dn.row(types.InlineKeyboardButton(text='1️⃣ Пн', callback_data='wday_monday'),
+types.InlineKeyboardButton(text='2️⃣ Вт', callback_data='wday_tuesday'),
+types.InlineKeyboardButton(text='3️⃣ Ср', callback_data='wday_wednesday'))
+kb_dn.row(types.InlineKeyboardButton(text='4️⃣ Чт', callback_data='wday_thursday'),
+types.InlineKeyboardButton(text='5️⃣ Пт', callback_data='wday_friday'))
+kb_dn.row(types.InlineKeyboardButton(text='🔄 В главное меню', callback_data='tomain'))
 
 kbb = types.InlineKeyboardMarkup()
-kbb.row(types.InlineKeyboardButton(text='Назад', callback_data='days'))
+kbb.row(types.InlineKeyboardButton(text='↩️ Назад', callback_data='days'))
 
 kbbb = types.InlineKeyboardMarkup()
-kbbb.row(types.InlineKeyboardButton(text='В главное меню', callback_data='tomain'))
+kbbb.row(types.InlineKeyboardButton(text='🔄 В главное меню', callback_data='tomain'))
 
 @bot.message_handler(content_types=["text"])
 def anymess(m):
-    if m.chat.id not in users:
+    if users.find_one({'user_id': m.from_user.id}) == None:
         bot.send_message(m.chat.id, 'Для начала работы с ботом выполните команду /start')
     else:
         bot.send_message(m.chat.id, text='Главное меню:', reply_markup=kbm)
@@ -123,6 +136,7 @@ def button_func(call):
         text=f'Расписание: {wdays.translate(cdata[5:])}\n\n```{table}```',
         reply_markup=kbb, parse_mode='Markdown')
     elif call.data == 'today':
+        wd = datetime.datetime.today().isoweekday()
         table.clear()
         table.add_column(fieldname="№", column=index)
         table.add_column(fieldname="Урок", column=globals()['wday_'+wdays.names(wd)[1]][0:8])
@@ -158,6 +172,7 @@ def button_func(call):
         text=f'Звонки на вт-пт\n\n```{table_r}```',
         reply_markup=kbbb, parse_mode='Markdown')
     elif call.data == 'tomorrow':
+        wd = datetime.datetime.today().isoweekday()
         table.clear()
         table.add_column(fieldname="№", column=index)
         table.add_column(fieldname="Урок", column=globals()['wday_'+wdays.names(wd+1)[1]][0:8])
