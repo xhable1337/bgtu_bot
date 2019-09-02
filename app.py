@@ -11,8 +11,8 @@ import os
 from pymongo import MongoClient
 
 MONGODB_URI = os.environ['MONGODB_URI']
-client = MongoClient(host=MONGODB_URI)
-db = client.diary_db
+client = MongoClient(host=MONGODB_URI, retryWrites=False) 
+db = client.heroku_38n7vrr9
 users = db.users
 
 server = Flask(__name__)
