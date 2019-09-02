@@ -74,7 +74,8 @@ def broadcast(m):
         raw_text = str(m.text)
         text = raw_text.split(' ', maxsplit=1)[1]
         for user in users.find():
-            bot.send_message(user, text)
+            chat_id = user['user_id']
+            bot.send_message(chat_id, text)
 
 @bot.message_handler(commands=["exec"])
 def execute(m):
