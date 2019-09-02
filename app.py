@@ -65,7 +65,10 @@ def users_handler(m):
         first_name = user['first_name']
         last_name = user['last_name']
         user_id = user['user_id']
-        text += f'[{first_name} {last_name}](tg://user?id={user_id})\n'
+        if last_name != None:
+            text += f'[{first_name} {last_name}](tg://user?id={user_id})\n'
+        else:
+            text += f'[{first_name}](tg://user?id={user_id})\n'
     bot.send_message(m.chat.id, text, parse_mode='Markdown')
 
 @bot.message_handler(commands=["broadcast"])
