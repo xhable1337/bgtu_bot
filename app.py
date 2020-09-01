@@ -1,19 +1,27 @@
 # School Diary Robot by xhable
 # v3, added university schedule (BSTU)
 # Now you must put your bot's token into config vars. (they're getting here by os.environ())
-import telebot
+
+from dbutils import get_state, set_state
 from prettytable import PrettyTable
 from telebot import types, apihelper
+from flask import Flask, request
+from pymongo import MongoClient
+import telebot
 import datetime
 import wdays
-from flask import Flask, request
 import os
-from pymongo import MongoClient
+import re
 
 MONGODB_URI = os.environ['MONGODB_URI']
 client = MongoClient(host=MONGODB_URI, retryWrites=False) 
 db = client.heroku_38n7vrr9
 users = db.users
+
+building_1 = 'https://telegra.ph/file/49ec8634ab340fa384787.png'
+building_2 = 'https://telegra.ph/file/7d04458ac4230fd12f064.png'
+building_3 = 'https://telegra.ph/file/6b801965b5771830b67f0.png'
+building_4 = 'https://telegra.ph/file/f79c20324a0ba6cd88711.png'
 
 server = Flask(__name__)
 token = os.environ['token']
@@ -45,9 +53,11 @@ def start_handler(m):
             'last_name': m.from_user.last_name,
             'user_id': m.from_user.id,
             'username': m.from_user.username,
+            'state': 'default'
         })
     else:
         bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\nВот главное меню:', reply_markup=kbm)
+        set_state(m.from_user.id, 'default')
 
 @bot.message_handler(commands=["whatis"])
 def whatis(m):
@@ -99,6 +109,7 @@ kbm = types.InlineKeyboardMarkup()
 kbm.row(types.InlineKeyboardButton(text='📅 Расписание по дням', callback_data='days'))
 kbm.row(types.InlineKeyboardButton(text='⚡️ Сегодня', callback_data='today'), types.InlineKeyboardButton(text='⚡️ Завтра', callback_data='tomorrow'))
 kbm.row(types.InlineKeyboardButton(text='🔔 Расписание пар', callback_data='rings'))
+kbm.row(types.InlineKeyboardButton(text='🏠 Найти корпус по аудитории', callback_data='building'))
 
 kb_r = types.InlineKeyboardMarkup()
 kb_r.row(types.InlineKeyboardButton(text='Понедельник', callback_data='r_monday'))
@@ -119,12 +130,38 @@ kbb.row(types.InlineKeyboardButton(text='↩️ Назад', callback_data='days
 kbbb = types.InlineKeyboardMarkup()
 kbbb.row(types.InlineKeyboardButton(text='🔄 В главное меню', callback_data='tomain'))
 
+kb_cancel_building = types.InlineKeyboardMarkup()
+kb_cancel_building.row(types.InlineKeyboardButton(text='🚫 Отмена'))
+
 @bot.message_handler(content_types=["text"])
 def anymess(m):
     if users.find_one({'user_id': m.from_user.id}) == None:
         bot.send_message(m.chat.id, 'Для начала работы с ботом выполните команду /start')
-    else:
+    elif users.find_one({'user_id': m.from_user.id}) != None and get_state(m.from_user.id) == 'default':
         bot.send_message(m.chat.id, text='Главное меню:', reply_markup=kbm)
+    elif get_state(m.from_user.id) == 'find_class':
+        if re.match(r'(\b[1-9][1-9]\b|\b[1-9]\b)', m.text):
+            bot.send_photo(m.chat.id, photo=building_1, caption=f'Аудитория {m.text} находится в корпусе №1 (Институтская, 16).')
+            bot.send_location(m.chat.id, latitude=53.305077, longitude=34.305080)
+            set_state(m.chat.id, 'default')
+            bot.send_message(m.chat.id, 'Главное меню', reply_markup=kbm)
+        elif re.match(r'\b[1-9][0-9][0-9]\b', m.text):
+            bot.send_photo(m.chat.id, photo=building_2, caption=f'Аудитория {m.text} находится в корпусе №2 (бульвар 50 лет Октября, 7).')
+            bot.send_location(m.chat.id, latitude=53.304442, longitude=34.303849)
+            set_state(m.chat.id, 'default')
+            bot.send_message(m.chat.id, 'Главное меню', reply_markup=kbm)
+        elif re.match(r'(\bА\d{3}\b|\b[Аа]\b|\b[Бб]\b|\b[Вв]\b|\b[Гг]\b|\b[Дд]\b)', m.text):
+            bot.send_photo(m.chat.id, photo=building_3, caption=f'Аудитория {m.text} находится в корпусе №3 (Харьковская, 8).')
+            bot.send_location(m.chat.id, latitude=53.304991, longitude=34.306688)
+            set_state(m.chat.id, 'default')
+            bot.send_message(m.chat.id, 'Главное меню', reply_markup=kbm)
+        elif re.match(r'\bБ\d{3}\b', m.text):
+            bot.send_photo(m.chat.id, photo=building_4, caption=f'Аудитория {m.text} находится в корпусе №4 (Харьковская, 10Б).')
+            bot.send_location(m.chat.id, latitude=53.303513, longitude=34.305085)
+            set_state(m.chat.id, 'default')
+            bot.send_message(m.chat.id, 'Главное меню', reply_markup=kbm)
+        else:
+            bot.send_message(m.chat.id, 'Данный номер аудитории некорректен. Повторите попытку или отмените действие:', reply_markup=kb_cancel_building)
 
 @bot.callback_query_handler(func=lambda call: True)
 def button_func(call):
@@ -200,6 +237,12 @@ def button_func(call):
         message_id=call.message.message_id,
         text='Главное меню',
         reply_markup=kbm, parse_mode='Markdown')
+    elif call.data == 'building':
+        set_state(call.from_user.id, 'find_class')
+        bot.edit_message_text(chat_id=call.message.chat.id,
+        message_id=call.message.message_id,
+        text='Отправьте номер аудитории:',
+        reply_markup=kb_cancel_building, parse_mode='Markdown')
 
 
 
