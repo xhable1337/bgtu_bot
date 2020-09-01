@@ -178,11 +178,11 @@ def button_func(call):
         wd = datetime.datetime.today().isoweekday()
         table.clear()
         if datetime.datetime.today().isocalendar()[1] % 2 == 0:
-            lesson = globals()[f'wday_{wdays.names(wd+1)}_1'[0]][0:5]
-            room = globals()[f'wday_{wdays.names(wd+1)}_1'[1]][5]
+            lesson = globals()[f'wday_{wdays.names(wd+1)[1]}_1'][0:5]
+            room = globals()[f'wday_{wdays.names(wd+1)[1]}_1'][5]
         else:
-            lesson = globals()[f'wday_{wdays.names(wd+1)}_2'[0]][0:5]
-            room = globals()[f'wday_{wdays.names(wd+1)}_2'[1]][5]
+            lesson = globals()[f'wday_{wdays.names(wd+1)[1]}_2'][0:5]
+            room = globals()[f'wday_{wdays.names(wd+1)[1]}_2'][5]
         table.add_column(fieldname="№", column=index)
         table.add_column(fieldname="Пара", column=lesson)
         table.add_column(fieldname="Кабинет", column=room)
