@@ -239,10 +239,8 @@ def button_func(call):
         reply_markup=kbm, parse_mode='Markdown')
     elif call.data == 'building':
         set_state(call.from_user.id, 'find_class')
-        bot.edit_message_text(chat_id=call.message.chat.id,
-        message_id=call.message.message_id,
-        text='Отправьте номер аудитории:',
-        reply_markup=kb_cancel_building, parse_mode='Markdown')
+        print('hello from the other siiiiideeee')
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text='Отправьте номер аудитории:', reply_markup=kb_cancel_building, parse_mode='Markdown')
 
 
 
