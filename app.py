@@ -169,12 +169,10 @@ def button_func(call):
         text=text, reply_markup=kbbb, parse_mode='Markdown')
     elif call.data == 'rings':
         table_r.clear()
-    	table_r.add_column(fieldname="№", column=index)
+        table_r.add_column(fieldname="№", column=index)
         table_r.add_column(fieldname="Время", column=time)
-    	text = f'Расписание пар\n\n```{table_r}```'
-    	bot.edit_message_text(chat_id=call.message.chat.id,
-        message_id=call.message.message_id,
-        text=text,
+        text = f'Расписание пар\n\n```{table_r}```'
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=text,
         reply_markup=kbbb, parse_mode='Markdown')
     elif call.data == 'tomorrow':
         wd = datetime.datetime.today().isoweekday()
