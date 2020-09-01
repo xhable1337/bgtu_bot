@@ -2,7 +2,6 @@
 # v3, added university schedule (BSTU)
 # Now you must put your bot's token into config vars. (they're getting here by os.environ())
 
-from dbutils import get_state, set_state
 from prettytable import PrettyTable
 from telebot import types, apihelper
 from flask import Flask, request
@@ -44,6 +43,14 @@ ADMINS = [124361528]
 bot = telebot.TeleBot(token)
 table = PrettyTable()
 table_r = PrettyTable()
+
+def get_state(user_id):
+    """Позволяет просмотреть state по user_id."""
+    return users.find_one({'user_id': user_id})['state']
+
+def set_state(user_id, state):
+    """Позволяет изменить state по user_id."""
+    users.update_one({'user_id': user_id}, {'$set': {'state': state}})
 
 @bot.message_handler(commands=["start"])
 def start_handler(m):
