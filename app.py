@@ -138,7 +138,7 @@ kbbb = types.InlineKeyboardMarkup()
 kbbb.row(types.InlineKeyboardButton(text='🔄 В главное меню', callback_data='tomain'))
 
 kb_cancel_building = types.InlineKeyboardMarkup()
-kb_cancel_building.row(types.InlineKeyboardButton(text='🚫 Отмена'))
+kb_cancel_building.row(types.InlineKeyboardButton(text='🚫 Отмена', callback_data='cancel_find_class'))
 
 @bot.message_handler(content_types=["text"])
 def anymess(m):
@@ -248,7 +248,12 @@ def button_func(call):
         set_state(call.from_user.id, 'find_class')
         print('hello from the other siiiiideeee')
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text='Отправьте номер аудитории:', reply_markup=kb_cancel_building, parse_mode='Markdown')
-
+    elif call.data == 'cancel_find_class':
+        set_state(call.from_user.id, 'default')
+        bot.edit_message_text(chat_id=call.message.chat.id,
+        message_id=call.message.message_id,
+        text='Главное меню',
+        reply_markup=kbm, parse_mode='Markdown')
 
 
 @server.route('/' + token, methods=['POST'])
