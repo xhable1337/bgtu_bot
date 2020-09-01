@@ -1,5 +1,5 @@
 # School Diary Robot by xhable
-# v2.5, added MongoDB user database to provide some broadcasts
+# v3, added university schedule (BSTU)
 # Now you must put your bot's token into config vars. (they're getting here by os.environ())
 import telebot
 from prettytable import PrettyTable
@@ -18,15 +18,18 @@ users = db.users
 server = Flask(__name__)
 token = os.environ['token']
 no = '-'
-index = [1, 2, 3, 4, 5, 6, 7, 8]
-wday_monday = [no, 'История', 'Обществознание', 'Информатика', 'Математика', 'Физкультура', no, no, [no, 229, 305, '202/204', 219, 'б/з', no, no]]
-wday_tuesday = [no, 'Физика', 'Биология', 'Математика', 'Рус.язык', 'Ин.язык', 'Литература', 'Физ-ра', [no, 217, 226, 219, 318, '311/223', 318, 'б/з']]
-wday_wednesday = ['Обществознание', 'Химия', 'Математика', 'История', 'Информатика', 'Ин.язык', no, no, [305, 314, 219, 229, '202/204', '311/223', no, no]]
-wday_thursday = [no, no, 'Математика', 'География', 'Физика', 'Литература', 'ОБЖ', 'Физкультура', [no, no, 219, 301, 217, 318, 303, 'б/з']]
-wday_friday = ['Ин.язык', 'Математика', 'Литература', 'Химия', 'Иссл. деят-ь', 'Астрономия', no, no, ['311/223', 219, 318, 309, 221, 217, no, no]]
+index = [1, 2, 3, 4, 5]
+wday_monday_1 = ['[ПЗ] Ин.яз.', '[Л] Мат.анализ', '[ПЗ] Мат.анализ', '[ПЗ] Ин.яз.', no, [322, 'А', 'Б204', 322, no]]
+wday_monday_2 = ['[Л] Физ-ра', '[Л] Мат.анализ', '[ПЗ] Мат.анализ', '[ПЗ] Ин.яз.', no, ['Б404', 'А', 'Б204', 322, no]]
+wday_tuesday_1 = ['[Л] Дискр.мат.', '[ПЗ] Дискр.мат.', '[Л] Програм.', no, no, ['B', 'Б204', 219, no, no]]
+wday_tuesday_2 = ['[Л] Информат.', '[ПЗ] Дискр.мат.', '[Л] Програм.', no, no, [219, 'Б204', 219, no, no]]
+wday_wednesday = [no, '[Л] Алг. и геом.', '[ПЗ] Физ-ра', no, no, [no, 'A', 'спортзал', no, no]]
+wday_thursday_1 = [no, '[ЛАБ] Програм.', '[ПЗ] Ин.яз.', no, no, [no, 408, 322, no, no]]
+wday_thursday_2 = [no, '[ЛАБ] Програм.', '[ПЗ] Ин.яз.', '[ПЗ] Ин. яз.', no, [no, 408, 322, 322, no]]
+wday_friday_1 = ['[ПЗ] Алг. и геом.', '[Л] Пед. и псих.', '[ПЗ] Пед. и псих.', no, no, ['Б204', 'Б', 'А211', no, no]]
+wday_friday_2 = ['[ПЗ] Алг. и геом.', '[ЛАБ] Информат.', '[ПЗ] Пед. и псих.', no, no, ['Б204', 408, 'А211', no, no]]
 
-time_monday = ['8:00-8:40', '8:50-9:30', '9:50-10:30', '10:50-11:30', '11:40-12:20', '12:30-13:10', '13:20-14:00', '14:10-14:50']
-time_others = ['8:00-8:45', '8:55-9:40', '10:00-10:45', '11:05-11:50', '12:00-12:45', '12:55-13:40', '13:50-14:30', '14:40-15:20']
+time = ['8:00-9:35', '9:45-11:20', '11:30-13:05', '13:20-14:55', '15:05-16:40']
 
 ADMINS = [124361528]
 bot = telebot.TeleBot(token)
@@ -94,7 +97,7 @@ def execute(m):
 kbm = types.InlineKeyboardMarkup()
 kbm.row(types.InlineKeyboardButton(text='📅 Расписание по дням', callback_data='days'))
 kbm.row(types.InlineKeyboardButton(text='⚡️ Сегодня', callback_data='today'), types.InlineKeyboardButton(text='⚡️ Завтра', callback_data='tomorrow'))
-kbm.row(types.InlineKeyboardButton(text='🔔 Расписание звонков', callback_data='rings'))
+kbm.row(types.InlineKeyboardButton(text='🔔 Расписание пар', callback_data='rings'))
 
 kb_r = types.InlineKeyboardMarkup()
 kb_r.row(types.InlineKeyboardButton(text='Понедельник', callback_data='r_monday'))
@@ -132,59 +135,63 @@ def button_func(call):
     elif call.data[:5] == 'wday_':
         cdata = str(call.data)
         table.clear()
+        if datetime.datetime.today().isocalendar()[1] % 2 == 0:
+            lesson = globals()[f'wday_{cdata}_1'[1]][0:5]
+            room = globals()[f'wday_{cdata}_1'[1]][5]
+        else:
+            lesson = globals()[f'wday_{cdata}_2'[1]][0:5]
+            room = globals()[f'wday_{cdata}_2'[1]][5]
         table.add_column(fieldname="№", column=index)
-        table.add_column(fieldname="Урок", column=globals()[cdata][0:8])
-        table.add_column(fieldname="Кабинет", column=globals()[cdata][8])
+        table.add_column(fieldname="Пара", column=globals()[cdata][0:5])
+        table.add_column(fieldname="Кабинет", column=globals()[cdata][5])
         bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
-        text=f'Расписание: {wdays.translate(cdata[5:])}\n\n```{table}```',
+        text=f'Расписание: {wdays.translate(cdata[5:])}\n\n```{table}```\n\nЛ - лекция\nПЗ - практическое занятие\nЛАБ - лабораторное занятие',
         reply_markup=kbb, parse_mode='Markdown')
     elif call.data == 'today':
         wd = datetime.datetime.today().isoweekday()
         table.clear()
+        if datetime.datetime.today().isocalendar()[1] % 2 == 0:
+            lesson = globals()['wday_'+wdays.names(wd+1)+'_1'[1]][0:5]
+            room = globals()['wday_'+wdays.names(wd+1)+'_1'[1]][5]
+        else:
+            lesson = globals()['wday_'+wdays.names(wd)+'_2'[1]][0:5]
+            room = globals()['wday_'+wdays.names(wd)+'_2'[1]][5]
         table.add_column(fieldname="№", column=index)
-        table.add_column(fieldname="Урок", column=globals()['wday_'+wdays.names(wd)[1]][0:8])
-        table.add_column(fieldname="Кабинет", column=globals()['wday_'+wdays.names(wd)[1]][8])
+        table.add_column(fieldname="Пара", column=lesson)
+        table.add_column(fieldname="Кабинет", column=room)
         if wd == 6 or wd == 7:
             text = f'Сегодня: {wdays.names(wd)[0]}\n\nУдачных выходных!'
         else:
-            text = f'Сегодня: {wdays.names(wd)[0]}\n\n```{table}```'
+            text = f'Сегодня: {wdays.names(wd)[0]}\n\n```{table}```\n\nЛ - лекция\nПЗ - практическое занятие\nЛАБ - лабораторное занятие'
         bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
-        text=text,
-        reply_markup=kbbb, parse_mode='Markdown')
+        text=text, reply_markup=kbbb, parse_mode='Markdown')
     elif call.data == 'rings':
-    	text = 'Выберите день недели:'
+        table_r.clear()
+    	table_r.add_column(fieldname="№", column=index)
+        table_r.add_column(fieldname="Время", column=time)
+    	text = f'Расписание пар\n\n```{table_r}```'
     	bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
         text=text,
-        reply_markup=kb_r, parse_mode='Markdown')
-    elif call.data == 'r_monday':
-    	table_r.clear()
-    	table_r.add_column(fieldname="№", column=index)
-    	table_r.add_column(fieldname="Время", column=time_monday)
-    	bot.edit_message_text(chat_id=call.message.chat.id,
-        message_id=call.message.message_id,
-        text=f'Звонки на понедельник\n\n```{table_r}```',
-        reply_markup=kbbb, parse_mode='Markdown')
-    elif call.data == 'r_others':
-        table_r.clear()
-        table_r.add_column(fieldname="№", column=index)
-        table_r.add_column(fieldname="Время", column=time_others)
-        bot.edit_message_text(chat_id=call.message.chat.id,
-        message_id=call.message.message_id,
-        text=f'Звонки на вт-пт\n\n```{table_r}```',
         reply_markup=kbbb, parse_mode='Markdown')
     elif call.data == 'tomorrow':
         wd = datetime.datetime.today().isoweekday()
         table.clear()
+        if datetime.datetime.today().isocalendar()[1] % 2 == 0:
+            lesson = globals()['wday_'+wdays.names(wd+1)+'_1'[1]][0:5]
+            room = globals()['wday_'+wdays.names(wd+1)+'_1'[1]][5]
+        else:
+            lesson = globals()['wday_'+wdays.names(wd+1)+'_2'[1]][0:5]
+            room = globals()['wday_'+wdays.names(wd+1)+'_2'[1]][5]
         table.add_column(fieldname="№", column=index)
-        table.add_column(fieldname="Урок", column=globals()['wday_'+wdays.names(wd+1)[1]][0:8])
-        table.add_column(fieldname="Кабинет", column=globals()['wday_'+wdays.names(wd+1)[1]][8])
+        table.add_column(fieldname="Пара", column=lesson)
+        table.add_column(fieldname="Кабинет", column=room)
         if wd == 5 or wd == 6:
             text = f'Завтра: {wdays.names(wd+1)[0]}\n\nУдачных выходных!'
         else:
-            text = f'Завтра: {wdays.names(wd+1)[0]}\n\n```{table}```'
+            text = f'Завтра: {wdays.names(wd+1)[0]}\n\n```{table}```\n\nЛ - лекция\nПЗ - практическое занятие\nЛАБ - лабораторное занятие'
         bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
         text=text,
