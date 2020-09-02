@@ -110,7 +110,8 @@ def users_handler(m):
         last_name = user['last_name']
         user_id = user['user_id']
         set_group(user_id, 1)
-        group = user['group']
+        #group = user['group']
+        group = 'test'
         if last_name != None:
             text += f'[{first_name} {last_name}](tg://user?id={user_id}) [{group} группа]\n'
         else:
