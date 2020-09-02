@@ -83,9 +83,10 @@ def start_handler(m):
             'group': 1
         })
     else:
-        if get_group(m.from_user.id) != 1 and get_group(m.from_user.id) != 2:
+        group = get_group(m.from_user.id)
+        if group != 1 and group != 2:
             set_group(m.from_user.id, 1)
-        bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{get_group(m.from_user.id)}.*\nВот главное меню:', reply_markup=kbm)
+        bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{group}.*\nВот главное меню:', reply_markup=kbm)
         set_state(m.from_user.id, 'default')
 
 @bot.message_handler(commands=["whatis"])
@@ -108,10 +109,12 @@ def users_handler(m):
         first_name = user['first_name']
         last_name = user['last_name']
         user_id = user['user_id']
+        set_group(user_id, 1)
+        group = user['group']
         if last_name != None:
-            text += f'[{first_name} {last_name}](tg://user?id={user_id})\n'
+            text += f'[{first_name} {last_name}](tg://user?id={user_id}) [{group} группа]\n'
         else:
-            text += f'[{first_name}](tg://user?id={user_id})\n'
+            text += f'[{first_name}](tg://user?id={user_id}) [{group} группа]\n'
     bot.send_message(m.chat.id, text, parse_mode='Markdown')
 
 @bot.message_handler(commands=["broadcast"])
