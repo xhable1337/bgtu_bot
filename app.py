@@ -69,7 +69,7 @@ def get_group(user_id):
 
 def set_group(user_id, group):
     """Позволяет изменить номер группы по user_id."""
-    users.update_one({'user_id': user_id}, {'$set': {'group': group}})
+    users.update_one({'user_id': user_id}, {'$set': {'group': int(group)}})
 
 @bot.message_handler(commands=["start"])
 def start_handler(m):
