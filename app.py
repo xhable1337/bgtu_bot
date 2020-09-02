@@ -105,7 +105,7 @@ def users_reset(m):
             user_id = user['user_id']
             set_state(user_id, 'default')
             set_group(user_id, 1)
-            bot.send_message(m.chat.id, 'Параметры пользователей сброшены!\n\nСостояние = default\nГруппа = 1')
+        bot.send_message(m.chat.id, 'Параметры пользователей сброшены!\n\nСостояние = default\nГруппа = 1')
 
 @bot.message_handler(commands=["users"])
 def users_handler(m):
@@ -188,6 +188,7 @@ def anymess(m):
     if users.find_one({'user_id': m.from_user.id}) == None:
         bot.send_message(m.chat.id, 'Для начала работы с ботом выполните команду /start')
     elif users.find_one({'user_id': m.from_user.id}) != None and get_state(m.from_user.id) == 'default':
+        group = get_group(m.from_user.id)
         bot.send_message(m.chat.id, text=f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{group}.*\nВот главное меню:', reply_markup=kbm)
     elif get_state(m.from_user.id) == 'find_class':
         if re.match(r'(\b[1-9][1-9]\b|\b[1-9]\b)', m.text):
