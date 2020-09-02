@@ -84,8 +84,6 @@ def start_handler(m):
         })
     else:
         group = get_group(m.from_user.id)
-        if group != 1 and group != 2:
-            set_group(m.from_user.id, 1)
         bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{group}.*\nВот главное меню:', reply_markup=kbm)
         set_state(m.from_user.id, 'default')
 
@@ -100,32 +98,46 @@ def whatis(m):
         except KeyError:
             bot.send_message(m.chat.id, f'Переменная `{key}` не найдена!', parse_mode='Markdown')
 
-
+@bot.message_handler(commands=["users_reset"])
+def users_reset(m):
+    if m.chat.id in ADMINS:
+        for user in users.find():
+            user_id = user['user_id']
+            set_state(user_id, 'default')
+            set_group(user_id, 1)
+            bot.send_message(m.chat.id, 'Параметры пользователей сброшены!\n\nСостояние = default\nГруппа = 1')
 
 @bot.message_handler(commands=["users"])
 def users_handler(m):
-    text = '*Список пользователей бота:*\n\n'
-    for user in users.find():
-        first_name = user['first_name']
-        last_name = user['last_name']
-        user_id = user['user_id']
-        set_group(user_id, 1)
-        #group = user['group']
-        group = 'test'
-        if last_name != None:
-            text += f'[{first_name} {last_name}](tg://user?id={user_id}) [{group} группа]\n'
-        else:
-            text += f'[{first_name}](tg://user?id={user_id}) [{group} группа]\n'
-    bot.send_message(m.chat.id, text, parse_mode='Markdown')
+    if m.chat.id in ADMINS:
+        text = '*Список пользователей бота:*\n\n'
+        for user in users.find():
+            first_name = user['first_name']
+            last_name = user['last_name']
+            user_id = user['user_id']
+            group = user['group']
+            if last_name != None:
+                text += f'[{first_name} {last_name}](tg://user?id={user_id}) ◼ *Группа №{group}*\n'
+            else:
+                text += f'[{first_name}](tg://user?id={user_id}) ◼ *Группа №{group}*\n'
+        bot.send_message(m.chat.id, text, parse_mode='Markdown')
 
 @bot.message_handler(commands=["broadcast"])
 def broadcast(m):
     if m.chat.id in ADMINS:
         raw_text = str(m.text)
-        text = raw_text.split(' ', maxsplit=1)[1]
-        for user in users.find():
-            user_id = user['user_id']
-            bot.send_message(user_id, text)
+        group = raw_text.split(' ', maxsplit=2)[1]
+        text = raw_text.split(' ', maxsplit=2)[2]
+        if group == 'all':
+            for user in users.find():
+                user_id = user['user_id']
+                text = f'🔔 Сообщение для всех групп ИВТ!\n' + text
+                bot.send_message(user_id, text)
+        else:
+            for user in users.find({'group': group}):
+                user_id = user['user_id']
+                text = f'🔔 Сообщение для группы №{group}!\n' + text
+                bot.send_message(user_id, text)
 
 @bot.message_handler(commands=["exec"])
 def execute(m):
@@ -176,40 +188,32 @@ def anymess(m):
     if users.find_one({'user_id': m.from_user.id}) == None:
         bot.send_message(m.chat.id, 'Для начала работы с ботом выполните команду /start')
     elif users.find_one({'user_id': m.from_user.id}) != None and get_state(m.from_user.id) == 'default':
-        bot.send_message(m.chat.id, text=f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{get_group(m.from_user.id)}.*\nВот главное меню:', reply_markup=kbm)
+        bot.send_message(m.chat.id, text=f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{group}.*\nВот главное меню:', reply_markup=kbm)
     elif get_state(m.from_user.id) == 'find_class':
         if re.match(r'(\b[1-9][1-9]\b|\b[1-9]\b)', m.text):
             bot.send_photo(m.chat.id, photo=building_1, caption=f'Аудитория {m.text} находится в корпусе №1 (Институтская, 16).')
             bot.send_location(m.chat.id, latitude=53.305077, longitude=34.305080)
             set_state(m.chat.id, 'default')
             group = get_group(m.from_user.id)
-            if group != 1 and group != 2:
-                set_group(m.from_user.id, 1)
-            bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{get_group(m.from_user.id)}.*\nВот главное меню:', reply_markup=kbm)
+            bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{group}.*\nВот главное меню:', reply_markup=kbm)
         elif re.match(r'\b[1-9][0-9][0-9]\b', m.text):
             bot.send_photo(m.chat.id, photo=building_2, caption=f'Аудитория {m.text} находится в корпусе №2 (бульвар 50 лет Октября, 7).')
             bot.send_location(m.chat.id, latitude=53.304442, longitude=34.303849)
             set_state(m.chat.id, 'default')
             group = get_group(m.from_user.id)
-            if group != 1 and group != 2:
-                set_group(m.from_user.id, 1)
-            bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{get_group(m.from_user.id)}.*\nВот главное меню:', reply_markup=kbm)
+            bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{group}.*\nВот главное меню:', reply_markup=kbm)
         elif re.match(r'(\bА\d{3}\b|\b[Аа]\b|\b[Бб]\b|\b[Вв]\b|\b[Гг]\b|\b[Дд]\b)', m.text):
             bot.send_photo(m.chat.id, photo=building_3, caption=f'Аудитория {m.text} находится в корпусе №3 (Харьковская, 8).')
             bot.send_location(m.chat.id, latitude=53.304991, longitude=34.306688)
             set_state(m.chat.id, 'default')
             group = get_group(m.from_user.id)
-            if group != 1 and group != 2:
-                set_group(m.from_user.id, 1)
-            bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{get_group(m.from_user.id)}.*\nВот главное меню:', reply_markup=kbm)
+            bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{group}.*\nВот главное меню:', reply_markup=kbm)
         elif re.match(r'\bБ\d{3}\b', m.text):
             bot.send_photo(m.chat.id, photo=building_4, caption=f'Аудитория {m.text} находится в корпусе №4 (Харьковская, 10Б).')
             bot.send_location(m.chat.id, latitude=53.303513, longitude=34.305085)
             set_state(m.chat.id, 'default')
             group = get_group(m.from_user.id)
-            if group != 1 and group != 2:
-                set_group(m.from_user.id, 1)
-            bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{get_group(m.from_user.id)}.*\nВот главное меню:', reply_markup=kbm)
+            bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{group}.*\nВот главное меню:', reply_markup=kbm)
         else:
             bot.send_message(m.chat.id, 'Данный номер аудитории некорректен. Повторите попытку или отмените действие:', reply_markup=kb_cancel_building)
     elif get_group(m.from_user.id) != 1 and get_group(m.from_user.id) != 2:
@@ -226,9 +230,6 @@ def button_func(call):
         cdata = str(call.data)
         table.clear()
         group = get_group(call.from_user.id)
-        if group != 1 and group != 2:
-            set_group(call.from_user.id, 1)
-            group = 1
         if datetime.datetime.today().isocalendar()[1] % 2 == 0:
             lesson = globals()[f'{cdata}_{group}_1'][0:5]
             room = globals()[f'{cdata}_{group}_1'][5]
@@ -246,9 +247,6 @@ def button_func(call):
         wd = datetime.datetime.today().isoweekday()
         table.clear()
         group = get_group(call.from_user.id)
-        if group != 1 and group != 2:
-            set_group(call.from_user.id, 1)
-            group = 1
         if datetime.datetime.today().isocalendar()[1] % 2 == 0:
             lesson = globals()[f'wday_{wdays.names(wd)[1]}_{group}_1'][0:5]
             room = globals()[f'wday_{wdays.names(wd)[1]}_{group}_1'][5]
@@ -276,9 +274,6 @@ def button_func(call):
         wd = datetime.datetime.today().isoweekday()
         table.clear()
         group = get_group(call.from_user.id)
-        if group != 1 and group != 2:
-            set_group(call.from_user.id, 1)
-            group = 1
         if datetime.datetime.today().isocalendar()[1] % 2 == 0:
             lesson = globals()[f'wday_{wdays.names(wd+1)[1]}_{group}_1'][0:5]
             room = globals()[f'wday_{wdays.names(wd+1)[1]}_{group}_1'][5]
