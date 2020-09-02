@@ -51,7 +51,7 @@ wday_friday_2_2 = ['[ЛАБ] Програм.', '[ПЗ] Ин.яз.', '[ПЗ] Ин
 time = ['8:00-9:35', '9:45-11:20', '11:30-13:05', '13:20-14:55', '15:05-16:40']
 
 ADMINS = [124361528]
-bot = telebot.TeleBot(token, parse_mode='Markdown')
+bot = telebot.TeleBot(token, parse_mode='MARKDOWN')
 table = PrettyTable()
 table_r = PrettyTable()
 
