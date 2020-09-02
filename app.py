@@ -83,6 +83,8 @@ def start_handler(m):
             'group': 1
         })
     else:
+        if get_group(m.from_user.id) != 1 and get_group(m.from_user.id) != 2:
+            set_group(m.from_user.id, 1)
         bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{get_group(m.from_user.id)}.*\nВот главное меню:', reply_markup=kbm)
         set_state(m.from_user.id, 'default')
 
@@ -176,24 +178,38 @@ def anymess(m):
             bot.send_photo(m.chat.id, photo=building_1, caption=f'Аудитория {m.text} находится в корпусе №1 (Институтская, 16).')
             bot.send_location(m.chat.id, latitude=53.305077, longitude=34.305080)
             set_state(m.chat.id, 'default')
+            group = get_group(m.from_user.id)
+            if group != 1 and group != 2:
+                set_group(m.from_user.id, 1)
             bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{get_group(m.from_user.id)}.*\nВот главное меню:', reply_markup=kbm)
         elif re.match(r'\b[1-9][0-9][0-9]\b', m.text):
             bot.send_photo(m.chat.id, photo=building_2, caption=f'Аудитория {m.text} находится в корпусе №2 (бульвар 50 лет Октября, 7).')
             bot.send_location(m.chat.id, latitude=53.304442, longitude=34.303849)
             set_state(m.chat.id, 'default')
+            group = get_group(m.from_user.id)
+            if group != 1 and group != 2:
+                set_group(m.from_user.id, 1)
             bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{get_group(m.from_user.id)}.*\nВот главное меню:', reply_markup=kbm)
         elif re.match(r'(\bА\d{3}\b|\b[Аа]\b|\b[Бб]\b|\b[Вв]\b|\b[Гг]\b|\b[Дд]\b)', m.text):
             bot.send_photo(m.chat.id, photo=building_3, caption=f'Аудитория {m.text} находится в корпусе №3 (Харьковская, 8).')
             bot.send_location(m.chat.id, latitude=53.304991, longitude=34.306688)
             set_state(m.chat.id, 'default')
+            group = get_group(m.from_user.id)
+            if group != 1 and group != 2:
+                set_group(m.from_user.id, 1)
             bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{get_group(m.from_user.id)}.*\nВот главное меню:', reply_markup=kbm)
         elif re.match(r'\bБ\d{3}\b', m.text):
             bot.send_photo(m.chat.id, photo=building_4, caption=f'Аудитория {m.text} находится в корпусе №4 (Харьковская, 10Б).')
             bot.send_location(m.chat.id, latitude=53.303513, longitude=34.305085)
             set_state(m.chat.id, 'default')
+            group = get_group(m.from_user.id)
+            if group != 1 and group != 2:
+                set_group(m.from_user.id, 1)
             bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{get_group(m.from_user.id)}.*\nВот главное меню:', reply_markup=kbm)
         else:
             bot.send_message(m.chat.id, 'Данный номер аудитории некорректен. Повторите попытку или отмените действие:', reply_markup=kb_cancel_building)
+    elif get_group(m.from_user.id) != 1 and get_group(m.from_user.id) != 2:
+        set_group(m.from_user.id, 1)
 
 @bot.callback_query_handler(func=lambda call: True)
 def button_func(call):
