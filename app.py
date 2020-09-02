@@ -84,7 +84,7 @@ def start_handler(m):
         })
     else:
         group = get_group(m.from_user.id)
-        bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{group}.*\nВот главное меню:', reply_markup=kbm)
+        bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{group}.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
         set_state(m.from_user.id, 'default')
 
 @bot.message_handler(commands=["whatis"])
@@ -131,13 +131,13 @@ def broadcast(m):
         if group == 'all':
             for user in users.find():
                 user_id = user['user_id']
-                text = f'🔔 Сообщение для всех групп ИВТ!\n' + text
-                bot.send_message(user_id, text)
+                text = f'🔔 *Сообщение для всех групп ИВТ!*\n' + text
+                bot.send_message(user_id, text, parse_mode='Markdown')
         else:
             for user in users.find({'group': group}):
                 user_id = user['user_id']
-                text = f'🔔 Сообщение для группы №{group}!\n' + text
-                bot.send_message(user_id, text)
+                text = f'🔔 *Сообщение для группы №{group}!*\n' + text
+                bot.send_message(user_id, text, parse_mode='Markdown')
 
 @bot.message_handler(commands=["exec"])
 def execute(m):
@@ -189,32 +189,32 @@ def anymess(m):
         bot.send_message(m.chat.id, 'Для начала работы с ботом выполните команду /start')
     elif users.find_one({'user_id': m.from_user.id}) != None and get_state(m.from_user.id) == 'default':
         group = get_group(m.from_user.id)
-        bot.send_message(m.chat.id, text=f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{group}.*\nВот главное меню:', reply_markup=kbm)
+        bot.send_message(m.chat.id, text=f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{group}.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
     elif get_state(m.from_user.id) == 'find_class':
         if re.match(r'(\b[1-9][1-9]\b|\b[1-9]\b)', m.text):
-            bot.send_photo(m.chat.id, photo=building_1, caption=f'Аудитория {m.text} находится в корпусе №1 (Институтская, 16).')
+            bot.send_photo(m.chat.id, photo=building_1, caption=f'Аудитория {m.text} находится в корпусе №1 _(Институтская, 16)_.', parse_mode='Markdown')
             bot.send_location(m.chat.id, latitude=53.305077, longitude=34.305080)
             set_state(m.chat.id, 'default')
             group = get_group(m.from_user.id)
-            bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{group}.*\nВот главное меню:', reply_markup=kbm)
+            bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{group}.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
         elif re.match(r'\b[1-9][0-9][0-9]\b', m.text):
-            bot.send_photo(m.chat.id, photo=building_2, caption=f'Аудитория {m.text} находится в корпусе №2 (бульвар 50 лет Октября, 7).')
+            bot.send_photo(m.chat.id, photo=building_2, caption=f'Аудитория {m.text} находится в корпусе №2 _(бульвар 50 лет Октября, 7)_.', parse_mode='Markdown')
             bot.send_location(m.chat.id, latitude=53.304442, longitude=34.303849)
             set_state(m.chat.id, 'default')
             group = get_group(m.from_user.id)
-            bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{group}.*\nВот главное меню:', reply_markup=kbm)
+            bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{group}.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
         elif re.match(r'(\bА\d{3}\b|\b[Аа]\b|\b[Бб]\b|\b[Вв]\b|\b[Гг]\b|\b[Дд]\b)', m.text):
-            bot.send_photo(m.chat.id, photo=building_3, caption=f'Аудитория {m.text} находится в корпусе №3 (Харьковская, 8).')
+            bot.send_photo(m.chat.id, photo=building_3, caption=f'Аудитория {m.text} находится в корпусе №3 _(Харьковская, 8)_.', parse_mode='Markdown')
             bot.send_location(m.chat.id, latitude=53.304991, longitude=34.306688)
             set_state(m.chat.id, 'default')
             group = get_group(m.from_user.id)
-            bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{group}.*\nВот главное меню:', reply_markup=kbm)
+            bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{group}.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
         elif re.match(r'\bБ\d{3}\b', m.text):
-            bot.send_photo(m.chat.id, photo=building_4, caption=f'Аудитория {m.text} находится в корпусе №4 (Харьковская, 10Б).')
+            bot.send_photo(m.chat.id, photo=building_4, caption=f'Аудитория {m.text} находится в корпусе №4 _(Харьковская, 10Б)_.')
             bot.send_location(m.chat.id, latitude=53.303513, longitude=34.305085)
             set_state(m.chat.id, 'default')
             group = get_group(m.from_user.id)
-            bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{group}.*\nВот главное меню:', reply_markup=kbm)
+            bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{group}.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
         else:
             bot.send_message(m.chat.id, 'Данный номер аудитории некорректен. Повторите попытку или отмените действие:', reply_markup=kb_cancel_building)
     elif get_group(m.from_user.id) != 1 and get_group(m.from_user.id) != 2:
