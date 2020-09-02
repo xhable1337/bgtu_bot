@@ -26,21 +26,32 @@ server = Flask(__name__)
 token = os.environ['token']
 no = '-'
 index = [1, 2, 3, 4, 5]
-wday_monday_1 = ['[ПЗ] Ин.яз.', '[Л] Мат.анализ', '[ПЗ] Мат.анализ', '[ПЗ] Ин.яз.', no, [322, 'А', 'Б204', 322, no]]
-wday_monday_2 = ['[Л] Физ-ра', '[Л] Мат.анализ', '[ПЗ] Мат.анализ', '[ПЗ] Ин.яз.', no, ['Б404', 'А', 'Б204', 322, no]]
-wday_tuesday_1 = ['[Л] Дискр.мат.', '[ПЗ] Дискр.мат.', '[Л] Програм.', no, no, ['B', 'Б204', 219, no, no]]
-wday_tuesday_2 = ['[Л] Информат.', '[ПЗ] Дискр.мат.', '[Л] Програм.', no, no, [219, 'Б204', 219, no, no]]
-wday_wednesday_1 = [no, '[Л] Алг. и геом.', '[ПЗ] Физ-ра', no, no, [no, 'A', 'спортзал', no, no]]
-wday_wednesday_2 = [no, '[Л] Алг. и геом.', '[ПЗ] Физ-ра', no, no, [no, 'A', 'спортзал', no, no]]
-wday_thursday_1 = [no, '[ЛАБ] Програм.', '[ПЗ] Ин.яз.', no, no, [no, 408, 322, no, no]]
-wday_thursday_2 = [no, '[ЛАБ] Програм.', '[ПЗ] Ин.яз.', '[ПЗ] Ин. яз.', no, [no, 408, 322, 322, no]]
-wday_friday_1 = ['[ПЗ] Алг. и геом.', '[Л] Пед. и псих.', '[ПЗ] Пед. и псих.', no, no, ['Б204', 'Б', 'А211', no, no]]
-wday_friday_2 = ['[ПЗ] Алг. и геом.', '[ЛАБ] Информат.', '[ПЗ] Пед. и псих.', no, no, ['Б204', 408, 'А211', no, no]]
+wday_monday_1_1 = ['[ПЗ] Ин.яз.', '[Л] Мат.анализ', '[ПЗ] Мат.анализ', '[ПЗ] Ин.яз.', no, [322, 'А', 'Б204', 322, no]]
+wday_monday_1_2 = ['[Л] Физ-ра', '[Л] Мат.анализ', '[ПЗ] Мат.анализ', '[ПЗ] Ин.яз.', no, ['Б404', 'А', 'Б204', 322, no]]
+wday_tuesday_1_1 = ['[Л] Дискр.мат.', '[ПЗ] Дискр.мат.', '[Л] Програм.', no, no, ['B', 'Б204', 219, no, no]]
+wday_tuesday_1_2 = ['[Л] Информат.', '[ПЗ] Дискр.мат.', '[Л] Програм.', no, no, [219, 'Б204', 219, no, no]]
+wday_wednesday_1_1 = [no, '[Л] Алг. и геом.', '[ПЗ] Физ-ра', no, no, [no, 'A', 'спортзал', no, no]]
+wday_wednesday_1_2 = [no, '[Л] Алг. и геом.', '[ПЗ] Физ-ра', no, no, [no, 'A', 'спортзал', no, no]]
+wday_thursday_1_1 = [no, '[ЛАБ] Програм.', '[ПЗ] Ин.яз.', no, no, [no, 408, 322, no, no]]
+wday_thursday_1_2 = [no, '[ЛАБ] Програм.', '[ПЗ] Ин.яз.', '[ПЗ] Ин. яз.', no, [no, 408, 322, 322, no]]
+wday_friday_1_1 = ['[ПЗ] Алг. и геом.', '[Л] Пед. и псих.', '[ПЗ] Пед. и псих.', no, no, ['Б204', 'Б', 'А211', no, no]]
+wday_friday_1_2 = ['[ПЗ] Алг. и геом.', '[ЛАБ] Информат.', '[ПЗ] Пед. и псих.', no, no, ['Б204', 408, 'А211', no, no]]
+
+wday_monday_2_1 = [no, '[Л] Мат.анализ', '[ПЗ] Дискр.мат.', '[ПЗ] Ин.яз.', no, [no, 'А', 'Б302', 322, no]]
+wday_monday_2_2 = ['[Л] Физ-ра', '[Л] Мат.анализ', '[ПЗ] Мат.анализ', '[ПЗ] Ин.яз.', no, ['Б404', 'А', 'Б204', 322, no]]
+wday_tuesday_2_1 = ['[Л] Дискр.мат.', '[ПЗ] Мат.анализ', '[Л] Програм.', no, no, ['B', 'Б302', 219, no, no]]
+wday_tuesday_2_2 = ['[Л] Информат.', '[ПЗ] Мат.анализ', '[Л] Програм.', no, no, [219, 'Б302', 219, no, no]]
+wday_wednesday_2_1 = [no, '[Л] Алг. и геом.', '[ПЗ] Физ-ра', no, no, [no, 'A', 'спортзал', no, no]]
+wday_wednesday_2_2 = ['[ЛАБ] Информат.', '[Л] Алг. и геом.', '[ПЗ] Физ-ра', no, no, ['408', 'A', 'спортзал', no, no]]
+wday_thursday_2_1 = ['[ПЗ] Пед. и псих.', '[ПЗ] Алг. и геом.', '[ПЗ] Ин.яз.', no, no, ['А211', 'Б203', 322, no, no]]
+wday_thursday_2_2 = ['[ПЗ] Пед. и псих.', '[ПЗ] Алг. и геом.', no, no, ['А211', 'Б203', no, no, no]]
+wday_friday_2_1 = ['[ЛАБ] Програм.', '[Л] Пед. и псих.', '[ПЗ] Ин.яз.', no, no, [408, 'Б', 322, no, no]]
+wday_friday_2_2 = ['[ЛАБ] Програм.', '[ПЗ] Ин.яз.', '[ПЗ] Ин.яз.', no, no, [408, 321, 322, no, no]]
 
 time = ['8:00-9:35', '9:45-11:20', '11:30-13:05', '13:20-14:55', '15:05-16:40']
 
 ADMINS = [124361528]
-bot = telebot.TeleBot(token)
+bot = telebot.TeleBot(token, parse_mode='Markdown')
 table = PrettyTable()
 table_r = PrettyTable()
 
@@ -52,6 +63,14 @@ def set_state(user_id, state):
     """Позволяет изменить state по user_id."""
     users.update_one({'user_id': user_id}, {'$set': {'state': state}})
 
+def get_group(user_id):
+    """Позволяет просмотреть номер группы по user_id."""
+    return users.find_one({'user_id': user_id})['group']
+
+def set_group(user_id, group):
+    """Позволяет изменить номер группы по user_id."""
+    users.update_one({'user_id': user_id}, {'$set': {'group': group}})
+
 @bot.message_handler(commands=["start"])
 def start_handler(m):
     if users.find_one({'user_id': m.from_user.id}) == None:
@@ -60,10 +79,11 @@ def start_handler(m):
             'last_name': m.from_user.last_name,
             'user_id': m.from_user.id,
             'username': m.from_user.username,
-            'state': 'default'
+            'state': 'default',
+            'group': 1
         })
     else:
-        bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\nВот главное меню:', reply_markup=kbm)
+        bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{get_group(m.from_user.id)}.*\nВот главное меню:', reply_markup=kbm)
         set_state(m.from_user.id, 'default')
 
 @bot.message_handler(commands=["whatis"])
@@ -117,6 +137,7 @@ kbm.row(types.InlineKeyboardButton(text='📅 Расписание по дням
 kbm.row(types.InlineKeyboardButton(text='⚡️ Сегодня', callback_data='today'), types.InlineKeyboardButton(text='⚡️ Завтра', callback_data='tomorrow'))
 kbm.row(types.InlineKeyboardButton(text='🔔 Расписание пар', callback_data='rings'))
 kbm.row(types.InlineKeyboardButton(text='🏠 Найти корпус по аудитории', callback_data='building'))
+kbm.row(types.InlineKeyboardButton(text='🔂 Сменить номер группы', callback_data='change_group'))
 
 kb_r = types.InlineKeyboardMarkup()
 kb_r.row(types.InlineKeyboardButton(text='Понедельник', callback_data='r_monday'))
@@ -140,33 +161,37 @@ kbbb.row(types.InlineKeyboardButton(text='🔄 В главное меню', call
 kb_cancel_building = types.InlineKeyboardMarkup()
 kb_cancel_building.row(types.InlineKeyboardButton(text='🚫 Отмена', callback_data='cancel_find_class'))
 
+kb_group = types.InlineKeyboardMarkup()
+kb_group.row(types.InlineKeyboardButton(text='1️⃣', callback_data='group_1'), types.InlineKeyboardButton(text='2️⃣', callback_data='group_2'))
+kb_group.row(types.InlineKeyboardButton(text='🚫 Отмена', callback_data='cancel_find_class'))
+
 @bot.message_handler(content_types=["text"])
 def anymess(m):
     if users.find_one({'user_id': m.from_user.id}) == None:
         bot.send_message(m.chat.id, 'Для начала работы с ботом выполните команду /start')
     elif users.find_one({'user_id': m.from_user.id}) != None and get_state(m.from_user.id) == 'default':
-        bot.send_message(m.chat.id, text='Главное меню:', reply_markup=kbm)
+        bot.send_message(m.chat.id, text=f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{get_group(m.from_user.id)}.*\nВот главное меню:', reply_markup=kbm)
     elif get_state(m.from_user.id) == 'find_class':
         if re.match(r'(\b[1-9][1-9]\b|\b[1-9]\b)', m.text):
             bot.send_photo(m.chat.id, photo=building_1, caption=f'Аудитория {m.text} находится в корпусе №1 (Институтская, 16).')
             bot.send_location(m.chat.id, latitude=53.305077, longitude=34.305080)
             set_state(m.chat.id, 'default')
-            bot.send_message(m.chat.id, 'Главное меню', reply_markup=kbm)
+            bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{get_group(m.from_user.id)}.*\nВот главное меню:', reply_markup=kbm)
         elif re.match(r'\b[1-9][0-9][0-9]\b', m.text):
             bot.send_photo(m.chat.id, photo=building_2, caption=f'Аудитория {m.text} находится в корпусе №2 (бульвар 50 лет Октября, 7).')
             bot.send_location(m.chat.id, latitude=53.304442, longitude=34.303849)
             set_state(m.chat.id, 'default')
-            bot.send_message(m.chat.id, 'Главное меню', reply_markup=kbm)
+            bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{get_group(m.from_user.id)}.*\nВот главное меню:', reply_markup=kbm)
         elif re.match(r'(\bА\d{3}\b|\b[Аа]\b|\b[Бб]\b|\b[Вв]\b|\b[Гг]\b|\b[Дд]\b)', m.text):
             bot.send_photo(m.chat.id, photo=building_3, caption=f'Аудитория {m.text} находится в корпусе №3 (Харьковская, 8).')
             bot.send_location(m.chat.id, latitude=53.304991, longitude=34.306688)
             set_state(m.chat.id, 'default')
-            bot.send_message(m.chat.id, 'Главное меню', reply_markup=kbm)
+            bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{get_group(m.from_user.id)}.*\nВот главное меню:', reply_markup=kbm)
         elif re.match(r'\bБ\d{3}\b', m.text):
             bot.send_photo(m.chat.id, photo=building_4, caption=f'Аудитория {m.text} находится в корпусе №4 (Харьковская, 10Б).')
             bot.send_location(m.chat.id, latitude=53.303513, longitude=34.305085)
             set_state(m.chat.id, 'default')
-            bot.send_message(m.chat.id, 'Главное меню', reply_markup=kbm)
+            bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{get_group(m.from_user.id)}.*\nВот главное меню:', reply_markup=kbm)
         else:
             bot.send_message(m.chat.id, 'Данный номер аудитории некорректен. Повторите попытку или отмените действие:', reply_markup=kb_cancel_building)
 
@@ -180,35 +205,43 @@ def button_func(call):
     elif call.data[:5] == 'wday_':
         cdata = str(call.data)
         table.clear()
+        group = get_group(call.from_user.id)
+        if group != 1 and group != 2:
+            set_group(call.from_user.id, 1)
+            group = 1
         if datetime.datetime.today().isocalendar()[1] % 2 == 0:
-            lesson = globals()[f'{cdata}_1'][0:5]
-            room = globals()[f'{cdata}_1'][5]
+            lesson = globals()[f'{cdata}_{group}_1'][0:5]
+            room = globals()[f'{cdata}_{group}_1'][5]
         else:
-            lesson = globals()[f'{cdata}_2'][0:5]
-            room = globals()[f'{cdata}_2'][5]
+            lesson = globals()[f'{cdata}_{group}_2'][0:5]
+            room = globals()[f'{cdata}_{group}_2'][5]
         table.add_column(fieldname="№", column=index)
         table.add_column(fieldname="Пара", column=lesson)
         table.add_column(fieldname="Кабинет", column=room)
         bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
-        text=f'Расписание: {wdays.translate(cdata[5:])}\n\n```{table}```\n\nЛ - лекция\nПЗ - практическое занятие\nЛАБ - лабораторное занятие',
+        text=f'*Выбрана группа №{group}*\nРасписание: {wdays.translate(cdata[5:])}\n\n```{table}```\n\n`[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*',
         reply_markup=kbb, parse_mode='Markdown')
     elif call.data == 'today':
         wd = datetime.datetime.today().isoweekday()
         table.clear()
+        group = get_group(call.from_user.id)
+        if group != 1 and group != 2:
+            set_group(call.from_user.id, 1)
+            group = 1
         if datetime.datetime.today().isocalendar()[1] % 2 == 0:
-            lesson = globals()[f'wday_{wdays.names(wd)[1]}_1'][0:5]
-            room = globals()[f'wday_{wdays.names(wd)[1]}_1'][5]
+            lesson = globals()[f'wday_{wdays.names(wd)[1]}_{group}_1'][0:5]
+            room = globals()[f'wday_{wdays.names(wd)[1]}_{group}_1'][5]
         else:
-            lesson = globals()[f'wday_{wdays.names(wd)[1]}_2'][0:5]
-            room = globals()[f'wday_{wdays.names(wd)[1]}_2'][5]
+            lesson = globals()[f'wday_{wdays.names(wd)[1]}_{group}_2'][0:5]
+            room = globals()[f'wday_{wdays.names(wd)[1]}_{group}_2'][5]
         table.add_column(fieldname="№", column=index)
         table.add_column(fieldname="Пара", column=lesson)
         table.add_column(fieldname="Кабинет", column=room)
         if wd == 6 or wd == 7:
             text = f'Сегодня: {wdays.names(wd)[0]}\n\nУдачных выходных!'
         else:
-            text = f'Сегодня: {wdays.names(wd)[0]}\n\n```{table}```\n\nЛ - лекция\nПЗ - практическое занятие\nЛАБ - лабораторное занятие'
+            text = f'*Выбрана группа №{group}*\nСегодня: {wdays.names(wd)[0]}\n\n```{table}```\n\n`[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*'
         bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
         text=text, reply_markup=kbbb, parse_mode='Markdown')
@@ -222,19 +255,23 @@ def button_func(call):
     elif call.data == 'tomorrow':
         wd = datetime.datetime.today().isoweekday()
         table.clear()
+        group = get_group(call.from_user.id)
+        if group != 1 and group != 2:
+            set_group(call.from_user.id, 1)
+            group = 1
         if datetime.datetime.today().isocalendar()[1] % 2 == 0:
-            lesson = globals()[f'wday_{wdays.names(wd+1)[1]}_1'][0:5]
-            room = globals()[f'wday_{wdays.names(wd+1)[1]}_1'][5]
+            lesson = globals()[f'wday_{wdays.names(wd+1)[1]}_{group}_1'][0:5]
+            room = globals()[f'wday_{wdays.names(wd+1)[1]}_{group}_1'][5]
         else:
-            lesson = globals()[f'wday_{wdays.names(wd+1)[1]}_2'][0:5]
-            room = globals()[f'wday_{wdays.names(wd+1)[1]}_2'][5]
+            lesson = globals()[f'wday_{wdays.names(wd+1)[1]}_{group}_2'][0:5]
+            room = globals()[f'wday_{wdays.names(wd+1)[1]}_{group}_2'][5]
         table.add_column(fieldname="№", column=index)
         table.add_column(fieldname="Пара", column=lesson)
         table.add_column(fieldname="Кабинет", column=room)
         if wd == 5 or wd == 6:
-            text = f'Завтра: {wdays.names(wd+1)[0]}\n\nУдачных выходных!'
+            text = f'*Выбрана группа №{group}*\nЗавтра: {wdays.names(wd+1)[0]}\n\nУдачных выходных!'
         else:
-            text = f'Завтра: {wdays.names(wd+1)[0]}\n\n```{table}```\n\nЛ - лекция\nПЗ - практическое занятие\nЛАБ - лабораторное занятие'
+            text = f'*Выбрана группа №{group}*\nЗавтра: {wdays.names(wd+1)[0]}\n\n```{table}```\n\n`[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*'
         bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
         text=text,
@@ -242,17 +279,28 @@ def button_func(call):
     elif call.data == 'tomain':
         bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
-        text='Главное меню',
+        text=f'Привет, {call.from_user.first_name}!\n*Сейчас выбрана группа №{get_group(call.from_user.id)}.*\nВот главное меню:',
         reply_markup=kbm, parse_mode='Markdown')
     elif call.data == 'building':
         set_state(call.from_user.id, 'find_class')
-        print('hello from the other siiiiideeee')
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text='Отправьте номер аудитории:', reply_markup=kb_cancel_building, parse_mode='Markdown')
     elif call.data == 'cancel_find_class':
         set_state(call.from_user.id, 'default')
         bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
-        text='Главное меню',
+        text=f'Привет, {call.from_user.first_name}!\n*Сейчас выбрана группа №{get_group(call.from_user.id)}.*\nВот главное меню:',
+        reply_markup=kbm, parse_mode='Markdown')
+    elif call.data == 'change_group':
+        bot.edit_message_text(chat_id=call.message.chat.id,
+        message_id=call.message.message_id,
+        text=f'Выберите группу:',
+        reply_markup=kb_group, parse_mode='Markdown')
+    elif str(call.data).startswith('group_'):
+        group = call.data[-1]
+        set_group(call.from_user.id, group)
+        bot.edit_message_text(chat_id=call.message.chat.id,
+        message_id=call.message.message_id,
+        text=f'Привет, {call.from_user.first_name}!\n*Сейчас выбрана группа №{get_group(call.from_user.id)}.*\nВот главное меню:',
         reply_markup=kbm, parse_mode='Markdown')
 
 
