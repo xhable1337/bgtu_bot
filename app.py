@@ -129,14 +129,14 @@ def broadcast(m):
         group = raw_text.split(' ', maxsplit=2)[1]
         text = raw_text.split(' ', maxsplit=2)[2]
         if group == 'all':
+            text = f'🔔 *Сообщение для всех групп ИВТ!*\n' + text
             for user in users.find():
                 user_id = user['user_id']
-                text = f'🔔 *Сообщение для всех групп ИВТ!*\n' + text
                 bot.send_message(user_id, text, parse_mode='Markdown')
         else:
+            text = f'🔔 *Сообщение для группы №{group}!*\n' + text
             for user in users.find({'group': group}):
                 user_id = user['user_id']
-                text = f'🔔 *Сообщение для группы №{group}!*\n' + text
                 bot.send_message(user_id, text, parse_mode='Markdown')
 
 @bot.message_handler(commands=["exec"])
