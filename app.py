@@ -64,7 +64,7 @@ def start_handler(m):
         for group in group_list:
             kb_group.row(types.InlineKeyboardButton(text=group, callback_data=ru_en(group)))
 
-        bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Для начала работы с ботом выбери свою группу (впоследствии выбор можно изменить):*', reply_markup=kbm, parse_mode='Markdown')
+        bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Для начала работы с ботом выбери свою группу (впоследствии выбор можно изменить):*', reply_markup=kb_group, parse_mode='Markdown')
     else:
         group = get_group(m.from_user.id)
         bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Выбранная группа: {group}.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
