@@ -35,9 +35,10 @@ ADMINS = [124361528]
 bot = telebot.TeleBot(token, 'Markdown')
 
 table = PrettyTable()
+table.field_names = ['№', 'Пара', 'Кабинет']
+
 table_r = PrettyTable()
 
-table.field_names = ['№', 'Пара', 'Кабинет']
 
 def ru_en(text):
     """Функция транслитерации с русского на английский."""
@@ -216,13 +217,21 @@ def button_func(call):
         text='Выберите день недели:',
         reply_markup=kb_dn)
     elif call.data[:5] == 'wday_':
+        table = PrettyTable()
+        table.field_names = ['№', 'Пара', 'Кабинет']
         group = get_group(call.from_user.id)
+        isoweekday = datetime.datetime.today().isoweekday()
         weekday = call.data[5:]
-        
-        if datetime.datetime.today().isocalendar()[1] % 2 == 0:
-            weeknum = '1'
+        if isoweekday == 6 or isoweekday == 7:
+            if datetime.datetime.today().isocalendar()[1] % 2 != 0:
+                weeknum = '1'
+            else:
+                weeknum = '2'
         else:
-            weeknum = '2'
+            if datetime.datetime.today().isocalendar()[1] % 2 == 0:
+                weeknum = '1'
+            else:
+                weeknum = '2'
         
         schedule = get_schedule(group, weekday, weeknum)
 
@@ -233,33 +242,32 @@ def button_func(call):
         message_id=call.message.message_id,
         text=f'*Выбрана группа №{group}*\nРасписание: {wdays.translate(weekday)}\n\n```{table}```\n\n`[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*',
         reply_markup=kbb, parse_mode='Markdown')
-
-        table.clear()
     elif call.data == 'today':
         group = get_group(call.from_user.id)
         isoweekday = datetime.datetime.today().isoweekday()
-        weekday = wdays.names(isoweekday)[1]
-
-        if datetime.datetime.today().isocalendar()[1] % 2 == 0:
-            weeknum = '1'
-        else:
-            weeknum = '2'
-        
-        schedule = get_schedule(group, weekday, weeknum)
-        
-        for lesson in schedule:
-            table.add_row(lesson)
-        
         if isoweekday == 6 or isoweekday == 7:
-            text = f'Сегодня: {wdays.names(isoweekday)[0]}\n\nУдачных выходных!'
+            text = f'*Выбрана группа {group}*\nСегодня: {wdays.names(isoweekday)[0]}\n\nУдачных выходных!'
         else:
+            table = PrettyTable()
+            table.field_names = ['№', 'Пара', 'Кабинет']
+            group = get_group(call.from_user.id)
+            isoweekday = datetime.datetime.today().isoweekday()
+            weekday = wdays.names(isoweekday)[1]
+
+            if datetime.datetime.today().isocalendar()[1] % 2 == 0:
+                weeknum = '1'
+            else:
+                weeknum = '2'
+
+            schedule = get_schedule(group, weekday, weeknum)
+
+            for lesson in schedule:
+                table.add_row(lesson)
             text = f'*Выбрана группа №{group}*\nСегодня: {wdays.names(isoweekday)[0]}\n\n```{table}```\n\n`[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*'
 
         bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
         text=text, reply_markup=kbbb, parse_mode='Markdown')
-
-        table.clear()
     elif call.data == 'rings':
         table_r.clear()
         table_r.add_column(fieldname="№", column=index)
@@ -270,29 +278,43 @@ def button_func(call):
     elif call.data == 'tomorrow':
         group = get_group(call.from_user.id)
         isoweekday = datetime.datetime.today().isoweekday() + 1
-        weekday = wdays.names(isoweekday)[1]
-
-        if datetime.datetime.today().isocalendar()[1] % 2 == 0:
-            weeknum = '1'
-        else:
-            weeknum = '2'
-        
-        schedule = get_schedule(group, weekday, weeknum)
-
-        for lesson in schedule:
-            table.add_row(lesson)
-        
         if isoweekday == 6 or isoweekday == 7:
-            text = f'*Выбрана группа №{group}*\nЗавтра: {wdays.names(isoweekday)[0]}\n\nУдачных выходных!'
+            text = f'*Выбрана группа {group}*\nЗавтра: {wdays.names(isoweekday)[0]}\n\nУдачных выходных!'
+        elif isoweekday == 8:
+            table = PrettyTable()
+            table.field_names = ['№', 'Пара', 'Кабинет']
+            weekday = wdays.names(isoweekday)[1]
+
+            if datetime.datetime.today().isocalendar()[1] % 2 != 0:
+                weeknum = '1'
+            else:
+                weeknum = '2'
+
+            schedule = get_schedule(group, weekday, weeknum)
+
+            for lesson in schedule:
+                table.add_row(lesson)
+            text = f'*Выбрана группа №{group}*\nЗавтра: {wdays.names(isoweekday)[0]}\n\n```{table}```\n\n`[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*'
         else:
+            table = PrettyTable()
+            table.field_names = ['№', 'Пара', 'Кабинет']
+            weekday = wdays.names(isoweekday)[1]
+
+            if datetime.datetime.today().isocalendar()[1] % 2 == 0:
+                weeknum = '1'
+            else:
+                weeknum = '2'
+
+            schedule = get_schedule(group, weekday, weeknum)
+
+            for lesson in schedule:
+                table.add_row(lesson)
             text = f'*Выбрана группа №{group}*\nЗавтра: {wdays.names(isoweekday)[0]}\n\n```{table}```\n\n`[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*'
 
         bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
         text=text,
         reply_markup=kbbb, parse_mode='Markdown')
-
-        table.clear()
     elif call.data == 'tomain':
         bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
