@@ -31,9 +31,9 @@ CHROMEDRIVER_PATH = 'chromedriver'
 
 chrome_options = webdriver.ChromeOptions()
 chrome_options.add_argument('--no-sandbox')
-chrome_options.add_argument('--headless')
-chrome_options.add_argument('--disable-infobars')
+#chrome_options.add_argument('--headless')
 chrome_options.add_argument('--disable-dev-shm-usage')
+chrome_options.add_argument('--disable-infobars')
 chrome_options.add_argument('--disable-browser-side-navigation')
 chrome_options.add_argument('--disable-gpu')
 chrome_options.add_argument("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36 OPR/68.0.3618.206 (Edition Yx GX)")
@@ -83,7 +83,7 @@ def get_groups(faculty='Факультет информационных техн
     """
     if groups_db.find_one() is None:
         year = str(year)
-        driver = webdriver.Chrome(chrome_options=chrome_options)
+        driver = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH, chrome_options=chrome_options)
         #executable_path=CHROMEDRIVER_PATH, 
         #driver = webdriver.Firefox(options=firefox_options)
         #driver = webdriver.Chrome(executable_path='chromedriver.exe')
@@ -111,7 +111,7 @@ def get_groups(faculty='Факультет информационных техн
     else:
         if force_update == True:
             year = str(year)
-            driver = webdriver.Chrome(chrome_options=chrome_options)
+            driver = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH, chrome_options=chrome_options)
             #driver = webdriver.Firefox(options=firefox_options)
             #driver = webdriver.Chrome(executable_path='chromedriver.exe')
             url = 'https://www.tu-bryansk.ru/education/schedule/'
@@ -185,7 +185,7 @@ def get_schedule(group, weekday, weeknum):
 
         }
 
-        driver = webdriver.Chrome(chrome_options=chrome_options)
+        driver = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH, chrome_options=chrome_options)
         #driver = webdriver.Firefox(options=firefox_options)
         #driver = webdriver.Chrome(executable_path='chromedriver.exe')
         url = 'https://www.tu-bryansk.ru/education/schedule/'
