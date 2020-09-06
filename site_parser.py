@@ -26,7 +26,7 @@ import re
 import datetime
 import os
 
-CHROME_BIN = os.environ['GOOGLE_CHROME_SHIM']
+#CHROME_BIN = os.environ['GOOGLE_CHROME_SHIM']
 CHROMEDRIVER_PATH = 'chromedriver'
 
 chrome_options = webdriver.ChromeOptions()
@@ -37,7 +37,7 @@ chrome_options.add_argument('--disable-infobars')
 chrome_options.add_argument('--disable-browser-side-navigation')
 chrome_options.add_argument('--disable-gpu')
 chrome_options.add_argument("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36 OPR/68.0.3618.206 (Edition Yx GX)")
-chrome_options.binary_location = CHROME_BIN
+#chrome_options.binary_location = CHROME_BIN
 #firefox_options = webdriver.FirefoxOptions()
 #firefox_options.headless = True
 
