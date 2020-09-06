@@ -34,9 +34,10 @@ time = ['8:00-9:35', '9:45-11:20', '11:30-13:05', '13:20-14:55', '15:05-16:40']
 ADMINS = [124361528]
 bot = telebot.TeleBot(token, 'Markdown')
 
-table = PrettyTable()
+
 table.field_names = ['№', 'Пара', 'Кабинет']
 
+table = PrettyTable()
 table_r = PrettyTable()
 
 def ru_en(text):
@@ -209,7 +210,6 @@ def button_func(call):
         text='Выберите день недели:',
         reply_markup=kb_dn)
     elif call.data[:5] == 'wday_':
-        table.clear()
         group = get_group(call.from_user.id)
         weekday = call.data[5:]
         
@@ -227,8 +227,9 @@ def button_func(call):
         message_id=call.message.message_id,
         text=f'*Выбрана группа №{group}*\nРасписание: {wdays.translate(weekday)}\n\n```{table}```\n\n`[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*',
         reply_markup=kbb, parse_mode='Markdown')
-    elif call.data == 'today':
+
         table.clear()
+    elif call.data == 'today':
         group = get_group(call.from_user.id)
         isoweekday = datetime.datetime.today().isoweekday()
         weekday = wdays.names(isoweekday)[1]
@@ -251,6 +252,8 @@ def button_func(call):
         bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
         text=text, reply_markup=kbbb, parse_mode='Markdown')
+
+        table.clear()
     elif call.data == 'rings':
         table_r.clear()
         table_r.add_column(fieldname="№", column=index)
@@ -259,7 +262,6 @@ def button_func(call):
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=text,
         reply_markup=kbbb, parse_mode='Markdown')
     elif call.data == 'tomorrow':
-        table.clear()
         group = get_group(call.from_user.id)
         isoweekday = datetime.datetime.today().isoweekday() + 1
         weekday = wdays.names(isoweekday)[1]
@@ -283,6 +285,8 @@ def button_func(call):
         message_id=call.message.message_id,
         text=text,
         reply_markup=kbbb, parse_mode='Markdown')
+
+        table.clear()
     elif call.data == 'tomain':
         bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
