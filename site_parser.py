@@ -101,7 +101,7 @@ def get_groups(faculty='Факультет информационных техн
 
         groups_db.insert_one({'faculty': faculty, 'year': year, 'groups': options_by_year, 'last_updated': time.time()})
 
-        driver.quit()
+        #driver.quit()
 
         return options_by_year
     else:
@@ -127,7 +127,7 @@ def get_groups(faculty='Факультет информационных техн
 
             groups_db.update_one({'faculty': faculty, 'year': year}, {'$set': {'groups': options_by_year, 'last_updated': time.time()}})
 
-            driver.quit()
+            #driver.quit()
 
             return options_by_year
         else:
@@ -283,7 +283,7 @@ def get_schedule(group, weekday, weeknum):
             schedule_db.update_one({'group': group}, {'$set': schedule})
             return schedule_db.find_one({'group': group})[weekday][f'{weeknum}']
 
-        driver.quit()
+        #driver.quit()
 
     else:
         return schedule_db.find_one({'group': group})[weekday][f'{weeknum}']
