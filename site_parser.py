@@ -83,7 +83,7 @@ def get_groups(faculty='Факультет информационных техн
     """
     if groups_db.find_one() is None:
         year = str(year)
-        driver = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH, chrome_options=chrome_options)
+        driver = webdriver.Chrome(chrome_options=chrome_options)
         #executable_path=CHROMEDRIVER_PATH, 
         #driver = webdriver.Firefox(options=firefox_options)
         #driver = webdriver.Chrome(executable_path='chromedriver.exe')
@@ -111,7 +111,7 @@ def get_groups(faculty='Факультет информационных техн
     else:
         if force_update == True:
             year = str(year)
-            driver = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH, chrome_options=chrome_options)
+            driver = webdriver.Chrome(chrome_options=chrome_options)
             #driver = webdriver.Firefox(options=firefox_options)
             #driver = webdriver.Chrome(executable_path='chromedriver.exe')
             url = 'https://www.tu-bryansk.ru/education/schedule/'
@@ -185,7 +185,7 @@ def get_schedule(group, weekday, weeknum):
 
         }
 
-        driver = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH, chrome_options=chrome_options)
+        driver = webdriver.Chrome(chrome_options=chrome_options)
         #driver = webdriver.Firefox(options=firefox_options)
         #driver = webdriver.Chrome(executable_path='chromedriver.exe')
         url = 'https://www.tu-bryansk.ru/education/schedule/'
