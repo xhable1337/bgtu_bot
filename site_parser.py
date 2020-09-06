@@ -26,13 +26,13 @@ import re
 import datetime
 import os
 
-GOOGLE_CHROME_PATH = '/app/.apt/usr/bin/google_chrome'
-CHROMEDRIVER_PATH = '/app/.chromedriver/bin/chromedriver'
+CHROME_BIN = os.environ['GOOGLE_CHROME_SHIM']
+CHROMEDRIVER_PATH = 'chromedriver'
 
 chrome_options = webdriver.ChromeOptions()
 chrome_options.add_argument('--disable-gpu')
 chrome_options.add_argument('--no-sandbox')
-chrome_options.binary_location = GOOGLE_CHROME_PATH
+chrome_options.binary_location = CHROME_BIN
 
 MONGODB_URI = os.environ['MONGODB_URI']
 client = MongoClient(host=MONGODB_URI, retryWrites=False) 
