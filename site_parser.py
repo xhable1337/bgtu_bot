@@ -27,7 +27,8 @@ import datetime
 import os
 
 #CHROME_BIN = os.environ['GOOGLE_CHROME_SHIM']
-CHROMEDRIVER_PATH = '/app/chromedrivermanual'
+#CHROMEDRIVER_PATH = '/app/chromedrivermanual'
+CHROMEDRIVER_PATH = os.environ['CHROMEDRIVER_PATH']
 
 chrome_options = webdriver.ChromeOptions()
 chrome_options.add_argument('--no-sandbox')
