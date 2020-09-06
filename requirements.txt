@@ -4,3 +4,4 @@ prettytable
 pymongo
 selenium
 transliterate
+chromedriver_installer
