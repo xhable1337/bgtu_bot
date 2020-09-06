@@ -1,11 +1,13 @@
 # School Diary Robot by xhable
-# v3, added university schedule (BSTU)
+# v6, added a parser for university schedule (BSTU)
 # Now you must put your bot's token into config vars. (they're getting here by os.environ())
 
+from site_parser import get_schedule, get_groups, get_state, set_state, get_group, set_group
 from prettytable import PrettyTable
 from telebot import types, apihelper
 from flask import Flask, request
 from pymongo import MongoClient
+from transliterate import translit
 import telebot
 import datetime
 import wdays
@@ -25,51 +27,25 @@ building_4 = 'https://telegra.ph/file/f79c20324a0ba6cd88711.png'
 server = Flask(__name__)
 token = os.environ['token']
 no = '-'
-index = [1, 2, 3, 4, 5]
-wday_monday_1_1 = ['[ПЗ] Ин.яз.', '[Л] Мат.анализ', '[ПЗ] Мат.анализ', '[ПЗ] Ин.яз.', no, [322, 'А', 'Б204', 322, no]]
-wday_monday_1_2 = ['[Л] Физ-ра', '[Л] Мат.анализ', '[ПЗ] Мат.анализ', '[ПЗ] Ин.яз.', no, ['Б404', 'А', 'Б204', 322, no]]
-wday_tuesday_1_1 = ['[Л] Дискр.мат.', '[ПЗ] Дискр.мат.', '[Л] Програм.', no, no, ['B', 'Б204', 219, no, no]]
-wday_tuesday_1_2 = ['[Л] Информат.', '[ПЗ] Дискр.мат.', '[Л] Програм.', no, no, [219, 'Б204', 219, no, no]]
-wday_wednesday_1_1 = [no, '[Л] Алг. и геом.', '[ПЗ] Физ-ра', no, no, [no, 'A', 'спортзал', no, no]]
-wday_wednesday_1_2 = [no, '[Л] Алг. и геом.', '[ПЗ] Физ-ра', no, no, [no, 'A', 'спортзал', no, no]]
-wday_thursday_1_1 = [no, '[ЛАБ] Програм.', '[ПЗ] Ин.яз.', no, no, [no, 408, 322, no, no]]
-wday_thursday_1_2 = [no, '[ЛАБ] Програм.', '[ПЗ] Ин.яз.', '[ПЗ] Ин. яз.', no, [no, 408, 322, 322, no]]
-wday_friday_1_1 = ['[ПЗ] Алг. и геом.', '[Л] Пед. и псих.', '[ПЗ] Пед. и псих.', no, no, ['Б204', 'Б', 'А211', no, no]]
-wday_friday_1_2 = ['[ПЗ] Алг. и геом.', '[ЛАБ] Информат.', '[ПЗ] Пед. и псих.', no, no, ['Б204', 408, 'А211', no, no]]
-
-wday_monday_2_1 = [no, '[Л] Мат.анализ', '[ПЗ] Дискр.мат.', '[ПЗ] Ин.яз.', no, [no, 'А', 'Б302', 322, no]]
-wday_monday_2_2 = ['[Л] Физ-ра', '[Л] Мат.анализ', '[ПЗ] Мат.анализ', '[ПЗ] Ин.яз.', no, ['Б404', 'А', 'Б204', 322, no]]
-wday_tuesday_2_1 = ['[Л] Дискр.мат.', '[ПЗ] Мат.анализ', '[Л] Програм.', no, no, ['B', 'Б302', 219, no, no]]
-wday_tuesday_2_2 = ['[Л] Информат.', '[ПЗ] Мат.анализ', '[Л] Програм.', no, no, [219, 'Б302', 219, no, no]]
-wday_wednesday_2_1 = [no, '[Л] Алг. и геом.', '[ПЗ] Физ-ра', no, no, [no, 'A', 'спортзал', no, no]]
-wday_wednesday_2_2 = ['[ЛАБ] Информат.', '[Л] Алг. и геом.', '[ПЗ] Физ-ра', no, no, ['408', 'A', 'спортзал', no, no]]
-wday_thursday_2_1 = ['[ПЗ] Пед. и псих.', '[ПЗ] Алг. и геом.', '[ПЗ] Ин.яз.', no, no, ['А211', 'Б203', 322, no, no]]
-wday_thursday_2_2 = ['[ПЗ] Пед. и псих.', '[ПЗ] Алг. и геом.', no, no, ['А211', 'Б203', no, no, no]]
-wday_friday_2_1 = ['[ЛАБ] Програм.', '[Л] Пед. и псих.', '[ПЗ] Ин.яз.', no, no, [408, 'Б', 322, no, no]]
-wday_friday_2_2 = ['[ЛАБ] Програм.', '[ПЗ] Ин.яз.', '[ПЗ] Ин.яз.', no, no, [408, 321, 322, no, no]]
+index = [i for i in range(1, 6)]
 
 time = ['8:00-9:35', '9:45-11:20', '11:30-13:05', '13:20-14:55', '15:05-16:40']
 
 ADMINS = [124361528]
 bot = telebot.TeleBot(token, 'Markdown')
+
 table = PrettyTable()
+table.field_names = ['№', 'Пара', 'Кабинет']
+
 table_r = PrettyTable()
 
-def get_state(user_id):
-    """Позволяет просмотреть state по user_id."""
-    return users.find_one({'user_id': user_id})['state']
+def ru_en(text):
+    """Функция транслитерации с русского на английский."""
+    return translit(text, 'ru', reversed=True)
 
-def set_state(user_id, state):
-    """Позволяет изменить state по user_id."""
-    users.update_one({'user_id': user_id}, {'$set': {'state': state}})
-
-def get_group(user_id):
-    """Позволяет просмотреть номер группы по user_id."""
-    return users.find_one({'user_id': user_id})['group']
-
-def set_group(user_id, group):
-    """Позволяет изменить номер группы по user_id."""
-    users.update_one({'user_id': user_id}, {'$set': {'group': int(group)}})
+def en_ru(text):
+    """Функция транслитерации с английского на русский."""
+    return translit(text, 'ru', reversed=False)
 
 @bot.message_handler(commands=["start"])
 def start_handler(m):
@@ -80,11 +56,11 @@ def start_handler(m):
             'user_id': m.from_user.id,
             'username': m.from_user.username,
             'state': 'default',
-            'group': 1
+            'group': 'О-20-ИВТ-1-по-Б'
         })
     else:
         group = get_group(m.from_user.id)
-        bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{group}.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
+        bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Выбранная группа: {group}.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
         set_state(m.from_user.id, 'default')
 
 @bot.message_handler(commands=["whatis"])
@@ -103,9 +79,11 @@ def users_reset(m):
     if m.chat.id in ADMINS:
         for user in users.find():
             user_id = user['user_id']
-            set_state(user_id, 'default')
-            set_group(user_id, 1)
-        bot.send_message(m.chat.id, 'Параметры пользователей сброшены!\n\nСостояние = default\nГруппа = 1')
+            state = 'default'
+            group = 'О-20-ИВТ-1-по-Б'
+            set_state(user_id, state)
+            set_group(user_id, group)
+        bot.send_message(m.chat.id, f'Параметры пользователей сброшены!\n\nСостояние = {state}\nГруппа = {group}')
 
 @bot.message_handler(commands=["users"])
 def users_handler(m):
@@ -134,7 +112,7 @@ def broadcast(m):
                 user_id = user['user_id']
                 bot.send_message(user_id, text, parse_mode='Markdown')
         else:
-            text = f'🔔 *Сообщение для группы №{group}!*\n' + text
+            text = f'🔔 *Сообщение для группы {group}!*\n' + text
             for user in users.find({'group': group}):
                 user_id = user['user_id']
                 bot.send_message(user_id, text, parse_mode='Markdown')
@@ -150,6 +128,7 @@ def execute(m):
         except Exception as e:
             bot.send_message(m.chat.id, f'Произошла ошибка!\n\n`{e}`')
 
+# Блок создания клавиатур для бота
 kbm = types.InlineKeyboardMarkup()
 kbm.row(types.InlineKeyboardButton(text='📅 Расписание по дням', callback_data='days'))
 kbm.row(types.InlineKeyboardButton(text='⚡️ Сегодня', callback_data='today'), types.InlineKeyboardButton(text='⚡️ Завтра', callback_data='tomorrow'))
@@ -179,10 +158,11 @@ kbbb.row(types.InlineKeyboardButton(text='🔄 В главное меню', call
 kb_cancel_building = types.InlineKeyboardMarkup()
 kb_cancel_building.row(types.InlineKeyboardButton(text='🚫 Отмена', callback_data='cancel_find_class'))
 
-kb_group = types.InlineKeyboardMarkup()
-kb_group.row(types.InlineKeyboardButton(text='1️⃣', callback_data='group_1'), types.InlineKeyboardButton(text='2️⃣', callback_data='group_2'))
-kb_group.row(types.InlineKeyboardButton(text='🚫 Отмена', callback_data='cancel_find_class'))
+#kb_group = types.InlineKeyboardMarkup()
+#kb_group.row(types.InlineKeyboardButton(text='1️⃣', callback_data='group_1'), types.InlineKeyboardButton(text='2️⃣', callback_data='group_2'))
+#kb_group.row(types.InlineKeyboardButton(text='🚫 Отмена', callback_data='cancel_find_class'))
 
+# Хэндлер для текста
 @bot.message_handler(content_types=["text"])
 def anymess(m):
     if users.find_one({'user_id': m.from_user.id}) == None:
@@ -210,7 +190,7 @@ def anymess(m):
             group = get_group(m.from_user.id)
             bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{group}.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
         elif re.match(r'\bБ\d{3}\b', m.text):
-            bot.send_photo(m.chat.id, photo=building_4, caption=f'Аудитория {m.text} находится в корпусе №4 _(Харьковская, 10Б)_.')
+            bot.send_photo(m.chat.id, photo=building_4, caption=f'Аудитория {m.text} находится в корпусе №4 _(Харьковская, 10Б)_.', parse_mode='Markdown')
             bot.send_location(m.chat.id, latitude=53.303513, longitude=34.305085)
             set_state(m.chat.id, 'default')
             group = get_group(m.from_user.id)
@@ -220,6 +200,7 @@ def anymess(m):
     elif get_group(m.from_user.id) != 1 and get_group(m.from_user.id) != 2:
         set_group(m.from_user.id, 1)
 
+# Хэндлер обработки действий кнопок
 @bot.callback_query_handler(func=lambda call: True)
 def button_func(call):
     if call.data == 'days':
@@ -228,39 +209,45 @@ def button_func(call):
         text='Выберите день недели:',
         reply_markup=kb_dn)
     elif call.data[:5] == 'wday_':
-        cdata = str(call.data)
         table.clear()
         group = get_group(call.from_user.id)
+        weekday = call.data[5:]
+        
         if datetime.datetime.today().isocalendar()[1] % 2 == 0:
-            lesson = globals()[f'{cdata}_{group}_1'][0:5]
-            room = globals()[f'{cdata}_{group}_1'][5]
+            weeknum = '1'
         else:
-            lesson = globals()[f'{cdata}_{group}_2'][0:5]
-            room = globals()[f'{cdata}_{group}_2'][5]
-        table.add_column(fieldname="№", column=index)
-        table.add_column(fieldname="Пара", column=lesson)
-        table.add_column(fieldname="Кабинет", column=room)
+            weeknum = '2'
+        
+        schedule = get_schedule(group, weekday, weeknum)
+
+        for lesson in schedule:
+            table.add_row(lesson)
+        
         bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
-        text=f'*Выбрана группа №{group}*\nРасписание: {wdays.translate(cdata[5:])}\n\n```{table}```\n\n`[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*',
+        text=f'*Выбрана группа №{group}*\nРасписание: {wdays.translate(weekday)}\n\n```{table}```\n\n`[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*',
         reply_markup=kbb, parse_mode='Markdown')
     elif call.data == 'today':
-        wd = datetime.datetime.today().isoweekday()
         table.clear()
         group = get_group(call.from_user.id)
+        isoweekday = datetime.datetime.today().isoweekday()
+        weekday = wdays.names(isoweekday)[1]
+
         if datetime.datetime.today().isocalendar()[1] % 2 == 0:
-            lesson = globals()[f'wday_{wdays.names(wd)[1]}_{group}_1'][0:5]
-            room = globals()[f'wday_{wdays.names(wd)[1]}_{group}_1'][5]
+            weeknum = '1'
         else:
-            lesson = globals()[f'wday_{wdays.names(wd)[1]}_{group}_2'][0:5]
-            room = globals()[f'wday_{wdays.names(wd)[1]}_{group}_2'][5]
-        table.add_column(fieldname="№", column=index)
-        table.add_column(fieldname="Пара", column=lesson)
-        table.add_column(fieldname="Кабинет", column=room)
-        if wd == 6 or wd == 7:
-            text = f'Сегодня: {wdays.names(wd)[0]}\n\nУдачных выходных!'
+            weeknum = '2'
+        
+        schedule = get_schedule(group, weekday, weeknum)
+        
+        for lesson in schedule:
+            table.add_row(lesson)
+        
+        if isoweekday == 6 or isoweekday == 7:
+            text = f'Сегодня: {wdays.names(isoweekday)[0]}\n\nУдачных выходных!'
         else:
-            text = f'*Выбрана группа №{group}*\nСегодня: {wdays.names(wd)[0]}\n\n```{table}```\n\n`[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*'
+            text = f'*Выбрана группа №{group}*\nСегодня: {wdays.names(isoweekday)[0]}\n\n```{table}```\n\n`[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*'
+
         bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
         text=text, reply_markup=kbbb, parse_mode='Markdown')
@@ -272,22 +259,26 @@ def button_func(call):
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=text,
         reply_markup=kbbb, parse_mode='Markdown')
     elif call.data == 'tomorrow':
-        wd = datetime.datetime.today().isoweekday()
         table.clear()
         group = get_group(call.from_user.id)
+        isoweekday = datetime.datetime.today().isoweekday() + 1
+        weekday = wdays.names(isoweekday)[1]
+
         if datetime.datetime.today().isocalendar()[1] % 2 == 0:
-            lesson = globals()[f'wday_{wdays.names(wd+1)[1]}_{group}_1'][0:5]
-            room = globals()[f'wday_{wdays.names(wd+1)[1]}_{group}_1'][5]
+            weeknum = '1'
         else:
-            lesson = globals()[f'wday_{wdays.names(wd+1)[1]}_{group}_2'][0:5]
-            room = globals()[f'wday_{wdays.names(wd+1)[1]}_{group}_2'][5]
-        table.add_column(fieldname="№", column=index)
-        table.add_column(fieldname="Пара", column=lesson)
-        table.add_column(fieldname="Кабинет", column=room)
-        if wd == 5 or wd == 6:
-            text = f'*Выбрана группа №{group}*\nЗавтра: {wdays.names(wd+1)[0]}\n\nУдачных выходных!'
+            weeknum = '2'
+        
+        schedule = get_schedule(group, weekday, weeknum)
+
+        for lesson in schedule:
+            table.add_row(lesson)
+        
+        if isoweekday == 6 or isoweekday == 7:
+            text = f'*Выбрана группа №{group}*\nЗавтра: {wdays.names(isoweekday)[0]}\n\nУдачных выходных!'
         else:
-            text = f'*Выбрана группа №{group}*\nЗавтра: {wdays.names(wd+1)[0]}\n\n```{table}```\n\n`[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*'
+            text = f'*Выбрана группа №{group}*\nЗавтра: {wdays.names(isoweekday)[0]}\n\n```{table}```\n\n`[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*'
+
         bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
         text=text,
@@ -307,18 +298,26 @@ def button_func(call):
         text=f'Привет, {call.from_user.first_name}!\n*Сейчас выбрана группа №{get_group(call.from_user.id)}.*\nВот главное меню:',
         reply_markup=kbm, parse_mode='Markdown')
     elif call.data == 'change_group':
+        group_list = get_groups()
+        kb_group = types.InlineKeyboardMarkup()
+
+        for group in group_list:
+            kb_group.row(types.InlineKeyboardButton(text=group, callback_data=ru_en(group)))
+
         bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
         text=f'Выберите группу:',
         reply_markup=kb_group, parse_mode='Markdown')
-    elif str(call.data).startswith('group_'):
-        group = call.data[-1]
+    elif str(call.data).startswith('O-20'):
+        group = en_ru(str(call.data))
         set_group(call.from_user.id, group)
         bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
         text=f'Привет, {call.from_user.first_name}!\n*Сейчас выбрана группа №{get_group(call.from_user.id)}.*\nВот главное меню:',
         reply_markup=kbm, parse_mode='Markdown')
 
+
+# Установка Webhook для быстрого взаимодействия с ботом
 
 @server.route('/' + token, methods=['POST'])
 def getMessage():

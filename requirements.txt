@@ -2,3 +2,5 @@ pytelegrambotapi
 flask
 prettytable
 pymongo
+selenium
+transliterate
