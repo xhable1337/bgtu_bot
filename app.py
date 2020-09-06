@@ -58,6 +58,13 @@ def start_handler(m):
             'state': 'default',
             'group': 'О-20-ИВТ-1-по-Б'
         })
+
+        group_list = get_groups()
+        kb_group = types.InlineKeyboardMarkup()
+        for group in group_list:
+            kb_group.row(types.InlineKeyboardButton(text=group, callback_data=ru_en(group)))
+
+        bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Для начала работы с ботом выбери свою группу (впоследствии выбор можно изменить):*', reply_markup=kbm, parse_mode='Markdown')
     else:
         group = get_group(m.from_user.id)
         bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Выбранная группа: {group}.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
@@ -134,7 +141,7 @@ kbm.row(types.InlineKeyboardButton(text='📅 Расписание по дням
 kbm.row(types.InlineKeyboardButton(text='⚡️ Сегодня', callback_data='today'), types.InlineKeyboardButton(text='⚡️ Завтра', callback_data='tomorrow'))
 kbm.row(types.InlineKeyboardButton(text='🔔 Расписание пар', callback_data='rings'))
 kbm.row(types.InlineKeyboardButton(text='🏠 Найти корпус по аудитории', callback_data='building'))
-kbm.row(types.InlineKeyboardButton(text='🔂 Сменить номер группы', callback_data='change_group'))
+kbm.row(types.InlineKeyboardButton(text='🔂 Сменить свою группу', callback_data='change_group'))
 
 kb_r = types.InlineKeyboardMarkup()
 kb_r.row(types.InlineKeyboardButton(text='Понедельник', callback_data='r_monday'))
@@ -169,32 +176,32 @@ def anymess(m):
         bot.send_message(m.chat.id, 'Для начала работы с ботом выполните команду /start')
     elif users.find_one({'user_id': m.from_user.id}) != None and get_state(m.from_user.id) == 'default':
         group = get_group(m.from_user.id)
-        bot.send_message(m.chat.id, text=f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{group}.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
+        bot.send_message(m.chat.id, text=f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа {group}.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
     elif get_state(m.from_user.id) == 'find_class':
         if re.match(r'(\b[1-9][1-9]\b|\b[1-9]\b)', m.text):
             bot.send_photo(m.chat.id, photo=building_1, caption=f'Аудитория {m.text} находится в корпусе №1 _(Институтская, 16)_.', parse_mode='Markdown')
             bot.send_location(m.chat.id, latitude=53.305077, longitude=34.305080)
             set_state(m.chat.id, 'default')
             group = get_group(m.from_user.id)
-            bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{group}.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
+            bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа {group}.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
         elif re.match(r'\b[1-9][0-9][0-9]\b', m.text):
             bot.send_photo(m.chat.id, photo=building_2, caption=f'Аудитория {m.text} находится в корпусе №2 _(бульвар 50 лет Октября, 7)_.', parse_mode='Markdown')
             bot.send_location(m.chat.id, latitude=53.304442, longitude=34.303849)
             set_state(m.chat.id, 'default')
             group = get_group(m.from_user.id)
-            bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{group}.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
+            bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа {group}.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
         elif re.match(r'(\bА\d{3}\b|\b[Аа]\b|\b[Бб]\b|\b[Вв]\b|\b[Гг]\b|\b[Дд]\b)', m.text):
             bot.send_photo(m.chat.id, photo=building_3, caption=f'Аудитория {m.text} находится в корпусе №3 _(Харьковская, 8)_.', parse_mode='Markdown')
             bot.send_location(m.chat.id, latitude=53.304991, longitude=34.306688)
             set_state(m.chat.id, 'default')
             group = get_group(m.from_user.id)
-            bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{group}.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
+            bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа {group}.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
         elif re.match(r'\bБ\d{3}\b', m.text):
             bot.send_photo(m.chat.id, photo=building_4, caption=f'Аудитория {m.text} находится в корпусе №4 _(Харьковская, 10Б)_.', parse_mode='Markdown')
             bot.send_location(m.chat.id, latitude=53.303513, longitude=34.305085)
             set_state(m.chat.id, 'default')
             group = get_group(m.from_user.id)
-            bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа №{group}.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
+            bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа {group}.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
         else:
             bot.send_message(m.chat.id, 'Данный номер аудитории некорректен. Повторите попытку или отмените действие:', reply_markup=kb_cancel_building)
     elif get_group(m.from_user.id) != 1 and get_group(m.from_user.id) != 2:
@@ -289,7 +296,7 @@ def button_func(call):
     elif call.data == 'tomain':
         bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
-        text=f'Привет, {call.from_user.first_name}!\n*Сейчас выбрана группа №{get_group(call.from_user.id)}.*\nВот главное меню:',
+        text=f'Привет, {call.from_user.first_name}!\n*Сейчас выбрана группа {get_group(call.from_user.id)}.*\nВот главное меню:',
         reply_markup=kbm, parse_mode='Markdown')
     elif call.data == 'building':
         set_state(call.from_user.id, 'find_class')
@@ -298,7 +305,7 @@ def button_func(call):
         set_state(call.from_user.id, 'default')
         bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
-        text=f'Привет, {call.from_user.first_name}!\n*Сейчас выбрана группа №{get_group(call.from_user.id)}.*\nВот главное меню:',
+        text=f'Привет, {call.from_user.first_name}!\n*Сейчас выбрана группа {get_group(call.from_user.id)}.*\nВот главное меню:',
         reply_markup=kbm, parse_mode='Markdown')
     elif call.data == 'change_group':
         group_list = get_groups()
@@ -307,6 +314,7 @@ def button_func(call):
         for group in group_list:
             kb_group.row(types.InlineKeyboardButton(text=group, callback_data=ru_en(group)))
 
+        kb_group.row(types.InlineKeyboardButton(text='🚫 Отмена', callback_data='cancel_find_class'))
         bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
         text=f'Выберите группу:',
@@ -316,7 +324,7 @@ def button_func(call):
         set_group(call.from_user.id, group)
         bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
-        text=f'Привет, {call.from_user.first_name}!\n*Сейчас выбрана группа №{get_group(call.from_user.id)}.*\nВот главное меню:',
+        text=f'Привет, {call.from_user.first_name}!\n*Сейчас выбрана группа {get_group(call.from_user.id)}.*\nВот главное меню:',
         reply_markup=kbm, parse_mode='Markdown')
 
 
