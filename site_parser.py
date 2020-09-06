@@ -56,7 +56,7 @@ def get_group(user_id):
 
 def set_group(user_id, group):
     """Позволяет изменить номер группы по user_id."""
-    users.update_one({'user_id': user_id}, {'$set': {'group': int(group)}})
+    users.update_one({'user_id': user_id}, {'$set': {'group': group}})
 
 def get_groups(faculty='Факультет информационных технологий', year='20', force_update=False):
     """Получает список групп по заданному факультету с сайта БГТУ, помещает в базу данных и выводит как результат функции.
