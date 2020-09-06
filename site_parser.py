@@ -38,7 +38,10 @@ import os
 #chrome_options.add_argument('--disable-gpu')
 #chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36")
 #chrome_options.binary_location = CHROME_BIN
-#PHANTOMJS_PATH = os.environ['PROFILE_PATH']
+firefox_options = webdriver.FirefoxOptions()
+firefox_options.headless = True
+
+
 
 MONGODB_URI = os.environ['MONGODB_URI']
 client = MongoClient(host=MONGODB_URI, retryWrites=False) 
@@ -82,8 +85,7 @@ def get_groups(faculty='Факультет информационных техн
     if groups_db.find_one() is None:
         year = str(year)
         #driver = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH, chrome_options=chrome_options)
-        driver = webdriver.PhantomJS()
-        #driver = webdriver.PhantomJS(executable_path=PHANTOMJS_PATH)
+        driver = webdriver.Firefox(options=firefox_options)
         #driver = webdriver.Chrome(executable_path='chromedriver.exe')
         url = 'https://www.tu-bryansk.ru/education/schedule/'
         driver.get(url)
@@ -110,8 +112,7 @@ def get_groups(faculty='Факультет информационных техн
         if force_update == True:
             year = str(year)
             #driver = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH, chrome_options=chrome_options)
-            driver = webdriver.PhantomJS()
-            #driver = webdriver.PhantomJS(executable_path=PHANTOMJS_PATH)
+            driver = webdriver.Firefox(options=firefox_options)
             #driver = webdriver.Chrome(executable_path='chromedriver.exe')
             url = 'https://www.tu-bryansk.ru/education/schedule/'
             driver.get(url)
@@ -185,8 +186,7 @@ def get_schedule(group, weekday, weeknum):
         }
 
         #driver = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH, chrome_options=chrome_options)
-        driver = webdriver.PhantomJS()
-        #driver = webdriver.PhantomJS(executable_path=PHANTOMJS_PATH)
+        driver = webdriver.Firefox(options=firefox_options)
         #driver = webdriver.Chrome(executable_path='chromedriver.exe')
         url = 'https://www.tu-bryansk.ru/education/schedule/'
         driver.get(url)
