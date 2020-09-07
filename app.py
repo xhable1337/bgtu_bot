@@ -366,9 +366,9 @@ def button_func(call):
                 weeknum = '2'
 
             schedule = get_schedule(group, weekday, weeknum)
-
+            print(f'369. schedule = {schedule}')
             for lesson in schedule:
-                print(lesson)
+                print(f'371. lesson = {lesson}')
                 table.add_row(lesson)
             text = f'*Выбрана группа №{group}*\nЗавтра: {wdays.names(isoweekday)[0]}\n\n```{table}```\n\n`[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*'
 
