@@ -28,7 +28,7 @@ schedule_db = db.schedule
 groups_db = db.groups
 users = db.users
 
-UPDATE_TIME = os.environ.get('UPDATE_TIME')
+UPDATE_TIME = int(os.environ.get('UPDATE_TIME'))
 
 building_1 = 'https://telegra.ph/file/49ec8634ab340fa384787.png'
 building_2 = 'https://telegra.ph/file/7d04458ac4230fd12f064.png'
