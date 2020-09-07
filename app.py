@@ -3,6 +3,7 @@
 # Now you must put your bot's token into config vars. (they're getting here by os.environ())
 
 #from site_parser import get_state, set_state, get_group, set_group
+from site_parser import api_get_groups, api_get_schedule
 from prettytable import PrettyTable
 from telebot import types, apihelper
 from flask import Flask, request
@@ -15,6 +16,7 @@ import os
 import re
 import requests
 import ast
+import time
 
 
 password = os.environ.get('password')
@@ -22,7 +24,11 @@ API_URL = 'https://bgtu-parser.herokuapp.com/'
 MONGODB_URI = os.environ['MONGODB_URI']
 client = MongoClient(host=MONGODB_URI, retryWrites=False) 
 db = client.heroku_38n7vrr9
+schedule_db = db.schedule
+groups_db = db.groups
 users = db.users
+
+UPDATE_TIME = os.environ.get('UPDATE_TIME')
 
 building_1 = 'https://telegra.ph/file/49ec8634ab340fa384787.png'
 building_2 = 'https://telegra.ph/file/7d04458ac4230fd12f064.png'
@@ -34,7 +40,7 @@ token = os.environ['token']
 no = '-'
 index = [i for i in range(1, 6)]
 
-time = ['8:00-9:35', '9:45-11:20', '11:30-13:05', '13:20-14:55', '15:05-16:40']
+time_list = ['8:00-9:35', '9:45-11:20', '11:30-13:05', '13:20-14:55', '15:05-16:40']
 
 ADMINS = [124361528]
 bot = telebot.TeleBot(token, 'Markdown')
@@ -70,29 +76,37 @@ def en_ru(text):
 
 def get_schedule(group, weekday, weeknum):
     """Функция получения расписания от API."""
-    url = API_URL + password + '/get_schedule/'
-    params = {
-        'group': group,
-        'weekday': weekday,
-        'weeknum': weeknum
-    }
-    schedule = ast.literal_eval(requests.get(url, params=params))
-    return schedule
+    if schedule_db.find_one({'group': group}) is None or time.time() - schedule_db.find_one({'group': group})['last_updated'] > UPDATE_TIME:
+        if schedule_db.find_one({'group': group}) is None:
+            schedule = api_get_schedule(group, weekday, weeknum)
+            schedule_db.insert_one(schedule)
+            return schedule
+
+        elif time.time() - schedule_db.find_one({'group': group})['last_updated'] > UPDATE_TIME:
+            schedule = api_get_schedule(group, weekday, weeknum)
+            schedule_db.update_one({'group': group}, {'$set': schedule})
+            return schedule
+    else:
+        return schedule_db.find_one({'group': group})[weekday][f'{weeknum}']
 
 def get_groups(faculty='Факультет информационных технологий', year='20', force_update=False):
     """Функция получения расписания от API."""
-    url = API_URL + password + '/get_groups/'
-    if force_update == False:
-        force_update = 0
-    elif force_update == True:
-        force_update = 1
-    params = {
-        'faculty': faculty,
-        'year': year,
-        'force_update': force_update
-    }
-    group_list = ast.literal_eval(requests.get(url, params=params))
-    return group_list
+    if groups_db.find_one() is None:
+        group_list = api_get_groups(faculty, year)
+        groups_db.insert_one({'faculty': faculty, 'year': year, 'groups': group_list, 'last_updated': time.time()})
+        return group_list
+    else:
+        if force_update == True:
+            group_list = api_get_groups(faculty, year)
+            groups_db.update_one({'faculty': faculty, 'year': year}, {'$set': {'groups': group_list, 'last_updated': time.time()}})
+            return group_list
+        else:
+            return groups_db.find_one({'faculty': faculty, 'year': year})['groups']
+    #if schedule_db.find_one({'group': group}) is None or time.time() - schedule_db.find_one({'group': group})['last_updated'] > UPDATE_TIME:
+    #    schedule = api_get_groups(faculty, year, force_update)
+    #else:
+    #    return schedule_db.find_one({'group': group})[weekday][f'{weeknum}']
+
 
 @bot.message_handler(commands=["start"])
 def start_handler(m):
@@ -317,7 +331,7 @@ def button_func(call):
     elif call.data == 'rings':
         table_r.clear()
         table_r.add_column(fieldname="№", column=index)
-        table_r.add_column(fieldname="Время", column=time)
+        table_r.add_column(fieldname="Время", column=time_list)
         text = f'Расписание пар\n\n```{table_r}```'
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=text,
         reply_markup=kbbb, parse_mode='Markdown')
