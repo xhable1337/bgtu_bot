@@ -80,12 +80,12 @@ def get_schedule(group, weekday, weeknum):
         if schedule_db.find_one({'group': group}) is None:
             schedule = api_get_schedule(group, weekday, weeknum)
             schedule_db.insert_one(schedule)
-            return schedule
+            return schedule[weekday][f'{weeknum}']
 
         elif time.time() - schedule_db.find_one({'group': group})['last_updated'] > UPDATE_TIME:
             schedule = api_get_schedule(group, weekday, weeknum)
             schedule_db.update_one({'group': group}, {'$set': schedule})
-            return schedule
+            return schedule[weekday][f'{weeknum}']
     else:
         return schedule_db.find_one({'group': group})[weekday][f'{weeknum}']
 
@@ -94,12 +94,12 @@ def get_groups(faculty='Факультет информационных техн
     if groups_db.find_one() is None:
         group_list = api_get_groups(faculty, year)
         groups_db.insert_one({'faculty': faculty, 'year': year, 'groups': group_list, 'last_updated': time.time()})
-        return group_list
+        return group_list['groups']
     else:
         if force_update == True:
             group_list = api_get_groups(faculty, year)
             groups_db.update_one({'faculty': faculty, 'year': year}, {'$set': {'groups': group_list, 'last_updated': time.time()}})
-            return group_list
+            return group_list['groups']
         else:
             return groups_db.find_one({'faculty': faculty, 'year': year})['groups']
     #if schedule_db.find_one({'group': group}) is None or time.time() - schedule_db.find_one({'group': group})['last_updated'] > UPDATE_TIME:
@@ -366,6 +366,7 @@ def button_func(call):
                 weeknum = '2'
 
             schedule = get_schedule(group, weekday, weeknum)
+
             print(f'369. schedule = {schedule}')
             for lesson in schedule:
                 print(f'371. lesson = {lesson}')
