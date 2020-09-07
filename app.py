@@ -2,7 +2,7 @@
 # v6, added a parser for university schedule (BSTU)
 # Now you must put your bot's token into config vars. (they're getting here by os.environ())
 
-from site_parser import get_schedule, get_groups, get_state, set_state, get_group, set_group
+from site_parser import get_state, set_state, get_group, set_group
 from prettytable import PrettyTable
 from telebot import types, apihelper
 from flask import Flask, request
@@ -13,7 +13,11 @@ import datetime
 import wdays
 import os
 import re
+import requests
 
+
+password = os.environ.get('password')
+API_URL = 'https://bgtu-parser.herokuapp.com/'
 MONGODB_URI = os.environ['MONGODB_URI']
 client = MongoClient(host=MONGODB_URI, retryWrites=False) 
 db = client.heroku_38n7vrr9
@@ -47,6 +51,32 @@ def ru_en(text):
 def en_ru(text):
     """Функция транслитерации с английского на русский."""
     return translit(text, 'ru', reversed=False)
+
+def get_schedule(group, weekday, weeknum):
+    """Функция получения расписания от API."""
+    url = API_URL + password + '/get_schedule/'
+    params = {
+        'group': group,
+        'weekday': weekday,
+        'weeknum': weeknum
+    }
+    schedule = requests.get(url, params=params)
+    return schedule
+
+def get_groups(faculty='Факультет информационных технологий', year='20', force_update=False):
+    """Функция получения расписания от API."""
+    url = API_URL + password + '/get_groups/'
+    if force_update == False:
+        force_update = 0
+    elif force_update == True:
+        force_update = 1
+    params = {
+        'faculty': faculty,
+        'year': year,
+        'force_update': force_update
+    }
+    schedule = requests.get(url, params=params)
+    return schedule
 
 @bot.message_handler(commands=["start"])
 def start_handler(m):
