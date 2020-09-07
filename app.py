@@ -163,9 +163,9 @@ def users_handler(m):
             user_id = user['user_id']
             group = user['group']
             if last_name != None:
-                text += f'[{first_name} {last_name}](tg://user?id={user_id}) ◼ *Группа №{group}*\n'
+                text += f'[{first_name} {last_name}](tg://user?id={user_id}) ◼ *Группа {group}*\n'
             else:
-                text += f'[{first_name}](tg://user?id={user_id}) ◼ *Группа №{group}*\n'
+                text += f'[{first_name}](tg://user?id={user_id}) ◼ *Группа {group}*\n'
         bot.send_message(m.chat.id, text, parse_mode='Markdown')
 
 @bot.message_handler(commands=["broadcast"])
@@ -300,7 +300,7 @@ def button_func(call):
         
         bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
-        text=f'*Выбрана группа №{group}*\nРасписание: {wdays.translate(weekday)}\n\n```{table}```\n\n`[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*',
+        text=f'*Выбрана группа {group}*\nРасписание: {wdays.translate(weekday)}\n\n```{table}```\n\n`[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*',
         reply_markup=kbb, parse_mode='Markdown')
     elif call.data == 'today':
         group = get_group(call.from_user.id)
@@ -323,7 +323,7 @@ def button_func(call):
 
             for lesson in schedule:
                 table.add_row(lesson)
-            text = f'*Выбрана группа №{group}*\nСегодня: {wdays.names(isoweekday)[0]}\n\n```{table}```\n\n`[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*'
+            text = f'*Выбрана группа {group}*\nСегодня: {wdays.names(isoweekday)[0]}\n\n```{table}```\n\n`[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*'
 
         bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
@@ -354,7 +354,7 @@ def button_func(call):
 
             for lesson in schedule:
                 table.add_row(lesson)
-            text = f'*Выбрана группа №{group}*\nЗавтра: {wdays.names(isoweekday)[0]}\n\n```{table}```\n\n`[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*'
+            text = f'*Выбрана группа {group}*\nЗавтра: {wdays.names(isoweekday)[0]}\n\n```{table}```\n\n`[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*'
         else:
             table = PrettyTable()
             table.field_names = ['№', 'Пара', 'Кабинет']
@@ -371,7 +371,7 @@ def button_func(call):
             for lesson in schedule:
                 print(f'371. lesson = {lesson}')
                 table.add_row(lesson)
-            text = f'*Выбрана группа №{group}*\nЗавтра: {wdays.names(isoweekday)[0]}\n\n```{table}```\n\n`[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*'
+            text = f'*Выбрана группа {group}*\nЗавтра: {wdays.names(isoweekday)[0]}\n\n```{table}```\n\n`[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*'
 
         bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
