@@ -14,7 +14,8 @@ def api_get_schedule(group, weekday, weeknum):
         'weekday': weekday,
         'weeknum': weeknum
     }
-    schedule = ast.literal_eval(requests.get(url, params=params))
+    response = requests.get(url, params=params).text
+    schedule = ast.literal_eval(response)
     return schedule
 
 def api_get_groups(faculty='Факультет информационных технологий', year='20'):
@@ -24,5 +25,6 @@ def api_get_groups(faculty='Факультет информационных те
         'faculty': faculty,
         'year': year
     }
-    group_list = ast.literal_eval(requests.get(url, params=params))
+    response = requests.get(url, params=params).text
+    group_list = ast.literal_eval(response)
     return group_list
