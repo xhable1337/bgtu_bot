@@ -14,6 +14,7 @@ import wdays
 import os
 import re
 import requests
+import ast
 
 
 password = os.environ.get('password')
@@ -60,7 +61,7 @@ def get_schedule(group, weekday, weeknum):
         'weekday': weekday,
         'weeknum': weeknum
     }
-    schedule = requests.get(url, params=params)
+    schedule = ast.literal_eval(requests.get(url, params=params))
     return schedule
 
 def get_groups(faculty='Факультет информационных технологий', year='20', force_update=False):
@@ -75,8 +76,8 @@ def get_groups(faculty='Факультет информационных техн
         'year': year,
         'force_update': force_update
     }
-    schedule = requests.get(url, params=params)
-    return schedule
+    group_list = ast.literal_eval(requests.get(url, params=params))
+    return group_list
 
 @bot.message_handler(commands=["start"])
 def start_handler(m):
