@@ -28,17 +28,18 @@ import os
 
 #CHROME_BIN = os.environ['GOOGLE_CHROME_SHIM']
 #CHROMEDRIVER_PATH = '/app/chromedrivermanual'
-CHROMEDRIVER_PATH = os.environ['CHROMEDRIVER_PATH']
+CHROMEDRIVER_PATH = os.environ.get('CHROMEDRIVER_PATH')
+CHROME_BIN = os.environ.get('CHROME_BIN')
 
 chrome_options = webdriver.ChromeOptions()
+chrome_options.add_argument('--headless')
 chrome_options.add_argument('--no-sandbox')
-#chrome_options.add_argument('--headless')
 chrome_options.add_argument('--disable-dev-shm-usage')
-chrome_options.add_argument('--disable-infobars')
-chrome_options.add_argument('--disable-browser-side-navigation')
-chrome_options.add_argument('--disable-gpu')
+#chrome_options.add_argument('--disable-infobars')
+#chrome_options.add_argument('--disable-browser-side-navigation')
+#chrome_options.add_argument('--disable-gpu')
 chrome_options.add_argument("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36 OPR/68.0.3618.206 (Edition Yx GX)")
-#chrome_options.binary_location = CHROME_BIN
+chrome_options.binary_location = CHROME_BIN
 #firefox_options = webdriver.FirefoxOptions()
 #firefox_options.headless = True
 
@@ -182,7 +183,8 @@ def get_schedule(group, weekday, weeknum):
             'Экономическая теория': 'Экон.теория',
             'Алгоритмические языки': 'Алг.языки',
             'Языки программирования': 'Языки прогр.',
-            'Начертательная геометрия': 'Начерт.геом.'
+            'Начертательная геометрия': 'Начерт.геом.',
+            'Математический анализ': 'Мат.анализ'
 
         }
 
