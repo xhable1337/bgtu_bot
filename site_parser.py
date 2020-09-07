@@ -40,6 +40,7 @@ chrome_options.add_argument('--disable-dev-shm-usage')
 #chrome_options.add_argument('--disable-gpu')
 chrome_options.add_argument("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36 OPR/68.0.3618.206 (Edition Yx GX)")
 chrome_options.binary_location = CHROME_BIN
+driver = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH, chrome_options=chrome_options)
 #firefox_options = webdriver.FirefoxOptions()
 #firefox_options.headless = True
 
@@ -51,6 +52,9 @@ db = client.heroku_38n7vrr9
 schedule_db = db.schedule
 groups_db = db.groups
 users = db.users
+
+#UPDATE_TIME = 86400
+UPDATE_TIME = 2629743
 
 def get_state(user_id):
     """Позволяет просмотреть state по user_id."""
@@ -85,7 +89,7 @@ def get_groups(faculty='Факультет информационных техн
     """
     if groups_db.find_one() is None:
         year = str(year)
-        driver = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH, chrome_options=chrome_options)
+        #driver = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH, chrome_options=chrome_options)
         #executable_path=CHROMEDRIVER_PATH, 
         #driver = webdriver.Firefox(options=firefox_options)
         #driver = webdriver.Chrome(executable_path='chromedriver.exe')
@@ -113,7 +117,7 @@ def get_groups(faculty='Факультет информационных техн
     else:
         if force_update == True:
             year = str(year)
-            driver = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH, chrome_options=chrome_options)
+            #driver = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH, chrome_options=chrome_options)
             #driver = webdriver.Firefox(options=firefox_options)
             #driver = webdriver.Chrome(executable_path='chromedriver.exe')
             url = 'https://www.tu-bryansk.ru/education/schedule/'
@@ -158,7 +162,7 @@ def get_schedule(group, weekday, weeknum):
 
     • `list` с расписанием на выбранный день.
     """
-    if schedule_db.find_one({'group': group}) is None or time.time() - schedule_db.find_one({'group': group})['last_updated'] > 86400:
+    if schedule_db.find_one({'group': group}) is None or time.time() - schedule_db.find_one({'group': group})['last_updated'] > UPDATE_TIME:
         no = '-'
         days = {'Понедельник': 'monday', 'Вторник': 'tuesday', 'Среда': 'wednesday', 'Четверг': 'thursday', 'Пятница': 'friday'}
         lesson_times = {'08:00 - 09:35': 1, '09:45 - 11:20': 2, '11:30 - 13:05': 3, '13:20 - 14:55': 4, '15:05 - 16:40': 5}
@@ -188,7 +192,7 @@ def get_schedule(group, weekday, weeknum):
 
         }
 
-        driver = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH, chrome_options=chrome_options)
+        #driver = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH, chrome_options=chrome_options)
         #driver = webdriver.Firefox(options=firefox_options)
         #driver = webdriver.Chrome(executable_path='chromedriver.exe')
         url = 'https://www.tu-bryansk.ru/education/schedule/'
@@ -288,7 +292,7 @@ def get_schedule(group, weekday, weeknum):
             schedule_db.insert_one(schedule)
             return schedule_db.find_one({'group': group})[weekday][f'{weeknum}']
 
-        elif time.time() - schedule_db.find_one({'group': group})['last_updated'] > 86400:
+        elif time.time() - schedule_db.find_one({'group': group})['last_updated'] > UPDATE_TIME:
             schedule_db.update_one({'group': group}, {'$set': schedule})
             return schedule_db.find_one({'group': group})[weekday][f'{weeknum}']
 
