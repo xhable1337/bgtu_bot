@@ -42,10 +42,11 @@ index = [i for i in range(1, 6)]
 
 time_list = ['8:00-9:35', '9:45-11:20', '11:30-13:05', '13:20-14:55', '15:05-16:40']
 
-ADMINS = [124361528]
+ADMINS = [124361528, 436335947]
 bot = telebot.TeleBot(token, 'Markdown')
 
-table = PrettyTable(border=False)
+table = PrettyTable()
+table.border = False
 table.field_names = ['№', 'Пара', 'Кабинет']
 
 table_r = PrettyTable()
