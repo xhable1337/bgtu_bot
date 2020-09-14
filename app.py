@@ -137,7 +137,7 @@ def start_handler(m):
         faculty_list = get_faculties()
         kb_faculty = types.InlineKeyboardMarkup()
         for faculty in faculty_list:
-            kb_faculty.row(types.InlineKeyboardButton(text=faculty, callback_data=ru_en(f + faculty)))
+            kb_faculty.row(types.InlineKeyboardButton(text=faculty, callback_data=ru_en('f' + faculty)))
 
         bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Для начала работы с ботом выбери свою группу (впоследствии выбор можно изменить):*', reply_markup=kb_faculty, parse_mode='Markdown')
     else:
@@ -421,7 +421,7 @@ def button_func(call):
     elif str(call.data).startswith('f_'):
         in_faculty = str(call.data[2:])
         in_faculty = en_ru(in_faculty).capitalize()
-        faculty = raw_faculty.replace('_', ' ')
+        faculty = in_faculty.replace('_', ' ')
         
         print(faculty)
         group_list = get_groups(faculty=faculty)
