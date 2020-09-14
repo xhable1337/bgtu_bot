@@ -67,18 +67,11 @@ def set_group(user_id, group):
     users.update_one({'user_id': user_id}, {'$set': {'group': group}})
 
 def ru_en(text):
-    """Функция транслитерации с русского на английский."""
-    
-    if 'э' in text:
-        text.replace('э', '*э*')
-            
+    """Функция транслитерации с русского на английский."""            
     return translit(text, 'ru', reversed=True)
 
 def en_ru(text):
     """Функция транслитерации с английского на русский."""
-
-    if '*e*' in text:
-        text.replace('*e*', 'э')
     return translit(text, 'ru', reversed=False)
 
 def get_schedule(group, weekday, weeknum):
@@ -430,6 +423,11 @@ def button_func(call):
         in_faculty = en_ru(in_faculty).capitalize()
         faculty = in_faculty.replace('_', ' ')
         
+        if 'економики' in faculty:
+            faculty = 'Факультет отраслевой и цифровой экономики'
+        elif 'електроники' in faculty:
+            faculty = 'Факультет энергетики и электроники'
+            
         print(faculty)
         group_list = get_groups(faculty=faculty)
         kb_group = types.InlineKeyboardMarkup()
