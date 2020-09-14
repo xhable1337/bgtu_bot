@@ -84,22 +84,29 @@ def get_schedule(group, weekday, weeknum):
 
         elif time.time() - schedule_db.find_one({'group': group})['last_updated'] > UPDATE_TIME:
             schedule = api_get_schedule(group, weekday, weeknum)
-            schedule_db.update_one({'group': group}, {'$set': schedule})
-            return schedule[weekday][f'{weeknum}']
+            if schedule is not None:
+                schedule_db.update_one({'group': group}, {'$set': schedule})
+                return schedule[weekday][f'{weeknum}']
+            else:
+                schedule_db.find_one({'group': group})[weekday][f'{weeknum}']
     else:
         return schedule_db.find_one({'group': group})[weekday][f'{weeknum}']
 
 def get_groups(faculty='Факультет информационных технологий', year='20', force_update=False):
     """Функция получения расписания от API."""
-    if groups_db.find_one() is None:
+    if groups_db.find_one({"faculty": faculty}) is None:
         group_list = api_get_groups(faculty, year)
+        print(group_list)
         groups_db.insert_one({'faculty': faculty, 'year': year, 'groups': group_list, 'last_updated': time.time()})
         return group_list['groups']
     else:
         if force_update == True:
             group_list = api_get_groups(faculty, year)
-            groups_db.update_one({'faculty': faculty, 'year': year}, {'$set': {'groups': group_list, 'last_updated': time.time()}})
-            return group_list['groups']
+            if group_list is not None:
+                groups_db.update_one({'faculty': faculty, 'year': year}, {'$set': {'groups': group_list, 'last_updated': time.time()}})
+                return group_list['groups']
+            else:
+                return groups_db.find_one({'faculty': faculty, 'year': year})['groups']
         else:
             return groups_db.find_one({'faculty': faculty, 'year': year})['groups']
     #if schedule_db.find_one({'group': group}) is None or time.time() - schedule_db.find_one({'group': group})['last_updated'] > UPDATE_TIME:
@@ -175,7 +182,7 @@ def broadcast(m):
         group = raw_text.split(' ', maxsplit=2)[1]
         text = raw_text.split(' ', maxsplit=2)[2]
         if group == 'all':
-            text = f'🔔 *Сообщение для всех групп ИВТ!*\n' + text
+            text = f'🔔 *Сообщение для всех групп!*\n' + text
             for user in users.find():
                 user_id = user['user_id']
                 bot.send_message(user_id, text, parse_mode='Markdown')
