@@ -103,7 +103,7 @@ def get_groups(faculty='Факультет информационных техн
         if force_update == True:
             group_list = api_get_groups(faculty, year)
             if group_list is not None:
-                groups_db.update_one({'faculty': faculty, 'year': year}, {'$set': {'groups': group_list, 'last_updated': time.time()}})
+                groups_db.update_one({'faculty': f'faculty_{faculty}', 'year': year}, {'$set': {'groups': group_list, 'last_updated': time.time()}})
                 return group_list['groups']
             else:
                 return groups_db.find_one({'faculty': faculty, 'year': year})['groups']
@@ -113,6 +113,13 @@ def get_groups(faculty='Факультет информационных техн
     #    schedule = api_get_groups(faculty, year, force_update)
     #else:
     #    return schedule_db.find_one({'group': group})[weekday][f'{weeknum}']
+
+def get_faculties():
+    """Возвращает список факультетов из БД."""
+    faculties = []
+    for item in groups_db.find({}):
+        faculties.append(item['faculty'])
+    return faculties    
 
 
 @bot.message_handler(commands=["start"])
@@ -127,12 +134,12 @@ def start_handler(m):
             'group': 'О-20-ИВТ-1-по-Б'
         })
 
-        group_list = get_groups()
-        kb_group = types.InlineKeyboardMarkup()
-        for group in group_list:
-            kb_group.row(types.InlineKeyboardButton(text=group, callback_data=ru_en(group)))
+        faculty_list = get_faculties()
+        kb_faculty = types.InlineKeyboardMarkup()
+        for faculty in faculty_list:
+            kb_faculty.row(types.InlineKeyboardButton(text=faculty[2:], callback_data=ru_en(faculty)))
 
-        bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Для начала работы с ботом выбери свою группу (впоследствии выбор можно изменить):*', reply_markup=kb_group, parse_mode='Markdown')
+        bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Для начала работы с ботом выбери свою группу (впоследствии выбор можно изменить):*', reply_markup=kb_faculty, parse_mode='Markdown')
     else:
         group = get_group(m.from_user.id)
         bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Выбранная группа: {group}.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
@@ -209,7 +216,7 @@ kbm.row(types.InlineKeyboardButton(text='📅 Расписание по дням
 kbm.row(types.InlineKeyboardButton(text='⚡️ Сегодня', callback_data='today'), types.InlineKeyboardButton(text='⚡️ Завтра', callback_data='tomorrow'))
 kbm.row(types.InlineKeyboardButton(text='🔔 Расписание пар', callback_data='rings'))
 kbm.row(types.InlineKeyboardButton(text='🏠 Найти корпус по аудитории', callback_data='building'))
-kbm.row(types.InlineKeyboardButton(text='🔂 Сменить свою группу', callback_data='change_group'))
+kbm.row(types.InlineKeyboardButton(text='🔂 Сменить факультет/группу', callback_data='change_faculty'))
 
 kb_r = types.InlineKeyboardMarkup()
 kb_r.row(types.InlineKeyboardButton(text='Понедельник', callback_data='r_monday'))
@@ -398,6 +405,33 @@ def button_func(call):
         message_id=call.message.message_id,
         text=f'Привет, {call.from_user.first_name}!\n*Сейчас выбрана группа {get_group(call.from_user.id)}.*\nВот главное меню:',
         reply_markup=kbm, parse_mode='Markdown')
+    elif call.data == 'change_faculty':
+        faculty_list = get_faculties()
+        kb_faculty = types.InlineKeyboardMarkup()
+
+        for faculty in faculty_list:
+            faculty_text = faculty[2:]
+            callback_faculty = str(faculty).replace(' ', '_')
+            kb_faculty.row(types.InlineKeyboardButton(text=faculty_text, callback_data=ru_en(callback_faculty)))
+
+        kb_faculty.row(types.InlineKeyboardButton(text='🚫 Отмена', callback_data='cancel_find_class'))
+        bot.edit_message_text(chat_id=call.message.chat.id,
+        message_id=call.message.message_id,
+        text=f'Выберите факультет:',
+        reply_markup=kb_faculty, parse_mode='Markdown')
+    elif str(call.data).startswith('f_'):
+        faculty = en_ru(str(call.data[2:]))
+        group_list = get_groups(faculty=faculty)
+        kb_group = types.InlineKeyboardMarkup()
+
+        for group in group_list:
+            kb_group.row(types.InlineKeyboardButton(text=group, callback_data=ru_en(group)))
+
+        kb_group.row(types.InlineKeyboardButton(text='🚫 Отмена', callback_data='cancel_find_class'))
+        bot.edit_message_text(chat_id=call.message.chat.id,
+        message_id=call.message.message_id,
+        text=f'Выберите группу:',
+        reply_markup=kb_group, parse_mode='Markdown')
     elif call.data == 'change_group':
         group_list = get_groups()
         kb_group = types.InlineKeyboardMarkup()
