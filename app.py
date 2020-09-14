@@ -433,7 +433,7 @@ def button_func(call):
         kb_group = types.InlineKeyboardMarkup()
 
         for group in group_list:
-            kb_group.row(types.InlineKeyboardButton(text=group, callback_data=ru_en(group)))
+            kb_group.row(types.InlineKeyboardButton(text=group, callback_data=group))
 
         kb_group.row(types.InlineKeyboardButton(text='🚫 Отмена', callback_data='cancel_find_class'))
         bot.edit_message_text(chat_id=call.message.chat.id,
@@ -445,15 +445,15 @@ def button_func(call):
         kb_group = types.InlineKeyboardMarkup()
 
         for group in group_list:
-            kb_group.row(types.InlineKeyboardButton(text=group, callback_data=ru_en(group)))
+            kb_group.row(types.InlineKeyboardButton(text=group, callback_data=group))
 
         kb_group.row(types.InlineKeyboardButton(text='🚫 Отмена', callback_data='cancel_find_class'))
         bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
         text=f'Выберите группу:',
         reply_markup=kb_group, parse_mode='Markdown')
-    elif str(call.data).startswith('O-20'):
-        group = en_ru(str(call.data))
+    elif str(call.data).startswith('О-20'):
+        group = str(call.data)
         set_group(call.from_user.id, group)
         bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
