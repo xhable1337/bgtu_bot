@@ -420,6 +420,7 @@ def button_func(call):
         reply_markup=kb_faculty, parse_mode='Markdown')
     elif str(call.data).startswith('f_'):
         faculty = en_ru(str(call.data[2:]))
+        print(faculty)
         group_list = get_groups(faculty=faculty)
         kb_group = types.InlineKeyboardMarkup()
 
