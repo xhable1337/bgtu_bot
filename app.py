@@ -45,7 +45,7 @@ time_list = ['8:00-9:35', '9:45-11:20', '11:30-13:05', '13:20-14:55', '15:05-16:
 ADMINS = [124361528, 436335947]
 bot = telebot.TeleBot(token, 'Markdown')
 
-table = PrettyTable()
+table = PrettyTable(border=False)
 table.border = False
 table.field_names = ['№', 'Пара', 'Кабинет']
 
@@ -292,7 +292,7 @@ def button_func(call):
         text='Выберите день недели:',
         reply_markup=kb_dn)
     elif call.data[:5] == 'wday_':
-        table = PrettyTable()
+        table = PrettyTable(border=False)
         table.field_names = ['№', 'Пара', 'Кабинет']
         group = get_group(call.from_user.id)
         isoweekday = datetime.datetime.today().isoweekday()
@@ -323,7 +323,7 @@ def button_func(call):
         if isoweekday == 6 or isoweekday == 7:
             text = f'*Выбрана группа {group}*\nСегодня: {wdays.names(isoweekday)[0]}\n\nУдачных выходных!'
         else:
-            table = PrettyTable()
+            table = PrettyTable(border=False)
             table.field_names = ['№', 'Пара', 'Кабинет']
             group = get_group(call.from_user.id)
             isoweekday = datetime.datetime.today().isoweekday()
@@ -356,7 +356,7 @@ def button_func(call):
         if isoweekday == 6 or isoweekday == 7:
             text = f'*Выбрана группа {group}*\nЗавтра: {wdays.names(isoweekday)[0]}\n\nУдачных выходных!'
         elif isoweekday == 8:
-            table = PrettyTable()
+            table = PrettyTable(border=False)
             table.field_names = ['№', 'Пара', 'Кабинет']
             weekday = wdays.names(isoweekday)[1]
 
@@ -371,7 +371,7 @@ def button_func(call):
                 table.add_row(lesson)
             text = f'*Выбрана группа {group}*\nЗавтра: {wdays.names(isoweekday)[0]}\n\n```{table}```\n\n`[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*'
         else:
-            table = PrettyTable()
+            table = PrettyTable(border=False)
             table.field_names = ['№', 'Пара', 'Кабинет']
             weekday = wdays.names(isoweekday)[1]
 
