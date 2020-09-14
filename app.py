@@ -68,10 +68,17 @@ def set_group(user_id, group):
 
 def ru_en(text):
     """Функция транслитерации с русского на английский."""
+    
+    if 'э' in text:
+        text.replace('э', '*э*')
+            
     return translit(text, 'ru', reversed=True)
 
 def en_ru(text):
     """Функция транслитерации с английского на русский."""
+
+    if '*e*' in text:
+        text.replace('*e*', 'э')
     return translit(text, 'ru', reversed=False)
 
 def get_schedule(group, weekday, weeknum):
