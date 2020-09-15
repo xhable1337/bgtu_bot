@@ -181,7 +181,15 @@ def users_handler(m):
                 text += f'[{first_name} {last_name}](tg://user?id={user_id}) ◼ *Группа {group}*\n'
             else:
                 text += f'[{first_name}](tg://user?id={user_id}) ◼ *Группа {group}*\n'
-        bot.send_message(m.chat.id, text, parse_mode='Markdown')
+
+        count = users.count_documents({})
+        text = f"Всего пользователей: {count}\n\n" + text
+        
+        if len(text) > 4096:
+            for x in range(0, len(text), 4096):
+                bot.send_message(m.chat.id, text[x:x+4096], parse_mode='Markdown')
+        else:
+            bot.send_message(m.chat.id, text, parse_mode='Markdown')
 
 @bot.message_handler(commands=["broadcast"])
 def broadcast(m):
