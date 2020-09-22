@@ -85,7 +85,7 @@ def get_schedule(group, weekday, weeknum):
 
         elif time.time() - schedule_db.find_one({'group': group})['last_updated'] > UPDATE_TIME:
             schedule = api_get_schedule(group, weekday, weeknum)
-            if schedule is not None:
+            if schedule != None:
                 schedule_db.update_one({'group': group}, {'$set': schedule})
                 return schedule[weekday][f'{weeknum}']
             else:
@@ -103,7 +103,7 @@ def get_groups(faculty='Факультет информационных техн
     else:
         if force_update == True:
             group_list = api_get_groups(faculty, year)
-            if group_list is not None:
+            if group_list != None:
                 groups_db.update_one({'faculty': f'faculty_{faculty}', 'year': year}, {'$set': {'groups': group_list, 'last_updated': time.time()}})
                 return group_list['groups']
             else:
