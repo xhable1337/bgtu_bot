@@ -491,8 +491,7 @@ def button_func(call):
                     types.InlineKeyboardButton(text='➕ Добавить', callback_data='add_favorite')
                 )
         kb_favorite.row(types.InlineKeyboardButton(text='🔄 В главное меню', callback_data='tomain'))
-        await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-        text='Твой список избранных групп:', reply_markup=kb_favorite)
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text='Твой список избранных групп:', reply_markup=kb_favorite)
         
     elif str(call.data).startswith('О-20'):
         if get_state(call.from_user.id) == 'default':
