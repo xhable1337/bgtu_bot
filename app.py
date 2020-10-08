@@ -142,6 +142,15 @@ def start_handler(m):
 
         bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Для начала работы с ботом выбери свою группу (впоследствии выбор можно изменить):*', reply_markup=kb_faculty, parse_mode='Markdown')
     else:
+        user = users.find_one({'user_id': m.from_user.id})
+        if user.get('favorite_groups') == None:
+            users.update_one({'user_id': m.from_user.id}, {'$set': {'favorite_groups': []}})
+        elif user.get('first_name') != m.from_user.first_name:
+            users.update_one({'first_name': m.from_user.first_name}, {'$set': {'first_name': m.from_user.first_name}})
+        elif user.get('last_name') != m.from_user.last_name:
+            users.update_one({'last_name': m.from_user.last_name}, {'$set': {'last_name': m.from_user.last_name}})
+        elif user.get('username') != m.from_user.username:
+            users.update_one({'username': m.from_user.username}, {'$set': {'username': m.from_user.username}})
         group = get_group(m.from_user.id)
         bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Выбранная группа: {group}.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
         set_state(m.from_user.id, 'default')
@@ -226,6 +235,7 @@ kbm.row(types.InlineKeyboardButton(text='⚡️ Сегодня', callback_data='
 kbm.row(types.InlineKeyboardButton(text='🔔 Расписание пар', callback_data='rings'))
 kbm.row(types.InlineKeyboardButton(text='🏠 Найти корпус по аудитории', callback_data='building'))
 kbm.row(types.InlineKeyboardButton(text='🔂 Сменить факультет/группу', callback_data='change_faculty'))
+kbm.row(types.InlineKeyboardButton(text='⭐ Избранные группы', callback_data='favorite_groups'))
 
 kb_r = types.InlineKeyboardMarkup()
 kb_r.row(types.InlineKeyboardButton(text='Понедельник', callback_data='r_monday'))
@@ -461,14 +471,62 @@ def button_func(call):
         message_id=call.message.message_id,
         text=f'Выберите группу:',
         reply_markup=kb_group, parse_mode='Markdown')
+    elif call.data == 'favorite_groups':
+        kb_favorite = types.InlineKeyboardMarkup()
+        user = users.find_one({'user_id': call.from_user.id})
+        i = 0
+        if user.get('favorite_groups') is not None:
+            for group in user.get('favorite_groups'):
+                kb_favorite.row(
+                    types.InlineKeyboardButton(text=group, callback_data=group),
+                    types.InlineKeyboardButton(text='❌', callback_data=f'{group}_del')
+                )
+                i += 1
+            space_left = 5 - i
+            for i in range(space_left):
+                kb_favorite.row(types.InlineKeyboardButton(text='➕ Добавить', callback_data='add_favorite'))
+        else:
+            for i in range(5):
+                kb_favorite.row(
+                    types.InlineKeyboardButton(text='➕ Добавить', callback_data='add_favorite')
+                )
+        kb_favorite.row(types.InlineKeyboardButton(text='🔄 В главное меню', callback_data='tomain'))
+        await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+        text='Твой список избранных групп:', reply_markup=kb_favorite)
+        
     elif str(call.data).startswith('О-20'):
-        group = str(call.data)
-        set_group(call.from_user.id, group)
+        if get_state(call.from_user.id) == 'default':
+            group = str(call.data)
+            set_group(call.from_user.id, group)
+            bot.edit_message_text(chat_id=call.message.chat.id,
+            message_id=call.message.message_id,
+            text=f'Привет, {call.from_user.first_name}!\n*Сейчас выбрана группа {get_group(call.from_user.id)}.*\nВот главное меню:',
+            reply_markup=kbm, parse_mode='Markdown')
+        elif get_state(call.from_user.id) == 'add_favorite':
+            user = users.find_one({'user_id': call.from_user.id})
+            favorite_groups = user.get('favorite_groups')
+            favorite_groups.append(call.data)
+            users.update_one({'user_id': call.from_user.id}, {'$set': {'favorite_groups': favorite_groups}})
+            bot.edit_message_text(chat_id=call.message.chat.id,
+            message_id=call.message.message_id,
+            text=f'{call.from_user.first_name}, группа {call.data} добавлена в список избранных!\n*Сейчас выбрана группа {get_group(call.from_user.id)}.*\nВот главное меню:',
+            reply_markup=kbm, parse_mode='Markdown')
+            set_state(call.from_user.id, 'default')
+    
+    elif call.data == 'add_favorite':
+        set_state(call.from_user.id, 'add_favorite')
+        faculty_list = get_faculties()
+        kb_faculty = types.InlineKeyboardMarkup()
+
+        for faculty in faculty_list:
+            callback_faculty = str('f_' + faculty).replace(' ', '_')
+            kb_faculty.row(types.InlineKeyboardButton(text=faculty, callback_data=ru_en(callback_faculty)))
+
+        kb_faculty.row(types.InlineKeyboardButton(text='🚫 Отмена', callback_data='cancel_find_class'))
         bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
-        text=f'Привет, {call.from_user.first_name}!\n*Сейчас выбрана группа {get_group(call.from_user.id)}.*\nВот главное меню:',
-        reply_markup=kbm, parse_mode='Markdown')
-
+        text=f'Выберите факультет:',
+        reply_markup=kb_faculty, parse_mode='Markdown')
 
 # Установка Webhook для быстрого взаимодействия с ботом
 
