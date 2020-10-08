@@ -496,9 +496,13 @@ def button_func(call):
     elif str(call.data).startswith('О-20'):
         if str(call.data).endswith('__del'):
             user = users.find_one({'user_id': call.from_user.id})
-            favorite_groups = user.get('favorite_groups')
-            group = str(call.data).split('__')[0]
-            favorite_groups = favorite_groups.pop(favorite_groups.index(group))
+            favorite_groups = list(user.get('favorite_groups'))
+            if len(favorite_groups) != 1:
+                group = str(call.data).split('__')[0]
+                favorite_groups = favorite_groups.pop(favorite_groups.index(group))
+            else:
+                favorite_groups = []
+            
             users.update_one({'user_id': call.from_user.id}, {'$set': {'favorite_groups': favorite_groups}})
             bot.edit_message_text(chat_id=call.message.chat.id,
             message_id=call.message.message_id,
