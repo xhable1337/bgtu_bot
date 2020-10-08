@@ -206,16 +206,26 @@ def broadcast(m):
         raw_text = str(m.text)
         group = raw_text.split(' ', maxsplit=2)[1]
         text = raw_text.split(' ', maxsplit=2)[2]
+        i = 0
         if group == 'all':
             text = f'🔔 *Сообщение для всех групп!*\n' + text
             for user in users.find():
+                if i == 25:
+                    time.sleep(1)
                 user_id = user['user_id']
                 bot.send_message(user_id, text, parse_mode='Markdown')
+                i += 1
+        elif group == 'test':
+            text = f'🔔 *Тестовое сообщение!*\n' + text
+            bot.send_message(m.chat.id, text, parse_mode='Markdown')
         else:
             text = f'🔔 *Сообщение для группы {group}!*\n' + text
             for user in users.find({'group': group}):
+                if i == 25:
+                    time.sleep(1)
                 user_id = user['user_id']
                 bot.send_message(user_id, text, parse_mode='Markdown')
+                i += 1
 
 @bot.message_handler(commands=["exec"])
 def execute(m):
