@@ -498,15 +498,7 @@ def button_func(call):
             user = users.find_one({'user_id': call.from_user.id})
             favorite_groups = user.get('favorite_groups')
             group = str(call.data).split('__')[0]
-            
-            if len(favorite_groups) == 2:
-                favorite_groups.pop(favorite_groups.index(group))
-            elif len(favorite_groups) == 1:
-                favorite_groups = []
-            else:
-                favorite_groups.pop(favorite_groups.index(group))
-
-            print(f'\n\n\nfavorite_groups = {favorite_groups}\n\n\n')
+            favorite_groups.pop(favorite_groups.index(group))
             users.update_one({'user_id': call.from_user.id}, {'$set': {'favorite_groups': favorite_groups}})
             bot.edit_message_text(chat_id=call.message.chat.id,
             message_id=call.message.message_id,
