@@ -497,8 +497,8 @@ def button_func(call):
         if str(call.data).endswith('__del'):
             user = users.find_one({'user_id': call.from_user.id})
             favorite_groups = list(user.get('favorite_groups'))
+            group = str(call.data).split('__')[0]
             if len(favorite_groups) != 1:
-                group = str(call.data).split('__')[0]
                 favorite_groups = favorite_groups.pop(favorite_groups.index(group))
             else:
                 favorite_groups = []
