@@ -479,7 +479,7 @@ def button_func(call):
             for group in user.get('favorite_groups'):
                 kb_favorite.row(
                     types.InlineKeyboardButton(text=group, callback_data=group),
-                    types.InlineKeyboardButton(text='❌', callback_data=f'{group}_del')
+                    types.InlineKeyboardButton(text='❌', callback_data=f'{group}__del')
                 )
                 i += 1
             space_left = 5 - i
@@ -494,23 +494,35 @@ def button_func(call):
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text='Твой список избранных групп:', reply_markup=kb_favorite)
         
     elif str(call.data).startswith('О-20'):
-        if get_state(call.from_user.id) == 'default':
-            group = str(call.data)
-            set_group(call.from_user.id, group)
-            bot.edit_message_text(chat_id=call.message.chat.id,
-            message_id=call.message.message_id,
-            text=f'Привет, {call.from_user.first_name}!\n*Сейчас выбрана группа {get_group(call.from_user.id)}.*\nВот главное меню:',
-            reply_markup=kbm, parse_mode='Markdown')
-        elif get_state(call.from_user.id) == 'add_favorite':
+        if str(call.data).endswith('__del'):
             user = users.find_one({'user_id': call.from_user.id})
             favorite_groups = user.get('favorite_groups')
-            favorite_groups.append(call.data)
+            group = str(call.data).split('__')[0]
+            favorite_groups = favorite_groups.pop(favorite_groups.index(group))
             users.update_one({'user_id': call.from_user.id}, {'$set': {'favorite_groups': favorite_groups}})
             bot.edit_message_text(chat_id=call.message.chat.id,
             message_id=call.message.message_id,
-            text=f'{call.from_user.first_name}, группа {call.data} добавлена в список избранных!\n*Сейчас выбрана группа {get_group(call.from_user.id)}.*\nВот главное меню:',
+            text=f'Группа {group} удалена из избранных!\n*Сейчас выбрана группа {get_group(call.from_user.id)}.*\nВот главное меню:',
             reply_markup=kbm, parse_mode='Markdown')
             set_state(call.from_user.id, 'default')
+        else:
+            if get_state(call.from_user.id) == 'default':
+                group = str(call.data)
+                set_group(call.from_user.id, group)
+                bot.edit_message_text(chat_id=call.message.chat.id,
+                message_id=call.message.message_id,
+                text=f'Привет, {call.from_user.first_name}!\n*Сейчас выбрана группа {get_group(call.from_user.id)}.*\nВот главное меню:',
+                reply_markup=kbm, parse_mode='Markdown')
+            elif get_state(call.from_user.id) == 'add_favorite':
+                user = users.find_one({'user_id': call.from_user.id})
+                favorite_groups = user.get('favorite_groups')
+                favorite_groups.append(call.data)
+                users.update_one({'user_id': call.from_user.id}, {'$set': {'favorite_groups': favorite_groups}})
+                bot.edit_message_text(chat_id=call.message.chat.id,
+                message_id=call.message.message_id,
+                text=f'Группа {call.data} добавлена в избранные!\n*Сейчас выбрана группа {get_group(call.from_user.id)}.*\nВот главное меню:',
+                reply_markup=kbm, parse_mode='Markdown')
+                set_state(call.from_user.id, 'default')
     
     elif call.data == 'add_favorite':
         set_state(call.from_user.id, 'add_favorite')
