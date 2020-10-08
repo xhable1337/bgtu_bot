@@ -486,6 +486,7 @@ def button_func(call):
             for i in range(space_left):
                 kb_favorite.row(types.InlineKeyboardButton(text='➕ Добавить', callback_data='add_favorite'))
         else:
+            users.update_one({"user_id": call.from_user.id}, {"$set": {"favorite_groups": []}})
             for i in range(5):
                 kb_favorite.row(
                     types.InlineKeyboardButton(text='➕ Добавить', callback_data='add_favorite')
