@@ -213,8 +213,11 @@ def broadcast(m):
                 if i == 25:
                     time.sleep(1)
                 user_id = user['user_id']
-                bot.send_message(user_id, text, parse_mode='Markdown')
-                i += 1
+                try:
+                    bot.send_message(user_id, text, parse_mode='Markdown')
+                    i += 1
+                except telebot.apihelper.ApiTelegramException:
+                    pass
         elif group == 'test':
             text = f'🔔 *Тестовое сообщение!*\n' + text
             bot.send_message(m.chat.id, text, parse_mode='Markdown')
@@ -224,8 +227,11 @@ def broadcast(m):
                 if i == 25:
                     time.sleep(1)
                 user_id = user['user_id']
-                bot.send_message(user_id, text, parse_mode='Markdown')
-                i += 1
+                try:
+                    bot.send_message(user_id, text, parse_mode='Markdown')
+                    i += 1
+                except telebot.apihelper.ApiTelegramException:
+                    pass
 
 @bot.message_handler(commands=["exec"])
 def execute(m):
