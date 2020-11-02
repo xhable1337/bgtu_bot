@@ -261,7 +261,7 @@ kb_r.row(types.InlineKeyboardButton(text='В главное меню', callback_
 kb_dn = types.InlineKeyboardMarkup()
 
 kb_dn.row(
-    types.InlineKeyboardButton(text='[Н]'),
+    types.InlineKeyboardButton(text='[Н]', callback_data='week_1'),
     types.InlineKeyboardButton(text='1️⃣ Пн', callback_data='wday_monday_1'),
     types.InlineKeyboardButton(text='2️⃣ Вт', callback_data='wday_tuesday_1'),
     types.InlineKeyboardButton(text='3️⃣ Ср', callback_data='wday_wednesday_1'),
@@ -269,7 +269,7 @@ kb_dn.row(
     types.InlineKeyboardButton(text='5️⃣ Пт', callback_data='wday_friday_1'))
 
 kb_dn.row(
-    types.InlineKeyboardButton(text='[Ч]'),
+    types.InlineKeyboardButton(text='[Ч]', callback_data='week_2'),
     types.InlineKeyboardButton(text='1️⃣ Пн', callback_data='wday_monday_2'),
     types.InlineKeyboardButton(text='2️⃣ Вт', callback_data='wday_tuesday_2'),
     types.InlineKeyboardButton(text='3️⃣ Ср', callback_data='wday_wednesday_2'),
