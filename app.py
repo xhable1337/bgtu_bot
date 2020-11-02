@@ -259,12 +259,22 @@ kb_r.row(types.InlineKeyboardButton(text='Остальные дни', callback_d
 kb_r.row(types.InlineKeyboardButton(text='В главное меню', callback_data='tomain'))
 
 kb_dn = types.InlineKeyboardMarkup()
-kb_dn.row(types.InlineKeyboardButton(text='1️⃣ Пн', callback_data='wday_monday'),
-types.InlineKeyboardButton(text='2️⃣ Вт', callback_data='wday_tuesday'),
-types.InlineKeyboardButton(text='3️⃣ Ср', callback_data='wday_wednesday'))
-kb_dn.row(types.InlineKeyboardButton(text='4️⃣ Чт', callback_data='wday_thursday'),
-types.InlineKeyboardButton(text='5️⃣ Пт', callback_data='wday_friday'))
-kb_dn.row(types.InlineKeyboardButton(text='🔄 В главное меню', callback_data='tomain'))
+
+kb_dn.row(
+    types.InlineKeyboardButton(text='[Н]'),
+    types.InlineKeyboardButton(text='1️⃣ Пн', callback_data='wday_monday_1'),
+    types.InlineKeyboardButton(text='2️⃣ Вт', callback_data='wday_tuesday_1'),
+    types.InlineKeyboardButton(text='3️⃣ Ср', callback_data='wday_wednesday_1'),
+    types.InlineKeyboardButton(text='4️⃣ Чт', callback_data='wday_thursday_1'),
+    types.InlineKeyboardButton(text='5️⃣ Пт', callback_data='wday_friday_1'))
+
+kb_dn.row(
+    types.InlineKeyboardButton(text='[Ч]'),
+    types.InlineKeyboardButton(text='1️⃣ Пн', callback_data='wday_monday_2'),
+    types.InlineKeyboardButton(text='2️⃣ Вт', callback_data='wday_tuesday_2'),
+    types.InlineKeyboardButton(text='3️⃣ Ср', callback_data='wday_wednesday_2'),
+    types.InlineKeyboardButton(text='4️⃣ Чт', callback_data='wday_thursday_2'),
+    types.InlineKeyboardButton(text='5️⃣ Пт', callback_data='wday_friday_2'))
 
 kbb = types.InlineKeyboardMarkup()
 kbb.row(types.InlineKeyboardButton(text='↩️ Назад', callback_data='days'))
@@ -321,35 +331,35 @@ def anymess(m):
 @bot.callback_query_handler(func=lambda call: True)
 def button_func(call):
     if call.data == 'days':
+        if datetime.datetime.today().isocalendar()[1] % 2 == 0:
+            weekname = '[Н] - нечётная'
+        else:
+            weekname = '[Ч] - чётная'
         bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
-        text='Выберите день недели:',
+        text='Выберите неделю и день (сейчас идёт {weekname}):\n',
         reply_markup=kb_dn)
     elif call.data[:5] == 'wday_':
         table = PrettyTable(border=False)
         table.field_names = ['№', 'Пара', 'Кабинет']
         group = get_group(call.from_user.id)
         isoweekday = datetime.datetime.today().isoweekday()
-        weekday = call.data[5:]
-        if isoweekday == 6 or isoweekday == 7:
-            if datetime.datetime.today().isocalendar()[1] % 2 != 0:
-                weeknum = '1'
-            else:
-                weeknum = '2'
-        else:
-            if datetime.datetime.today().isocalendar()[1] % 2 == 0:
-                weeknum = '1'
-            else:
-                weeknum = '2'
+        weeknum = str(call.data)[-1]
+        weekday = call.data[5:-2]
         
         schedule = get_schedule(group, weekday, weeknum)
+
+        if weeknum == '1':
+            weekname = 'нечётная'
+        elif weeknum == '2':
+            weekname = 'чётная'
 
         for lesson in schedule:
             table.add_row(lesson)
         
         bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
-        text=f'*Выбрана группа {group}*\nРасписание: {wdays.translate(weekday)}\n\n```{table}```\n\n`[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*',
+        text=f'*Выбрана группа {group}*\nРасписание: {wdays.translate(weekday)}\nНеделя: {weekname}\n\n```{table}```\n\n`[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*',
         reply_markup=kbb, parse_mode='Markdown')
     elif call.data == 'today':
         group = get_group(call.from_user.id)
