@@ -262,19 +262,19 @@ kb_dn = types.InlineKeyboardMarkup()
 
 kb_dn.row(
     types.InlineKeyboardButton(text='[Н]', callback_data='week_1'),
-    types.InlineKeyboardButton(text='1️⃣ Пн', callback_data='wday_monday_1'),
-    types.InlineKeyboardButton(text='2️⃣ Вт', callback_data='wday_tuesday_1'),
-    types.InlineKeyboardButton(text='3️⃣ Ср', callback_data='wday_wednesday_1'),
-    types.InlineKeyboardButton(text='4️⃣ Чт', callback_data='wday_thursday_1'),
-    types.InlineKeyboardButton(text='5️⃣ Пт', callback_data='wday_friday_1'))
+    types.InlineKeyboardButton(text='Пн', callback_data='wday_monday_1'),
+    types.InlineKeyboardButton(text='Вт', callback_data='wday_tuesday_1'),
+    types.InlineKeyboardButton(text='Ср', callback_data='wday_wednesday_1'),
+    types.InlineKeyboardButton(text='Чт', callback_data='wday_thursday_1'),
+    types.InlineKeyboardButton(text='Пт', callback_data='wday_friday_1'))
 
 kb_dn.row(
     types.InlineKeyboardButton(text='[Ч]', callback_data='week_2'),
-    types.InlineKeyboardButton(text='1️⃣ Пн', callback_data='wday_monday_2'),
-    types.InlineKeyboardButton(text='2️⃣ Вт', callback_data='wday_tuesday_2'),
-    types.InlineKeyboardButton(text='3️⃣ Ср', callback_data='wday_wednesday_2'),
-    types.InlineKeyboardButton(text='4️⃣ Чт', callback_data='wday_thursday_2'),
-    types.InlineKeyboardButton(text='5️⃣ Пт', callback_data='wday_friday_2'))
+    types.InlineKeyboardButton(text='Пн', callback_data='wday_monday_2'),
+    types.InlineKeyboardButton(text='Вт', callback_data='wday_tuesday_2'),
+    types.InlineKeyboardButton(text='Ср', callback_data='wday_wednesday_2'),
+    types.InlineKeyboardButton(text='Чт', callback_data='wday_thursday_2'),
+    types.InlineKeyboardButton(text='Пт', callback_data='wday_friday_2'))
 
 kbb = types.InlineKeyboardMarkup()
 kbb.row(types.InlineKeyboardButton(text='↩️ Назад', callback_data='days'))
@@ -337,7 +337,7 @@ def button_func(call):
             weekname = '[Ч] - чётная'
         bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
-        text='Выберите неделю и день (сейчас идёт {weekname}):\n',
+        text=f'Выберите неделю и день (сейчас идёт {weekname}):\n',
         reply_markup=kb_dn)
     elif call.data[:5] == 'wday_':
         table = PrettyTable(border=False)
