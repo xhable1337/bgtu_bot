@@ -276,6 +276,8 @@ kb_dn.row(
     types.InlineKeyboardButton(text='Чт', callback_data='wday_thursday_2'),
     types.InlineKeyboardButton(text='Пт', callback_data='wday_friday_2'))
 
+kb_dn.row(types.InlineKeyboardButton(text='🔄 В главное меню', callback_data='tomain'))
+
 kbb = types.InlineKeyboardMarkup()
 kbb.row(types.InlineKeyboardButton(text='↩️ Назад', callback_data='days'))
 
