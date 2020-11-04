@@ -347,10 +347,10 @@ async def button_func(call):
     if call.data == 'days':
         await bot.answer_callback_query(call.id)
         if datetime.datetime.today().isocalendar()[1] % 2 == 0:
-            weekname = '[Н] - нечётная'
+            weekname = '[Н] \\- нечётная'
             buttons = ['[Н]', 'Ч']
         else:
-            weekname = '[Ч] - чётная'
+            weekname = '[Ч] \\- чётная'
             buttons = ['Н', '[Ч]']
 
         kb_dn = types.InlineKeyboardMarkup()
