@@ -634,16 +634,16 @@ async def button_func(call):
 #    return "!", 200
 
 async def test_print():
-    while 1:
+    while True:
         print("hello world")
         await asyncio.sleep(60)
 
-async def startserver():
-    app = get_new_configured_app(dispatcher=dp, path=WEBHOOK_PATH)
-    web.run_app(app, host='0.0.0.0', port=os.getenv('PORT'))
+#async def startserver():
+#    app = get_new_configured_app(dispatcher=dp, path=WEBHOOK_PATH)
+#    web.run_app(app, host='0.0.0.0', port=os.getenv('PORT'))
 
-async def startbot():
-    while 1:
+def startbot():
+    while True:
         executor.start_polling(dp, skip_updates=True)
         break
     #start_webhook(
