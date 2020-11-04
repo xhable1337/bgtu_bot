@@ -8,7 +8,7 @@ from aiogram import Bot, Dispatcher, executor, types
 from aiogram.utils.executor import start_webhook
 from aiogram.dispatcher.webhook import get_new_configured_app
 from prettytable import PrettyTable
-from telebot import types, apihelper
+#from telebot import types, apihelper
 from flask import Flask, request
 from pymongo import MongoClient
 from transliterate import translit
