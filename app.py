@@ -643,7 +643,9 @@ async def startserver():
     web.run_app(app, host='0.0.0.0', port=os.getenv('PORT'))
 
 async def startbot():
-    executor.start_polling(dp, skip_updates=True)
+    while 1:
+        executor.start_polling(dp, skip_updates=True)
+        break
     #start_webhook(
     #    dispatcher=dp,
     #    webhook_path=WEBHOOK_PATH,
