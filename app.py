@@ -163,7 +163,7 @@ async def start_handler(m):
         for faculty in faculty_list:
             kb_faculty.row(types.InlineKeyboardButton(text=faculty, callback_data=ru_en('f_' + faculty)))
 
-        await bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Для начала работы с ботом выбери свою группу (впоследствии выбор можно изменить):*', reply_markup=kb_faculty, parse_mode='Markdown')
+        await bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Для начала работы с ботом выбери свою группу \\(впоследствии выбор можно изменить\\):*', reply_markup=kb_faculty, parse_mode='Markdown')
     else:
         user = users.find_one({'user_id': m.from_user.id})
         if user.get('favorite_groups') == None:
@@ -313,25 +313,25 @@ async def anymess(m):
         await bot.send_message(m.chat.id, text=f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа {group}.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
     elif get_state(m.from_user.id) == 'find_class':
         if re.match(r'(\b[1-9][1-9]\b|\b[1-9]\b)', m.text):
-            await bot.send_photo(m.chat.id, photo=building_1, caption=f'Аудитория {m.text} находится в корпусе №1 _(Институтская, 16)_.', parse_mode='Markdown')
+            await bot.send_photo(m.chat.id, photo=building_1, caption=f'Аудитория {m.text} находится в корпусе №1 _\\(Институтская, 16\\)_.', parse_mode='Markdown')
             await bot.send_location(m.chat.id, latitude=53.305077, longitude=34.305080)
             set_state(m.chat.id, 'default')
             group = get_group(m.from_user.id)
             await bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа {group}.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
         elif re.match(r'\b[1-9][0-9][0-9]\b', m.text):
-            await bot.send_photo(m.chat.id, photo=building_2, caption=f'Аудитория {m.text} находится в корпусе №2 _(бульвар 50 лет Октября, 7)_.', parse_mode='Markdown')
+            await bot.send_photo(m.chat.id, photo=building_2, caption=f'Аудитория {m.text} находится в корпусе №2 _\\(бульвар 50 лет Октября, 7\\)_.', parse_mode='Markdown')
             await bot.send_location(m.chat.id, latitude=53.304442, longitude=34.303849)
             set_state(m.chat.id, 'default')
             group = get_group(m.from_user.id)
             await bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа {group}.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
         elif re.match(r'(\bА\d{3}\b|\b[Аа]\b|\b[Бб]\b|\b[Вв]\b|\b[Гг]\b|\b[Дд]\b)', m.text):
-            await bot.send_photo(m.chat.id, photo=building_3, caption=f'Аудитория {m.text} находится в корпусе №3 _(Харьковская, 8)_.', parse_mode='Markdown')
+            await bot.send_photo(m.chat.id, photo=building_3, caption=f'Аудитория {m.text} находится в корпусе №3 _\\(Харьковская, 8\\)_.', parse_mode='Markdown')
             await bot.send_location(m.chat.id, latitude=53.304991, longitude=34.306688)
             set_state(m.chat.id, 'default')
             group = get_group(m.from_user.id)
             await bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа {group}.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
         elif re.match(r'\bБ\d{3}\b', m.text):
-            await bot.send_photo(m.chat.id, photo=building_4, caption=f'Аудитория {m.text} находится в корпусе №4 _(Харьковская, 10Б)_.', parse_mode='Markdown')
+            await bot.send_photo(m.chat.id, photo=building_4, caption=f'Аудитория {m.text} находится в корпусе №4 _\\(Харьковская, 10Б\\)_.', parse_mode='Markdown')
             await bot.send_location(m.chat.id, latitude=53.303513, longitude=34.305085)
             set_state(m.chat.id, 'default')
             group = get_group(m.from_user.id)
@@ -629,8 +629,8 @@ async def button_func(call):
 
 @server.route("/wh")
 def webhook():
-    await bot.delete_webhook()
-    await bot.set_webhook(url=WEBHOOK_URL)
+    #await bot.delete_webhook()
+    #await bot.set_webhook(url=WEBHOOK_URL)
     return "!", 200
 
 async def startserver():
