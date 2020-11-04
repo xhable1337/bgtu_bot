@@ -35,6 +35,8 @@ db = client.heroku_38n7vrr9
 schedule_db = db.schedule
 groups_db = db.groups
 users = db.users
+scheduled_msg = db.scheduled_messages
+
 
 # aiogram init
 token = os.environ['token']
@@ -51,7 +53,7 @@ WEBAPP_HOST = 'localhost'  # or ip
 WEBAPP_PORT = os.getenv('PORT')
 
 
-#bot = teleawait bot.TeleBot(token, 'Markdown')
+#bot = telebot.TeleBot(token, 'Markdown')
 
 UPDATE_TIME = int(os.environ.get('UPDATE_TIME'))
 
@@ -64,7 +66,7 @@ server = Flask(__name__)
 no = '-'
 index = [i for i in range(1, 6)]
 
-time_list = ['8:00-9:35', '9:45-11:20', '11:30-13:05', '13:20-14:55', '15:05-16:40']
+rings_list = ['8:00-9:35', '9:45-11:20', '11:30-13:05', '13:20-14:55', '15:05-16:40']
 
 ADMINS = [124361528, 436335947]
 
@@ -278,9 +280,10 @@ async def execute(m):
 kbm = types.InlineKeyboardMarkup()
 kbm.row(types.InlineKeyboardButton(text='📅 Расписание по дням', callback_data='days'))
 kbm.row(types.InlineKeyboardButton(text='⚡️ Сегодня', callback_data='today'), types.InlineKeyboardButton(text='⚡️ Завтра', callback_data='tomorrow'))
-kbm.row(types.InlineKeyboardButton(text='🔔 Расписание пар', callback_data='rings'))
+kbm.row(types.InlineKeyboardButton(text='🕔 Расписание пар', callback_data='rings'))
 kbm.row(types.InlineKeyboardButton(text='🏠 Найти корпус по аудитории', callback_data='building'))
 kbm.row(types.InlineKeyboardButton(text='🔂 Сменить факультет/группу', callback_data='change_faculty'))
+kbm.row(types.InlineKeyboardButton(text='🔔 Ежедневные уведомления', callback_data='notifications'))
 kbm.row(types.InlineKeyboardButton(text='⭐ Избранные группы', callback_data='favorite_groups'))
 
 kb_r = types.InlineKeyboardMarkup()
@@ -298,6 +301,10 @@ kbbb.row(types.InlineKeyboardButton(text='🔄 В главное меню', call
 
 kb_cancel_building = types.InlineKeyboardMarkup()
 kb_cancel_building.row(types.InlineKeyboardButton(text='🚫 Отмена', callback_data='cancel_find_class'))
+
+kb_notifications = types.InlineKeyboardMarkup()
+kb_notifications.row(types.InlineKeyboardButton(text='❌ Удалить', callback_data='del_notification'))
+kb_notifications.row(types.InlineKeyboardButton(text='✍ Изменить', callback_data='edit_notification'))
 
 #kb_group = types.InlineKeyboardMarkup()
 #kb_group.row(types.InlineKeyboardButton(text='1️⃣', callback_data='group_1'), types.InlineKeyboardButton(text='2️⃣', callback_data='group_2'))
@@ -338,8 +345,23 @@ async def anymess(m):
             await bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа {group}.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
         else:
             await bot.send_message(m.chat.id, 'Данный номер аудитории некорректен. Повторите попытку или отмените действие:', reply_markup=kb_cancel_building)
-    elif get_group(m.from_user.id) != 1 and get_group(m.from_user.id) != 2:
-        set_group(m.from_user.id, 1)
+    elif get_state(m.from_user.id) == 'add_notification':
+        if re.match(r'\b2[1-3]:[0-5][0-9]\b|\b[0]{1,2}:[0-5][0-9]\b|\b1[0-9]:[0-5][0-9]\b|0?[1-9]:[0-5][0-9]', m.text):
+            users.update_one({'user_id': m.from_user.id}, {"$set": {"notification_time": m.text}})
+            notification_list = scheduled_msg.find_one({'id': 1}).get(m.text)
+            if notification_list == None:
+                time_list = []
+                time_list.append(m.from_user.id)
+                scheduled_msg.update_one({'id': 1}, {"$set": {m.text: time_list}})
+            else:
+                time_list = list(scheduled_msg.find_one({"id": 1})[m.text])
+                time_list.append(m.from_user.id)
+                scheduled_msg.update_one({'id': 1}, {"$set": {m.text: time_list}})
+            
+            await bot.send_message(m.chat.id, f'Уведомление на {m.text} установлено!', reply_markup=kbbb)
+            set_state(m.chat.id, 'default')
+        else:
+            await bot.send_message(m.chat.id, 'Вы ввели некорректное время. Повторите попытку или отмените действие:', reply_markup=kb_cancel_building)
 
 # Хэндлер обработки действий кнопок
 @dp.callback_query_handler()
@@ -428,7 +450,7 @@ async def button_func(call):
         await bot.answer_callback_query(call.id)
         table_r.clear()
         table_r.add_column(fieldname="№", column=index)
-        table_r.add_column(fieldname="Время", column=time_list)
+        table_r.add_column(fieldname="Время", column=rings_list)
         text = f'Расписание пар\n\n```{table_r}```'
         await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=text,
         reply_markup=kbbb, parse_mode='Markdown')
@@ -614,9 +636,120 @@ async def button_func(call):
         text=f'Выберите факультет:',
         reply_markup=kb_faculty, parse_mode='Markdown')
 
+    elif call.data == 'notifications':
+        await bot.answer_callback_query(call.id)
+        notification_time = users.find_one({"user_id": call.from_user.id}).get('notification')
+
+        if notification_time is None or notification_time == "":
+            set_state(call.from_user.id, 'add_notification')
+            await bot.edit_message_text(chat_id=call.message.chat.id,
+            message_id=call.message.message_id,
+            text=f'Введите время, в которое вы хотите получать расписание:\n\
+            ————————————————————\n\
+            `00:00 — 12:59`: расписание на сегодня\n\
+            `13:00 — 23:59`: расписание на завтра',
+            reply_markup=kb_cancel_building, parse_mode='MarkdownV2')
+        else:
+            await bot.edit_message_text(chat_id=call.message.chat.id,
+            message_id=call.message.message_id,
+            text=f'Каждый день в {notification_time} вы будете получать расписание.\
+                Хотите изменить время или удалить напоминание?',
+            reply_markup=kb_notifications)
+    
+    elif call.data == 'del_notification':
+        await bot.answer_callback_query(call.id)
+        notification_time = users.find_one({"user_id": call.from_user.id}).get('notification')
+        time_list = list(scheduled_msg.find_one({"id": 1})["notification_time"])
+        time_list.pop(time_list.index(call.from_user.id))
+        scheduled_msg.update_one({'id': 1}, {"$set": {notification_time: time_list}})
+        users.update_one({'user_id': call.from_user.id}, {"$set": {"notification_time": ""}})
+        await bot.edit_message_text(chat_id=call.message.chat.id,
+            message_id=call.message.message_id,
+            text=f'Ежедневные уведомления выключены.',
+            reply_markup=kbbb)
+
+    elif call.data == 'edit_notification':
+        await bot.answer_callback_query(call.id)
+        notification_time = users.find_one({"user_id": call.from_user.id}).get('notification')
+        time_list = list(scheduled_msg.find_one({"id": 1})["notification_time"])
+        time_list.pop(time_list.index(call.from_user.id))
+        scheduled_msg.update_one({'id': 1}, {"$set": {notification_time: time_list}})
+        set_state(call.from_user.id, 'add_notification')
+        await bot.edit_message_text(chat_id=call.message.chat.id,
+            message_id=call.message.message_id,
+            text=f'Сейчас вы получаете расписание каждый день в {notification_time}.\n\
+            Введите время, в которое вы хотите получать расписание:\n\
+            ————————————————————\n\
+            `00:00 — 12:59`: расписание на сегодня\n\
+            `13:00 — 23:59`: расписание на завтра',
+            reply_markup=kb_cancel_building, parse_mode='MarkdownV2')
+
 async def time_trigger():
     while True:
-        print(time.strftime("%d %m %Y %H:%M:%S"))
+        #print(time.strftime("%d %m %Y %H:%M:%S"))
+        hour = time.strftime("%H")
+        minute = time.strftime("%M")
+        fulltime = time.strftime("%H:%M")
+        if hour < 24 and hour >= 12:
+            day = 'tomorrow'
+            ru_day = 'Завтра'
+            inc = 86400
+        else:
+            day = 'today'
+            ru_day = 'Сегодня'
+            inc = 0
+
+        if fulltime in scheduled_msg.find_one({"id": 1}):
+            for user_id in scheduled_msg.find_one({"id": 1})[time]:
+                #user = users.find_one({"user_id": user_id})
+                group = get_group(user_id)
+                isoweekday = datetime.datetime.today().isoweekday()
+                if day == 'tomorrow':
+                    isoweekday += 1
+                if isoweekday == 6 or isoweekday == 7:
+                    pass
+                    #text = f'*Выбрана группа {group}*\n{ru_day}: {wdays.names(isoweekday)[0]}\n\nУдачных выходных!'
+                elif isoweekday == 8:
+                    table = PrettyTable(border=False)
+                    table.field_names = ['№', 'Пара', 'Кабинет']
+                    weekday = wdays.names(isoweekday)[1]
+
+                    if datetime.datetime.today().isocalendar()[1] % 2 != 0:
+                        weeknum = '1'
+                    else:
+                        weeknum = '2'
+
+                    schedule = get_schedule(group, weekday, weeknum)
+
+                    for lesson in schedule:
+                        table.add_row(lesson)
+
+                    text = f'*Выбрана группа {group}*\n\
+                    {ru_day}: {wdays.names(isoweekday)[0]}\n\n```{table}```\n\n\
+                    `[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*'
+
+                    await bot.send_message(user_id, text, reply_markup=kbbb)
+                else:
+                    table = PrettyTable(border=False)
+                    table.field_names = ['№', 'Пара', 'Кабинет']
+                    weekday = wdays.names(isoweekday)[1]
+
+                    if datetime.datetime.today().isocalendar()[1] % 2 == 0:
+                        weeknum = '1'
+                    else:
+                        weeknum = '2'
+
+                    schedule = get_schedule(group, weekday, weeknum)
+
+                    for lesson in schedule:
+                        table.add_row(lesson)
+
+                    text = f'*Выбрана группа {group}*\n\
+                    {ru_day}: {wdays.names(isoweekday)[0]}\n\n```{table}```\n\n\
+                    `[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*'
+
+                    await bot.send_message(user_id, text, reply_markup=kbbb)
+
         await asyncio.sleep(60)
 ## Установка Webhook для быстрого взаимодействия с ботом
 #async def on_startup(dp):
@@ -634,11 +767,6 @@ async def time_trigger():
 #    #await bot.delete_webhook()
 #    #await bot.set_webhook(url=WEBHOOK_URL)
 #    return "!", 200
-
-async def test_print():
-    while True:
-        print("hello world")
-        await asyncio.sleep(60)
 
 #async def startserver():
 #    app = get_new_configured_app(dispatcher=dp, path=WEBHOOK_PATH)
