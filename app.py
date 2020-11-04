@@ -175,7 +175,7 @@ async def start_handler(m):
         await bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Выбранная группа: {group}.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
         set_state(m.from_user.id, 'default')
 
-@dp.message_handler\(.*\)
+@dp.message_handler(commands=['whatis'])
 async def whatis(m):
     if m.chat.id in ADMINS:
         raw_text = str(m.text)
@@ -186,7 +186,7 @@ async def whatis(m):
         except KeyError:
             await bot.send_message(m.chat.id, f'Переменная `{key}` не найдена!', parse_mode='Markdown')
 
-@dp.message_handler\(.*\)
+@dp.message_handler(commands=['users_reset'])
 async def users_reset(m):
     if m.chat.id in ADMINS:
         for user in users.find():
@@ -197,7 +197,7 @@ async def users_reset(m):
             set_group(user_id, group)
         await bot.send_message(m.chat.id, f'Параметры пользователей сброшены!\n\nСостояние = {state}\nГруппа = {group}')
 
-@dp.message_handler\(.*\)
+@dp.message_handler(commands=['users'])
 async def users_handler(m):
     if m.chat.id in ADMINS:
         text = '*Список пользователей бота:*\n\n'
@@ -220,7 +220,7 @@ async def users_handler(m):
         else:
             await bot.send_message(m.chat.id, text, parse_mode='Markdown')
 
-@dp.message_handler\(.*\)
+@dp.message_handler(commands=['broadcast'])
 async def broadcast(m):
     if m.chat.id in ADMINS:
         raw_text = str(m.text)
@@ -236,7 +236,7 @@ async def broadcast(m):
                 try:
                     await bot.send_message(user_id, text, parse_mode='Markdown')
                     i += 1
-                except teleawait bot.apihelper.ApiTelegramException:
+                except bot.apihelper.ApiTelegramException:
                     pass
         elif group == 'test':
             text = f'🔔 *Тестовое сообщение!*\n' + text
@@ -250,10 +250,10 @@ async def broadcast(m):
                 try:
                     await bot.send_message(user_id, text, parse_mode='Markdown')
                     i += 1
-                except teleawait bot.apihelper.ApiTelegramException:
-                    pass
+                #except Exceptions.TelegramAPIError:
+                #    pass
 
-@dp.message_handler\(.*\)
+@dp.message_handler(commands=['exec'])
 async def execute(m):
     if m.chat.id in ADMINS:
         raw_text = str(m.text)
