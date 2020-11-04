@@ -636,7 +636,7 @@ async def button_func(call):
 async def test_print():
     while True:
         print("helloworld")
-        asyncio.sleep(5)
+        await asyncio.sleep(5)
 
 async def startserver():
     app = get_new_configured_app(dispatcher=dp, path=WEBHOOK_PATH)
