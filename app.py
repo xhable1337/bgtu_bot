@@ -635,7 +635,7 @@ async def button_func(call):
 
 async def test_print():
     while True:
-        print("hello")
+        print("helloworld")
         asyncio.sleep(5)
 
 async def startserver():
@@ -656,9 +656,11 @@ async def startbot():
 if __name__ == "__main__":
     executor_ = ProcessPoolExecutor(4)
     loop = asyncio.get_event_loop()
-    print('hello')
+    print('hello from main')
     startbot_ = asyncio.ensure_future(startbot())
+    print('startbot worked')
     t_ = asyncio.ensure_future(test_print())
+    print('test print')
     #executor.start_polling(dp, skip_updates=True)
 #    executor_ = ProcessPoolExecutor(4)
 #    loop = asyncio.get_event_loop()
