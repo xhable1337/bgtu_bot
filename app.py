@@ -631,8 +631,8 @@ async def startbot():
 if __name__ == "__main__":
     executor_ = ProcessPoolExecutor(2)
     loop = asyncio.get_event_loop()
-    startserver_ = asyncio.ensure_future(startserver())
     startbot_ = asyncio.ensure_future(startbot())
+    startserver_ = asyncio.ensure_future(startserver())
 
     #start_webhook(
     #    dispatcher=dp,
