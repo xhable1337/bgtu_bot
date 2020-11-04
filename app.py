@@ -209,10 +209,10 @@ async def users_handler(m):
             last_name = user['last_name']
             user_id = user['user_id']
             group = user['group']
-            first_name.replace('_', '\\_')
-            last_name.replace('_', '\\_')
-            if last_name != None:
-                
+            str(first_name).replace('_', '\\_')
+            str(last_name).replace('_', '\\_')
+
+            if last_name != None or last_name != "None":
                 text += f'[{first_name} {last_name}](tg://user?id={user_id}) ◼ *Группа {group}*\n'
             else:
                 text += f'[{first_name}](tg://user?id={user_id}) ◼ *Группа {group}*\n'
@@ -665,18 +665,3 @@ if __name__ == "__main__":
 
     startbot_ = asyncio.ensure_future(loop.run_in_executor(executor_, startbot))
     print('startbot worked')
-    #loop.run_forever()
-    #executor.start_polling(dp, skip_updates=True)
-#    executor_ = ProcessPoolExecutor(4)
-#    loop = asyncio.get_event_loop()
-#    startbot_ = asyncio.ensure_future(startbot())
-#    startserver_ = asyncio.ensure_future(startserver())
-
-    #server.run(host="0.0.0.0", port=int(os.environ.get('PORT', '8443')))
-    
-
-
-    #app = get_new_configured_app(dispatcher=dp, path=WEBHOOK_PATH)
-    #app.on_startup.append(on_startup)
-    #dp.loop.set_task_factory(dp.get_current())
-    #web.run_app(app, host='0.0.0.0', port=os.getenv('PORT'))  # Heroku stores port you have to listen in your app
