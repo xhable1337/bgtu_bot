@@ -1,6 +1,7 @@
 pytelegrambotapi
+aiogram
+aiohttp
 flask
 prettytable
 pymongo
 transliterate
-chromedriver-binary
