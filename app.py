@@ -347,8 +347,12 @@ async def anymess(m):
             await bot.send_message(m.chat.id, 'Данный номер аудитории некорректен. Повторите попытку или отмените действие:', reply_markup=kb_cancel_building)
     elif get_state(m.from_user.id) == 'add_notification':
         if re.match(r'\b2[1-3]:[0-5][0-9]\b|\b[0]{1,2}:[0-5][0-9]\b|\b1[0-9]:[0-5][0-9]\b|0?[1-9]:[0-5][0-9]', m.text):
-            users.update_one({'user_id': m.from_user.id}, {"$set": {"notification_time": m.text}})
-            notification_list = scheduled_msg.find_one({'id': 1}).get(m.text)
+            if re.match(r'[1-9]:[0-5][0-9', m.text):
+                notification_time = f"0{m.text}"
+            else:
+                notification_time = str(m.text)
+            users.update_one({'user_id': m.from_user.id}, {"$set": {"notification_time": notification_time}})
+            notification_list = scheduled_msg.find_one({'id': 1}).get(notification_time)
             if notification_list == None:
                 time_list = []
                 time_list.append(m.from_user.id)
@@ -639,7 +643,7 @@ async def button_func(call):
     elif call.data == 'notifications':
         await bot.answer_callback_query(call.id)
         notification_time = users.find_one({"user_id": call.from_user.id}).get('notification')
-
+        print(f"not. time == {notification_time}")
         if notification_time is None or notification_time == "":
             set_state(call.from_user.id, 'add_notification')
             await bot.edit_message_text(chat_id=call.message.chat.id,
@@ -686,7 +690,8 @@ async def button_func(call):
 
 async def time_trigger():
     while True:
-        #print(time.strftime("%d %m %Y %H:%M:%S"))
+        print(f'time_trigger(): {time.strftime("%d %m %Y %H:%M:%S")}')
+
         hour = time.strftime("%H")
         minute = time.strftime("%M")
         fulltime = time.strftime("%H:%M")
@@ -701,6 +706,7 @@ async def time_trigger():
 
         if fulltime in scheduled_msg.find_one({"id": 1}):
             for user_id in scheduled_msg.find_one({"id": 1})[time]:
+                print("time_trigger() [705]. heelllloooooo")
                 #user = users.find_one({"user_id": user_id})
                 group = get_group(user_id)
                 isoweekday = datetime.datetime.today().isoweekday()
