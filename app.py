@@ -657,10 +657,12 @@ if __name__ == "__main__":
     executor_ = ProcessPoolExecutor(4)
     loop = asyncio.get_event_loop()
     print('hello from main')
-    startbot_ = asyncio.ensure_future(startbot())
-    print('startbot worked')
+    
     t_ = asyncio.ensure_future(test_print())
     print('test print')
+    
+    startbot_ = asyncio.ensure_future(startbot())
+    print('startbot worked')
     loop.run_forever()
     #executor.start_polling(dp, skip_updates=True)
 #    executor_ = ProcessPoolExecutor(4)
