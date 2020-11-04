@@ -655,6 +655,8 @@ async def startbot():
 
 if __name__ == "__main__":
     executor_ = ProcessPoolExecutor(4)
+    loop = asyncio.get_event_loop()
+    print('hello')
     startbot_ = asyncio.ensure_future(startbot())
     t_ = asyncio.ensure_future(test_print())
     #executor.start_polling(dp, skip_updates=True)
