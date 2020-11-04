@@ -691,7 +691,7 @@ async def button_func(call):
 
 async def time_trigger():
     while True:
-        print(f'time_trigger(): {time.strftime("%H:%M")}')
+        print(f'time_trigger(): {time.strftime("%H:%M:%S")}')
 
         hour = time.strftime("%H")
         minute = time.strftime("%M")
@@ -706,6 +706,7 @@ async def time_trigger():
             inc = 0
 
         if fulltime in scheduled_msg.find_one({"id": 1}):
+            print("time_trigger() [709]. heelllloooooo")
             for user_id in scheduled_msg.find_one({"id": 1})[fulltime]:
                 print("time_trigger() [705]. heelllloooooo")
                 #user = users.find_one({"user_id": user_id})
