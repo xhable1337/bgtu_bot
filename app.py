@@ -8,7 +8,7 @@ from aiogram import Bot, Dispatcher, executor, types
 from aiogram.utils.executor import start_webhook
 from aiogram.dispatcher.webhook import get_new_configured_app
 from prettytable import PrettyTable
-#from telebot import types, apihelper
+from telebot import types as teletypes
 from flask import Flask, request
 from pymongo import MongoClient
 from transliterate import translit
@@ -209,7 +209,10 @@ async def users_handler(m):
             last_name = user['last_name']
             user_id = user['user_id']
             group = user['group']
+            first_name.replace('_', '\\_')
+            last_name.replace('_', '\\_')
             if last_name != None:
+                
                 text += f'[{first_name} {last_name}](tg://user?id={user_id}) ◼ *Группа {group}*\n'
             else:
                 text += f'[{first_name}](tg://user?id={user_id}) ◼ *Группа {group}*\n'
@@ -285,25 +288,7 @@ kb_r.row(types.InlineKeyboardButton(text='Понедельник', callback_data
 kb_r.row(types.InlineKeyboardButton(text='Остальные дни', callback_data='r_others'))
 kb_r.row(types.InlineKeyboardButton(text='В главное меню', callback_data='tomain'))
 
-kb_dn = types.InlineKeyboardMarkup()
 
-kb_dn.row(
-    types.InlineKeyboardButton(text='[Н]', callback_data='week_1'),
-    types.InlineKeyboardButton(text='Пн', callback_data='wday_monday_1'),
-    types.InlineKeyboardButton(text='Вт', callback_data='wday_tuesday_1'),
-    types.InlineKeyboardButton(text='Ср', callback_data='wday_wednesday_1'),
-    types.InlineKeyboardButton(text='Чт', callback_data='wday_thursday_1'),
-    types.InlineKeyboardButton(text='Пт', callback_data='wday_friday_1'))
-
-kb_dn.row(
-    types.InlineKeyboardButton(text='[Ч]', callback_data='week_2'),
-    types.InlineKeyboardButton(text='Пн', callback_data='wday_monday_2'),
-    types.InlineKeyboardButton(text='Вт', callback_data='wday_tuesday_2'),
-    types.InlineKeyboardButton(text='Ср', callback_data='wday_wednesday_2'),
-    types.InlineKeyboardButton(text='Чт', callback_data='wday_thursday_2'),
-    types.InlineKeyboardButton(text='Пт', callback_data='wday_friday_2'))
-
-kb_dn.row(types.InlineKeyboardButton(text='🔄 В главное меню', callback_data='tomain'))
 
 kbb = types.InlineKeyboardMarkup()
 kbb.row(types.InlineKeyboardButton(text='↩️ Назад', callback_data='days'))
@@ -362,11 +347,31 @@ async def button_func(call):
     if call.data == 'days':
         if datetime.datetime.today().isocalendar()[1] % 2 == 0:
             weekname = '[Н] - нечётная'
+            buttons = ['[Н]', 'Ч']
         else:
             weekname = '[Ч] - чётная'
+            buttons = ['Н', '[Ч]']
+
+        kb_dn = types.InlineKeyboardMarkup()
+        kb_dn.row(
+            types.InlineKeyboardButton(text=buttons[0], callback_data='week_1'),
+            types.InlineKeyboardButton(text='Пн', callback_data='wday_monday_1'),
+            types.InlineKeyboardButton(text='Вт', callback_data='wday_tuesday_1'),
+            types.InlineKeyboardButton(text='Ср', callback_data='wday_wednesday_1'),
+            types.InlineKeyboardButton(text='Чт', callback_data='wday_thursday_1'),
+            types.InlineKeyboardButton(text='Пт', callback_data='wday_friday_1'))
+        kb_dn.row(
+            types.InlineKeyboardButton(text=buttons[1], callback_data='week_2'),
+            types.InlineKeyboardButton(text='Пн', callback_data='wday_monday_2'),
+            types.InlineKeyboardButton(text='Вт', callback_data='wday_tuesday_2'),
+            types.InlineKeyboardButton(text='Ср', callback_data='wday_wednesday_2'),
+            types.InlineKeyboardButton(text='Чт', callback_data='wday_thursday_2'),
+            types.InlineKeyboardButton(text='Пт', callback_data='wday_friday_2'))
+        kb_dn.row(types.InlineKeyboardButton(text='🔄 В главное меню', callback_data='tomain'))
+
         await bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
-        text=f'Выберите неделю и день (сейчас идёт {weekname}):\n',
+        text=f'Выберите неделю и день \\(сейчас идёт {weekname}\\):\n',
         reply_markup=kb_dn)
     elif call.data[:5] == 'wday_':
         table = PrettyTable(border=False)
@@ -604,19 +609,19 @@ async def button_func(call):
 
 #@server.route('/' + token, methods=['POST'])
 #def getMessage():
-#    await bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
-#    return "!", 200
-#
-#
-#@server.route("/")
-#def webhook():
-#    await bot.remove_webhook()
-#    await bot.set_webhook(url=WEBHOOK_URL)
+#    await bot.process_new_updates([teletypes.Update.de_json(request.stream.read().decode("utf-8"))])
 #    return "!", 200
 
-#async def startserver():
-#    app = get_new_configured_app(dispatcher=dp, path=WEBHOOK_PATH)
-#    web.run_app(app, host='0.0.0.0', port=os.getenv('PORT'))
+
+@server.route("/wh")
+def webhook():
+    await bot.remove_webhook()
+    await bot.set_webhook(url=WEBHOOK_URL)
+    return "!", 200
+
+async def startserver():
+    app = get_new_configured_app(dispatcher=dp, path=WEBHOOK_PATH)
+    web.run_app(app, host='0.0.0.0', port=os.getenv('PORT'))
 
 async def startbot():
     executor.start_polling(dp, skip_updates=True)
