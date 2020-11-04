@@ -305,6 +305,7 @@ kb_cancel_building.row(types.InlineKeyboardButton(text='🚫 Отмена', call
 kb_notifications = types.InlineKeyboardMarkup()
 kb_notifications.row(types.InlineKeyboardButton(text='❌ Удалить', callback_data='del_notification'))
 kb_notifications.row(types.InlineKeyboardButton(text='✍ Изменить', callback_data='edit_notification'))
+kb_notifications.row(types.InlineKeyboardButton(text='🔄 В главное меню', callback_data='tomain'))
 
 #kb_group = types.InlineKeyboardMarkup()
 #kb_group.row(types.InlineKeyboardButton(text='1️⃣', callback_data='group_1'), types.InlineKeyboardButton(text='2️⃣', callback_data='group_2'))
@@ -690,7 +691,7 @@ async def button_func(call):
 
 async def time_trigger():
     while True:
-        print(f'time_trigger(): {time.strftime("%d %m %Y %H:%M:%S")}')
+        print(f'time_trigger(): {time.strftime("%H:%M")}')
 
         hour = time.strftime("%H")
         minute = time.strftime("%M")
@@ -705,7 +706,7 @@ async def time_trigger():
             inc = 0
 
         if fulltime in scheduled_msg.find_one({"id": 1}):
-            for user_id in scheduled_msg.find_one({"id": 1})[time]:
+            for user_id in scheduled_msg.find_one({"id": 1})[fulltime]:
                 print("time_trigger() [705]. heelllloooooo")
                 #user = users.find_one({"user_id": user_id})
                 group = get_group(user_id)
