@@ -595,10 +595,10 @@ async def button_func(call):
         text=f'Выберите факультет:',
         reply_markup=kb_faculty, parse_mode='Markdown')
 
-# Установка Webhook для быстрого взаимодействия с ботом
-async def on_startup(dp):
-    await bot.delete_webhook()
-    await bot.set_webhook(url=WEBHOOK_URL)
+## Установка Webhook для быстрого взаимодействия с ботом
+#async def on_startup(dp):
+#    await bot.delete_webhook()
+#    await bot.set_webhook(url=WEBHOOK_URL)
 
 
 
@@ -614,9 +614,9 @@ async def on_startup(dp):
 #    await bot.set_webhook(url=WEBHOOK_URL)
 #    return "!", 200
 
-async def startserver():
-    app = get_new_configured_app(dispatcher=dp, path=WEBHOOK_PATH)
-    web.run_app(app, host='0.0.0.0', port=os.getenv('PORT'))
+#async def startserver():
+#    app = get_new_configured_app(dispatcher=dp, path=WEBHOOK_PATH)
+#    web.run_app(app, host='0.0.0.0', port=os.getenv('PORT'))
 
 async def startbot():
     executor.start_polling(dp, skip_updates=True)
@@ -630,10 +630,11 @@ async def startbot():
     #)
 
 if __name__ == "__main__":
-    executor_ = ProcessPoolExecutor(4)
-    loop = asyncio.get_event_loop()
-    startbot_ = asyncio.ensure_future(startbot())
-    startserver_ = asyncio.ensure_future(startserver())
+    executor.start_polling(dp, skip_updates=True)
+#    executor_ = ProcessPoolExecutor(4)
+#    loop = asyncio.get_event_loop()
+#    startbot_ = asyncio.ensure_future(startbot())
+#    startserver_ = asyncio.ensure_future(startserver())
 
     #server.run(host="0.0.0.0", port=int(os.environ.get('PORT', '8443')))
     
