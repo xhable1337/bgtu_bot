@@ -250,6 +250,8 @@ async def broadcast(m):
                 try:
                     await bot.send_message(user_id, text, parse_mode='Markdown')
                     i += 1
+                except:
+                    pass
                 #except Exceptions.TelegramAPIError:
                 #    pass
 
@@ -312,7 +314,7 @@ kb_cancel_building.row(types.InlineKeyboardButton(text='🚫 Отмена', call
 #kb_group.row(types.InlineKeyboardButton(text='🚫 Отмена', callback_data='cancel_find_class'))
 
 # Хэндлер для текста
-@dp.message_handler\(.*\)
+@dp.message_handler(content_types=["text", "sticker", "photo", "audio", "video", "voice", "video_note", "document", "animation"])
 async def anymess(m):
     if users.find_one({'user_id': m.from_user.id}) == None:
         await bot.send_message(m.chat.id, 'Для начала работы с ботом выполните команду /start')
