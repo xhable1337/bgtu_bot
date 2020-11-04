@@ -663,7 +663,7 @@ if __name__ == "__main__":
     t_ = asyncio.ensure_future(test_print())
     print('test print')
 
-    loop.run_in_executor(executor_, startbot)
+    startbot_ = asyncio.ensure_future(loop.run_in_executor(executor_, startbot))
     print('startbot worked')
     #loop.run_forever()
     #executor.start_polling(dp, skip_updates=True)
