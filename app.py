@@ -664,7 +664,7 @@ async def button_func(call):
     elif call.data == 'del_notification':
         await bot.answer_callback_query(call.id)
         notification_time = users.find_one({"user_id": call.from_user.id}).get('notification_time')
-        time_list = list(scheduled_msg.find_one({"id": 1})["notification_time"])
+        time_list = list(scheduled_msg.find_one({"id": 1})[notification_time])
         time_list.pop(time_list.index(call.from_user.id))
         scheduled_msg.update_one({'id': 1}, {"$set": {notification_time: time_list}})
         users.update_one({'user_id': call.from_user.id}, {"$set": {"notification_time": ""}})
