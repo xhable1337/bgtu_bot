@@ -7,6 +7,7 @@ from site_parser import api_get_groups, api_get_schedule
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.utils.executor import start_webhook
 from aiogram.dispatcher.webhook import get_new_configured_app
+from aiogram.utils import context
 from prettytable import PrettyTable
 from telebot import types, apihelper
 from flask import Flask, request
@@ -39,8 +40,8 @@ bot = Bot(token=token, parse_mode='Markdown')
 dp = Dispatcher(bot)
 
 # webhook settings
-WEBHOOK_HOST = 'https://dnevnikxhb.herokuapp.com/'
-WEBHOOK_PATH = token
+WEBHOOK_HOST = 'https://dnevnikxhb.herokuapp.com'
+WEBHOOK_PATH = f"/{token}"
 WEBHOOK_URL = f"{WEBHOOK_HOST}{WEBHOOK_PATH}"
 
 # webserver settings
@@ -236,8 +237,10 @@ async def broadcast(m):
                 try:
                     await bot.send_message(user_id, text, parse_mode='Markdown')
                     i += 1
-                except bot.apihelper.ApiTelegramException:
+                except:
                     pass
+                #except bot.apihelper.ApiTelegramException:
+                #    pass
         elif group == 'test':
             text = f'🔔 *Тестовое сообщение!*\n' + text
             await bot.send_message(m.chat.id, text, parse_mode='Markdown')
@@ -352,7 +355,7 @@ async def anymess(m):
         set_group(m.from_user.id, 1)
 
 # Хэндлер обработки действий кнопок
-@dp.callback_query_handler(func=lambda call: True)
+@dp.callback_query_handler()
 async def button_func(call):
     if call.data == 'days':
         if datetime.datetime.today().isocalendar()[1] % 2 == 0:
@@ -592,7 +595,7 @@ async def button_func(call):
 
 # Установка Webhook для быстрого взаимодействия с ботом
 async def on_startup(dp):
-    await bot.remove_webhook()
+    await bot.delete_webhook()
     await bot.set_webhook(url=WEBHOOK_URL)
 
 
@@ -621,7 +624,7 @@ if __name__ == "__main__":
     #    port=WEBAPP_PORT,
     #)
     #server.run(host="0.0.0.0", port=int(os.environ.get('PORT', '8443')))
-    app = get_new_configured_app(dispatcher=dp, path=WEBHOOK_URL_PATH)
+    app = get_new_configured_app(dispatcher=dp, path=WEBHOOK_PATH)
     app.on_startup.append(on_startup)
     dp.loop.set_task_factory(context.task_factory)
     web.run_app(app, host='0.0.0.0', port=os.getenv('PORT'))  # Heroku stores port you have to listen in your app
