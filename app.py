@@ -13,6 +13,9 @@ from flask import Flask, request
 from pymongo import MongoClient
 from transliterate import translit
 from aiohttp import web
+from concurrent.futures import ProcessPoolExecutor
+
+import asyncio
 import aiohttp
 import telebot
 import datetime
@@ -45,7 +48,7 @@ WEBHOOK_URL = f"{WEBHOOK_HOST}{WEBHOOK_PATH}"
 
 # webserver settings
 WEBAPP_HOST = 'localhost'  # or ip
-WEBAPP_PORT = 8443
+WEBAPP_PORT = os.getenv('PORT')
 
 
 #bot = teleawait bot.TeleBot(token, 'Markdown')
@@ -611,8 +614,11 @@ async def on_startup(dp):
 #    await bot.set_webhook(url=WEBHOOK_URL)
 #    return "!", 200
 
+async def startserver():
+    app = get_new_configured_app(dispatcher=dp, path=WEBHOOK_PATH)
+    web.run_app(app, host='0.0.0.0', port=os.getenv('PORT'))
 
-if __name__ == "__main__":
+async def startbot():
     start_webhook(
         dispatcher=dp,
         webhook_path=WEBHOOK_PATH,
@@ -621,9 +627,24 @@ if __name__ == "__main__":
         host=WEBAPP_HOST,
         port=WEBAPP_PORT,
     )
+
+if __name__ == "__main__":
+    executor_ = ProcessPoolExecutor(2)
+    loop = asyncio.get_event_loop()
+    startserver_ = asyncio.ensure_future(startserver())
+    startbot_ = asyncio.ensure_future(startbot())
+
+    #start_webhook(
+    #    dispatcher=dp,
+    #    webhook_path=WEBHOOK_PATH,
+    #    on_startup=on_startup,
+    #    skip_updates=True,
+    #    host=WEBAPP_HOST,
+    #    port=WEBAPP_PORT,
+    #)
+
     #server.run(host="0.0.0.0", port=int(os.environ.get('PORT', '8443')))
-    app = get_new_configured_app(dispatcher=dp, path=WEBHOOK_PATH)
-    web.run_app(app, host='0.0.0.0', port=os.getenv('PORT'))
+    
 
 
     #app = get_new_configured_app(dispatcher=dp, path=WEBHOOK_PATH)

@@ -1,6 +1,7 @@
 pytelegrambotapi
 aiogram
 aiohttp
+asyncio
 flask
 prettytable
 pymongo
