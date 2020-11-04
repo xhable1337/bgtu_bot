@@ -345,6 +345,7 @@ async def anymess(m):
 @dp.callback_query_handler()
 async def button_func(call):
     if call.data == 'days':
+        await bot.answer_callback_query(call.id)
         if datetime.datetime.today().isocalendar()[1] % 2 == 0:
             weekname = '[Н] - нечётная'
             buttons = ['[Н]', 'Ч']
@@ -374,6 +375,7 @@ async def button_func(call):
         text=f'Выберите неделю и день \\(сейчас идёт {weekname}\\):\n',
         reply_markup=kb_dn)
     elif call.data[:5] == 'wday_':
+        await bot.answer_callback_query(call.id)
         table = PrettyTable(border=False)
         table.field_names = ['№', 'Пара', 'Кабинет']
         group = get_group(call.from_user.id)
@@ -396,6 +398,7 @@ async def button_func(call):
         text=f'*Выбрана группа {group}*\nРасписание: {wdays.translate(weekday)}\nНеделя: {weekname}\n\n```{table}```\n\n`[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*',
         reply_markup=kbb, parse_mode='Markdown')
     elif call.data == 'today':
+        await bot.answer_callback_query(call.id)
         group = get_group(call.from_user.id)
         isoweekday = datetime.datetime.today().isoweekday()
         if isoweekday == 6 or isoweekday == 7:
@@ -422,6 +425,7 @@ async def button_func(call):
         message_id=call.message.message_id,
         text=text, reply_markup=kbbb, parse_mode='Markdown')
     elif call.data == 'rings':
+        await bot.answer_callback_query(call.id)
         table_r.clear()
         table_r.add_column(fieldname="№", column=index)
         table_r.add_column(fieldname="Время", column=time_list)
@@ -429,6 +433,7 @@ async def button_func(call):
         await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=text,
         reply_markup=kbbb, parse_mode='Markdown')
     elif call.data == 'tomorrow':
+        await bot.answer_callback_query(call.id)
         group = get_group(call.from_user.id)
         isoweekday = datetime.datetime.today().isoweekday() + 1
         if isoweekday == 6 or isoweekday == 7:
@@ -471,20 +476,24 @@ async def button_func(call):
         text=text,
         reply_markup=kbbb, parse_mode='Markdown')
     elif call.data == 'tomain':
+        await bot.answer_callback_query(call.id, text='Возврат в главное меню...')
         await bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
         text=f'Привет, {call.from_user.first_name}!\n*Сейчас выбрана группа {get_group(call.from_user.id)}.*\nВот главное меню:',
         reply_markup=kbm, parse_mode='Markdown')
     elif call.data == 'building':
+        await bot.answer_callback_query(call.id)
         set_state(call.from_user.id, 'find_class')
         await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text='Отправьте номер аудитории:', reply_markup=kb_cancel_building, parse_mode='Markdown')
     elif call.data == 'cancel_find_class':
+        await bot.answer_callback_query(call.id)
         set_state(call.from_user.id, 'default')
         await bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
         text=f'Привет, {call.from_user.first_name}!\n*Сейчас выбрана группа {get_group(call.from_user.id)}.*\nВот главное меню:',
         reply_markup=kbm, parse_mode='Markdown')
     elif call.data == 'change_faculty':
+        await bot.answer_callback_query(call.id)
         faculty_list = get_faculties()
         kb_faculty = types.InlineKeyboardMarkup()
 
@@ -498,6 +507,7 @@ async def button_func(call):
         text=f'Выберите факультет:',
         reply_markup=kb_faculty, parse_mode='Markdown')
     elif str(call.data).startswith('f_'):
+        await bot.answer_callback_query(call.id)
         in_faculty = str(call.data[2:])
         in_faculty = en_ru(in_faculty).capitalize()
         faculty = in_faculty.replace('_', ' ')
@@ -520,6 +530,7 @@ async def button_func(call):
         text=f'Выберите группу:',
         reply_markup=kb_group, parse_mode='Markdown')
     elif call.data == 'change_group':
+        await bot.answer_callback_query(call.id)
         group_list = get_groups()
         kb_group = types.InlineKeyboardMarkup()
 
@@ -532,6 +543,7 @@ async def button_func(call):
         text=f'Выберите группу:',
         reply_markup=kb_group, parse_mode='Markdown')
     elif call.data == 'favorite_groups':
+        await bot.answer_callback_query(call.id)
         kb_favorite = types.InlineKeyboardMarkup()
         user = users.find_one({'user_id': call.from_user.id})
         i = 0
@@ -555,6 +567,7 @@ async def button_func(call):
         await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text='Твой список избранных групп:', reply_markup=kb_favorite)
         
     elif str(call.data).startswith('О-20'):
+        await bot.answer_callback_query(call.id)
         if str(call.data).endswith('__del'):
             user = users.find_one({'user_id': call.from_user.id})
             favorite_groups = user.get('favorite_groups')
@@ -586,6 +599,7 @@ async def button_func(call):
                 set_state(call.from_user.id, 'default')
     
     elif call.data == 'add_favorite':
+        await bot.answer_callback_query(call.id)
         set_state(call.from_user.id, 'add_favorite')
         faculty_list = get_faculties()
         kb_faculty = types.InlineKeyboardMarkup()
@@ -615,7 +629,7 @@ async def button_func(call):
 
 @server.route("/wh")
 def webhook():
-    await bot.remove_webhook()
+    await bot.delete_webhook()
     await bot.set_webhook(url=WEBHOOK_URL)
     return "!", 200
 
