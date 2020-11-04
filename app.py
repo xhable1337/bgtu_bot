@@ -658,9 +658,9 @@ if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     print('hello from main')
     
-    t_ = asyncio.ensure_future(test_print())
-    print('test print')
-    
+    #t_ = asyncio.ensure_future(test_print())
+    #print('test print')
+
     startbot_ = asyncio.ensure_future(startbot())
     print('startbot worked')
     loop.run_forever()
