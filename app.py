@@ -613,17 +613,20 @@ async def on_startup(dp):
 
 
 if __name__ == "__main__":
-    #await start_webhook(
-    #    dispatcher=dp,
-    #    webhook_path=WEBHOOK_PATH,
-    #    on_startup=on_startup,
-    #    on_shutdown=on_shutdown,
-    #    skip_updates=True,
-    #    host=WEBAPP_HOST,
-    #    port=WEBAPP_PORT,
-    #)
+    await start_webhook(
+        dispatcher=dp,
+        webhook_path=WEBHOOK_PATH,
+        on_startup=on_startup,
+        skip_updates=True,
+        host=WEBAPP_HOST,
+        port=WEBAPP_PORT,
+    )
     #server.run(host="0.0.0.0", port=int(os.environ.get('PORT', '8443')))
     app = get_new_configured_app(dispatcher=dp, path=WEBHOOK_PATH)
-    app.on_startup.append(on_startup)
-    dp.loop.set_task_factory(dp.get_current())
-    web.run_app(app, host='0.0.0.0', port=os.getenv('PORT'))  # Heroku stores port you have to listen in your app
+    web.run_app(app, host='0.0.0.0', port=os.getenv('PORT'))
+
+
+    #app = get_new_configured_app(dispatcher=dp, path=WEBHOOK_PATH)
+    #app.on_startup.append(on_startup)
+    #dp.loop.set_task_factory(dp.get_current())
+    #web.run_app(app, host='0.0.0.0', port=os.getenv('PORT'))  # Heroku stores port you have to listen in your app
