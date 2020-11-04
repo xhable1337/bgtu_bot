@@ -7,7 +7,6 @@ from site_parser import api_get_groups, api_get_schedule
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.utils.executor import start_webhook
 from aiogram.dispatcher.webhook import get_new_configured_app
-from aiogram.utils import context
 from prettytable import PrettyTable
 from telebot import types, apihelper
 from flask import Flask, request
@@ -626,5 +625,5 @@ if __name__ == "__main__":
     #server.run(host="0.0.0.0", port=int(os.environ.get('PORT', '8443')))
     app = get_new_configured_app(dispatcher=dp, path=WEBHOOK_PATH)
     app.on_startup.append(on_startup)
-    dp.loop.set_task_factory(context.task_factory)
+    dp.loop.set_task_factory(dp.get_current())
     web.run_app(app, host='0.0.0.0', port=os.getenv('PORT'))  # Heroku stores port you have to listen in your app
