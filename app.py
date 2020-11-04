@@ -344,7 +344,7 @@ async def anymess(m):
             group = get_group(m.from_user.id)
             await bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа {group}.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
         else:
-            await bot.send_message(m.chat.id, 'Данный номер аудитории некорректен. Повторите попытку или отмените действие:', reply_markup=kb_cancel_building)
+            await bot.send_message(m.chat.id, 'Данный номер аудитории некорректен\\. Повторите попытку или отмените действие:', reply_markup=kb_cancel_building)
     elif get_state(m.from_user.id) == 'add_notification':
         if re.match(r'\b2[1-3]:[0-5][0-9]\b|\b[0]{1,2}:[0-5][0-9]\b|\b1[0-9]:[0-5][0-9]\b|0?[1-9]:[0-5][0-9]', m.text):
             if re.match(r'\b[1-9]:[0-5][0-9]\b', m.text):
@@ -365,7 +365,7 @@ async def anymess(m):
             await bot.send_message(m.chat.id, f'Уведомление на {m.text} установлено\\!', reply_markup=kbbb)
             set_state(m.chat.id, 'default')
         else:
-            await bot.send_message(m.chat.id, 'Вы ввели некорректное время. Повторите попытку или отмените действие:', reply_markup=kb_cancel_building)
+            await bot.send_message(m.chat.id, 'Вы ввели некорректное время\\. Повторите попытку или отмените действие:', reply_markup=kb_cancel_building)
 
 # Хэндлер обработки действий кнопок
 @dp.callback_query_handler()
@@ -656,7 +656,7 @@ async def button_func(call):
         else:
             await bot.edit_message_text(chat_id=call.message.chat.id,
             message_id=call.message.message_id,
-            text=f'Каждый день в {notification_time} вы будете получать расписание.\n\
+            text=f'Каждый день в {notification_time} вы будете получать расписание\\.\n\
 Хотите изменить время или удалить напоминание?',
             reply_markup=kb_notifications)
     
@@ -681,7 +681,7 @@ async def button_func(call):
         set_state(call.from_user.id, 'add_notification')
         await bot.edit_message_text(chat_id=call.message.chat.id,
             message_id=call.message.message_id,
-            text=f'Сейчас вы получаете расписание каждый день в {notification_time}.\n\
+            text=f'Сейчас вы получаете расписание каждый день в {notification_time}\\.\n\
 Введите время, в которое вы хотите получать расписание:\n\
 ————————————————————\n\
 `00:00 — 12:59`: расписание на сегодня\n\
