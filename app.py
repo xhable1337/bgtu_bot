@@ -614,12 +614,14 @@ async def button_func(call):
         text=f'Выберите факультет:',
         reply_markup=kb_faculty, parse_mode='Markdown')
 
+async def time_trigger():
+    while True:
+        print(time.strftime("%d %m %Y %H:%M:%S"))
+        await asyncio.sleep(60)
 ## Установка Webhook для быстрого взаимодействия с ботом
 #async def on_startup(dp):
 #    await bot.delete_webhook()
 #    await bot.set_webhook(url=WEBHOOK_URL)
-
-
 
 #@server.route('/' + token, methods=['POST'])
 #def getMessage():
@@ -658,10 +660,9 @@ def startbot():
 if __name__ == "__main__":
     executor_ = ProcessPoolExecutor(4)
     loop = asyncio.get_event_loop()
-    print('hello from main')
     
-    t_ = asyncio.ensure_future(test_print())
-    print('test print')
+    time_trigger_ = asyncio.ensure_future(time_trigger())
+    print('time_trigger(): initialized')
 
     startbot_ = asyncio.ensure_future(loop.run_in_executor(executor_, startbot))
-    print('startbot worked')
+    print('startbot(): initialized')
