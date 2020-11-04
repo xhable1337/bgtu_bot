@@ -38,7 +38,7 @@ users = db.users
 
 # aiogram init
 token = os.environ['token']
-bot = Bot(token=token, parse_mode='Markdown')
+bot = Bot(token=token, parse_mode='MarkdownV2')
 dp = Dispatcher(bot)
 
 # webhook settings
@@ -619,21 +619,7 @@ async def startserver():
     web.run_app(app, host='0.0.0.0', port=os.getenv('PORT'))
 
 async def startbot():
-    start_webhook(
-        dispatcher=dp,
-        webhook_path=WEBHOOK_PATH,
-        on_startup=on_startup,
-        skip_updates=True,
-        host=WEBAPP_HOST,
-        port=WEBAPP_PORT,
-    )
-
-if __name__ == "__main__":
-    executor_ = ProcessPoolExecutor(2)
-    loop = asyncio.get_event_loop()
-    startbot_ = asyncio.ensure_future(startbot())
-    startserver_ = asyncio.ensure_future(startserver())
-
+    executor.start_polling(dp, skip_updates=True)
     #start_webhook(
     #    dispatcher=dp,
     #    webhook_path=WEBHOOK_PATH,
@@ -642,6 +628,12 @@ if __name__ == "__main__":
     #    host=WEBAPP_HOST,
     #    port=WEBAPP_PORT,
     #)
+
+if __name__ == "__main__":
+    executor_ = ProcessPoolExecutor(4)
+    loop = asyncio.get_event_loop()
+    startbot_ = asyncio.ensure_future(startbot())
+    startserver_ = asyncio.ensure_future(startserver())
 
     #server.run(host="0.0.0.0", port=int(os.environ.get('PORT', '8443')))
     
