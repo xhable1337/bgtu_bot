@@ -627,11 +627,11 @@ async def button_func(call):
 #    return "!", 200
 
 
-@server.route("/wh")
-def webhook():
-    #await bot.delete_webhook()
-    #await bot.set_webhook(url=WEBHOOK_URL)
-    return "!", 200
+#@server.route("/wh")
+#def webhook():
+#    #await bot.delete_webhook()
+#    #await bot.set_webhook(url=WEBHOOK_URL)
+#    return "!", 200
 
 async def startserver():
     app = get_new_configured_app(dispatcher=dp, path=WEBHOOK_PATH)
