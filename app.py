@@ -636,7 +636,7 @@ async def button_func(call):
 async def test_print():
     while 1:
         print("hello world")
-        await asyncio.sleep(5)
+        await asyncio.sleep(60)
 
 async def startserver():
     app = get_new_configured_app(dispatcher=dp, path=WEBHOOK_PATH)
@@ -660,10 +660,10 @@ if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     print('hello from main')
     
-    #t_ = asyncio.ensure_future(test_print())
-    #print('test print')
+    t_ = asyncio.ensure_future(test_print())
+    print('test print')
 
-    startbot_ = asyncio.ensure_future(startbot())
+    loop.run_in_executor(executor_, startbot)
     print('startbot worked')
     #loop.run_forever()
     #executor.start_polling(dp, skip_updates=True)
