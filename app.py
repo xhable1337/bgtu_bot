@@ -633,6 +633,11 @@ async def button_func(call):
 #    #await bot.set_webhook(url=WEBHOOK_URL)
 #    return "!", 200
 
+async def test_print():
+    while True:
+        print("hello")
+        asyncio.sleep(5)
+
 async def startserver():
     app = get_new_configured_app(dispatcher=dp, path=WEBHOOK_PATH)
     web.run_app(app, host='0.0.0.0', port=os.getenv('PORT'))
@@ -649,7 +654,10 @@ async def startbot():
     #)
 
 if __name__ == "__main__":
-    executor.start_polling(dp, skip_updates=True)
+    executor_ = ProcessPoolExecutor(4)
+    startbot_ = asyncio.ensure_future(startbot())
+    t_ = asyncio.ensure_future(test_print())
+    #executor.start_polling(dp, skip_updates=True)
 #    executor_ = ProcessPoolExecutor(4)
 #    loop = asyncio.get_event_loop()
 #    startbot_ = asyncio.ensure_future(startbot())
