@@ -347,7 +347,7 @@ async def anymess(m):
             await bot.send_message(m.chat.id, 'Данный номер аудитории некорректен. Повторите попытку или отмените действие:', reply_markup=kb_cancel_building)
     elif get_state(m.from_user.id) == 'add_notification':
         if re.match(r'\b2[1-3]:[0-5][0-9]\b|\b[0]{1,2}:[0-5][0-9]\b|\b1[0-9]:[0-5][0-9]\b|0?[1-9]:[0-5][0-9]', m.text):
-            if re.match(r'[1-9]:[0-5][0-9', m.text):
+            if re.match(r'\b[1-9]:[0-5][0-9]\b', m.text):
                 notification_time = f"0{m.text}"
             else:
                 notification_time = str(m.text)
@@ -642,7 +642,7 @@ async def button_func(call):
 
     elif call.data == 'notifications':
         await bot.answer_callback_query(call.id)
-        notification_time = users.find_one({"user_id": call.from_user.id}).get('notification')
+        notification_time = users.find_one({"user_id": call.from_user.id}).get('notification_time')
         print(f"not. time == {notification_time}")
         if notification_time is None or notification_time == "":
             set_state(call.from_user.id, 'add_notification')
@@ -662,7 +662,7 @@ async def button_func(call):
     
     elif call.data == 'del_notification':
         await bot.answer_callback_query(call.id)
-        notification_time = users.find_one({"user_id": call.from_user.id}).get('notification')
+        notification_time = users.find_one({"user_id": call.from_user.id}).get('notification_time')
         time_list = list(scheduled_msg.find_one({"id": 1})["notification_time"])
         time_list.pop(time_list.index(call.from_user.id))
         scheduled_msg.update_one({'id': 1}, {"$set": {notification_time: time_list}})
@@ -674,7 +674,7 @@ async def button_func(call):
 
     elif call.data == 'edit_notification':
         await bot.answer_callback_query(call.id)
-        notification_time = users.find_one({"user_id": call.from_user.id}).get('notification')
+        notification_time = users.find_one({"user_id": call.from_user.id}).get('notification_time')
         time_list = list(scheduled_msg.find_one({"id": 1})["notification_time"])
         time_list.pop(time_list.index(call.from_user.id))
         scheduled_msg.update_one({'id': 1}, {"$set": {notification_time: time_list}})
