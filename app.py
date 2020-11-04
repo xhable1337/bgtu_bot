@@ -358,7 +358,7 @@ async def anymess(m):
                 time_list.append(m.from_user.id)
                 scheduled_msg.update_one({'id': 1}, {"$set": {m.text: time_list}})
             
-            await bot.send_message(m.chat.id, f'Уведомление на {m.text} установлено!', reply_markup=kbbb)
+            await bot.send_message(m.chat.id, f'Уведомление на {m.text} установлено\\!', reply_markup=kbbb)
             set_state(m.chat.id, 'default')
         else:
             await bot.send_message(m.chat.id, 'Вы ввели некорректное время. Повторите попытку или отмените действие:', reply_markup=kb_cancel_building)
@@ -598,7 +598,7 @@ async def button_func(call):
             users.update_one({'user_id': call.from_user.id}, {'$set': {'favorite_groups': favorite_groups}})
             await bot.edit_message_text(chat_id=call.message.chat.id,
             message_id=call.message.message_id,
-            text=f'Группа {group} удалена из избранных!\n*Сейчас выбрана группа {get_group(call.from_user.id)}.*\nВот главное меню:',
+            text=f'Группа {group} удалена из избранных\\!\n*Сейчас выбрана группа {get_group(call.from_user.id)}.*\nВот главное меню:',
             reply_markup=kbm, parse_mode='Markdown')
             set_state(call.from_user.id, 'default')
         else:
@@ -607,7 +607,7 @@ async def button_func(call):
                 set_group(call.from_user.id, group)
                 await bot.edit_message_text(chat_id=call.message.chat.id,
                 message_id=call.message.message_id,
-                text=f'Привет, {call.from_user.first_name}!\n*Сейчас выбрана группа {get_group(call.from_user.id)}.*\nВот главное меню:',
+                text=f'Привет, {call.from_user.first_name}\\!\n*Сейчас выбрана группа {get_group(call.from_user.id)}.*\nВот главное меню:',
                 reply_markup=kbm, parse_mode='Markdown')
             elif get_state(call.from_user.id) == 'add_favorite':
                 user = users.find_one({'user_id': call.from_user.id})
@@ -616,7 +616,7 @@ async def button_func(call):
                 users.update_one({'user_id': call.from_user.id}, {'$set': {'favorite_groups': favorite_groups}})
                 await bot.edit_message_text(chat_id=call.message.chat.id,
                 message_id=call.message.message_id,
-                text=f'Группа {call.data} добавлена в избранные!\n*Сейчас выбрана группа {get_group(call.from_user.id)}.*\nВот главное меню:',
+                text=f'Группа {call.data} добавлена в избранные\\!\n*Сейчас выбрана группа {get_group(call.from_user.id)}.*\nВот главное меню:',
                 reply_markup=kbm, parse_mode='Markdown')
                 set_state(call.from_user.id, 'default')
     
@@ -652,8 +652,8 @@ async def button_func(call):
         else:
             await bot.edit_message_text(chat_id=call.message.chat.id,
             message_id=call.message.message_id,
-            text=f'Каждый день в {notification_time} вы будете получать расписание.\
-                Хотите изменить время или удалить напоминание?',
+            text=f'Каждый день в {notification_time} вы будете получать расписание.\n\
+Хотите изменить время или удалить напоминание?',
             reply_markup=kb_notifications)
     
     elif call.data == 'del_notification':
@@ -678,10 +678,10 @@ async def button_func(call):
         await bot.edit_message_text(chat_id=call.message.chat.id,
             message_id=call.message.message_id,
             text=f'Сейчас вы получаете расписание каждый день в {notification_time}.\n\
-            Введите время, в которое вы хотите получать расписание:\n\
-            ————————————————————\n\
-            `00:00 — 12:59`: расписание на сегодня\n\
-            `13:00 — 23:59`: расписание на завтра',
+Введите время, в которое вы хотите получать расписание:\n\
+————————————————————\n\
+`00:00 — 12:59`: расписание на сегодня\n\
+`13:00 — 23:59`: расписание на завтра',
             reply_markup=kb_cancel_building, parse_mode='MarkdownV2')
 
 async def time_trigger():
@@ -725,8 +725,8 @@ async def time_trigger():
                         table.add_row(lesson)
 
                     text = f'*Выбрана группа {group}*\n\
-                    {ru_day}: {wdays.names(isoweekday)[0]}\n\n```{table}```\n\n\
-                    `[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*'
+{ru_day}: {wdays.names(isoweekday)[0]}\n\n```{table}```\n\n\
+`[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*'
 
                     await bot.send_message(user_id, text, reply_markup=kbbb)
                 else:
@@ -745,8 +745,8 @@ async def time_trigger():
                         table.add_row(lesson)
 
                     text = f'*Выбрана группа {group}*\n\
-                    {ru_day}: {wdays.names(isoweekday)[0]}\n\n```{table}```\n\n\
-                    `[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*'
+{ru_day}: {wdays.names(isoweekday)[0]}\n\n```{table}```\n\n\
+`[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*'
 
                     await bot.send_message(user_id, text, reply_markup=kbbb)
 
