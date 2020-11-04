@@ -735,7 +735,7 @@ async def time_trigger():
 {ru_day}: {wdays.names(isoweekday)[0]}\n\n```{table}```\n\n\
 `[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*'
 
-                    await bot.send_message(user_id, text, reply_markup=kbbb)
+                    await bot.send_message(user_id, text, reply_markup=kbbb, parse_mode='Markdown')
                 else:
                     table = PrettyTable(border=False)
                     table.field_names = ['№', 'Пара', 'Кабинет']
@@ -755,7 +755,7 @@ async def time_trigger():
 {ru_day}: {wdays.names(isoweekday)[0]}\n\n```{table}```\n\n\
 `[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*'
 
-                    await bot.send_message(user_id, text, reply_markup=kbbb)
+                    await bot.send_message(user_id, text, reply_markup=kbbb, parse_mode='Markdown')
 
         await asyncio.sleep(60)
 ## Установка Webhook для быстрого взаимодействия с ботом
