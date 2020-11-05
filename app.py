@@ -705,12 +705,12 @@ async def time_trigger():
             ru_day = 'Сегодня'
             inc = 0
 
-        if fulltime in scheduled_msg.find_one({"id": 1}):
-            print("time_trigger() [709]. heelllloooooo")
-            print(f"time_trigger(): find_one = {scheduled_msg.find_one({'id': 1})}")
-            for user_id in scheduled_msg.find_one({"id": 1})[fulltime]:
-                print(f"time_trigger(): user_id = {scheduled_msg.find_one({'id': 1})[fulltime]}")
-                
+        #if fulltime in scheduled_msg.find_one({"id": 1}):
+        #    print("time_trigger() [709]. heelllloooooo")
+        #    print(f"time_trigger(): find_one = {scheduled_msg.find_one({'id': 1})}")
+        #    for user_id in scheduled_msg.find_one({"id": 1})[fulltime]:
+        #        print(f"time_trigger(): user_id = {scheduled_msg.find_one({'id': 1})[fulltime]}")
+
         await asyncio.sleep(60)
 ## Установка Webhook для быстрого взаимодействия с ботом
 #async def on_startup(dp):
