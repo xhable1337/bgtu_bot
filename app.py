@@ -732,7 +732,8 @@ async def time_trigger():
                     for lesson in schedule:
                         table.add_row(lesson)
 
-                    text = f'*Выбрана группа {group}*\n\
+                    text = f'[🔔 Ежедневное уведомление в {fulltime}]\n\
+*Выбрана группа {group}*\n\
 {ru_day}: {wdays.names(isoweekday)[0]}\n\n```{table}```\n\n\
 `[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*'
 
@@ -752,7 +753,8 @@ async def time_trigger():
                     for lesson in schedule:
                         table.add_row(lesson)
 
-                    text = f'*Выбрана группа {group}*\n\
+                    text = f'[🔔 Ежедневное уведомление в {fulltime}]\n\
+*Выбрана группа {group}*\n\
 {ru_day}: {wdays.names(isoweekday)[0]}\n\n```{table}```\n\n\
 `[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*'
 
@@ -765,7 +767,7 @@ async def time_trigger():
         #    for user_id in scheduled_msg.find_one({"id": 1})[fulltime]:
         #        print(f"time_trigger(): user_id = {scheduled_msg.find_one({'id': 1})[fulltime]}")
 
-        await asyncio.sleep(5)
+        await asyncio.sleep(60)
 ## Установка Webhook для быстрого взаимодействия с ботом
 #async def on_startup(dp):
 #    await bot.delete_webhook()
