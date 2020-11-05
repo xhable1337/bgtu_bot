@@ -711,7 +711,7 @@ async def time_trigger():
         #    for user_id in scheduled_msg.find_one({"id": 1})[fulltime]:
         #        print(f"time_trigger(): user_id = {scheduled_msg.find_one({'id': 1})[fulltime]}")
 
-        await asyncio.sleep(60)
+        await asyncio.sleep(5)
 ## Установка Webhook для быстрого взаимодействия с ботом
 #async def on_startup(dp):
 #    await bot.delete_webhook()
