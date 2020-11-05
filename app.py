@@ -650,9 +650,9 @@ async def button_func(call):
             await bot.edit_message_text(chat_id=call.message.chat.id,
             message_id=call.message.message_id,
             text=f'Введите время, в которое вы хотите получать расписание:\n\
-            ————————————————————\n\
-            `00:00 — 12:59`: расписание на сегодня\n\
-            `13:00 — 23:59`: расписание на завтра',
+————————————————————\n\
+`00:00 — 12:59`: расписание на сегодня\n\
+`13:00 — 23:59`: расписание на завтра',
             reply_markup=kb_cancel_building, parse_mode='MarkdownV2')
         else:
             await bot.edit_message_text(chat_id=call.message.chat.id,
