@@ -696,7 +696,7 @@ async def time_trigger():
         hour = time.strftime("%H")
         minute = time.strftime("%M")
         fulltime = time.strftime("%H:%M")
-        if hour < 24 and hour >= 12:
+        if int(hour) < 24 and int(hour) >= 12:
             day = 'tomorrow'
             ru_day = 'Завтра'
             inc = 86400
@@ -704,6 +704,60 @@ async def time_trigger():
             day = 'today'
             ru_day = 'Сегодня'
             inc = 0
+
+        if fulltime in scheduled_msg.find_one({"id": 1}):
+            print("time_trigger() [709]. heelllloooooo")
+            for user_id in scheduled_msg.find_one({"id": 1})[fulltime]:
+                print("time_trigger() [711]. heelllloooooo")
+                #user = users.find_one({"user_id": user_id})
+                group = get_group(user_id)
+                isoweekday = datetime.datetime.today().isoweekday()
+                if day == 'tomorrow':
+                    isoweekday += 1
+                if isoweekday == 6 or isoweekday == 7:
+                    pass
+                    #text = f'*Выбрана группа {group}*\n{ru_day}: {wdays.names(isoweekday)[0]}\n\nУдачных выходных!'
+                elif isoweekday == 8:
+                    table = PrettyTable(border=False)
+                    table.field_names = ['№', 'Пара', 'Кабинет']
+                    weekday = wdays.names(isoweekday)[1]
+
+                    if datetime.datetime.today().isocalendar()[1] % 2 != 0:
+                        weeknum = '1'
+                    else:
+                        weeknum = '2'
+
+                    schedule = get_schedule(group, weekday, weeknum)
+
+                    for lesson in schedule:
+                        table.add_row(lesson)
+
+                    text = f'*Выбрана группа {group}*\n\
+{ru_day}: {wdays.names(isoweekday)[0]}\n\n```{table}```\n\n\
+`[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*'
+
+                    await bot.send_message(user_id, text, reply_markup=kbbb, parse_mode='Markdown')
+                else:
+                    table = PrettyTable(border=False)
+                    table.field_names = ['№', 'Пара', 'Кабинет']
+                    weekday = wdays.names(isoweekday)[1]
+
+                    if datetime.datetime.today().isocalendar()[1] % 2 == 0:
+                        weeknum = '1'
+                    else:
+                        weeknum = '2'
+
+                    schedule = get_schedule(group, weekday, weeknum)
+
+                    for lesson in schedule:
+                        table.add_row(lesson)
+
+                    text = f'*Выбрана группа {group}*\n\
+{ru_day}: {wdays.names(isoweekday)[0]}\n\n```{table}```\n\n\
+`[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*'
+
+                    await bot.send_message(user_id, text, reply_markup=kbbb, parse_mode='Markdown')
+        
 
         #if fulltime in scheduled_msg.find_one({"id": 1}):
         #    print("time_trigger() [709]. heelllloooooo")
