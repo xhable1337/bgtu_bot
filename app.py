@@ -357,7 +357,7 @@ async def anymess(m):
             if notification_list == None:
                 time_list = []
                 time_list.append(m.from_user.id)
-                scheduled_msg.update_one({'id': 1}, {"$set": {m.text: time_list}})
+                scheduled_msg.update_one({'id': 1}, {"$set": {notification_time: time_list}})
             else:
                 time_list = list(scheduled_msg.find_one({"id": 1})[m.text])
                 time_list.append(m.from_user.id)
