@@ -100,6 +100,14 @@ def en_ru(text):
     """Функция транслитерации с английского на русский."""
     return translit(text, 'ru', reversed=False)
 
+def get_weekname():
+    """Функция получения чётности/нечётности недели."""
+    if datetime.datetime.today().isocalendar()[1] % 2 == 0:
+        weekname = 'нечётная'
+    else:
+        weekname = 'чётная'
+    return weekname
+
 def get_schedule(group, weekday, weeknum):
     """Функция получения расписания от API."""
     if schedule_db.find_one({'group': group}) is None or time.time() - schedule_db.find_one({'group': group})['last_updated'] > UPDATE_TIME:
@@ -177,7 +185,7 @@ async def start_handler(m):
         elif user.get('username') != m.from_user.username:
             users.update_one({'username': m.from_user.username}, {'$set': {'username': m.from_user.username}})
         group = get_group(m.from_user.id)
-        await bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Выбранная группа: {group}.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
+        await bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Твоя группа: {group}.*\n*Сейчас идёт {get_weekname()} неделя.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
         set_state(m.from_user.id, 'default')
 
 @dp.message_handler(commands=['whatis'])
@@ -318,32 +326,32 @@ async def anymess(m):
         await bot.send_message(m.chat.id, 'Для начала работы с ботом выполните команду /start')
     elif users.find_one({'user_id': m.from_user.id}) != None and get_state(m.from_user.id) == 'default':
         group = get_group(m.from_user.id)
-        await bot.send_message(m.chat.id, text=f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа {group}.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
+        await bot.send_message(m.chat.id, text=f'Привет, {m.from_user.first_name}!\n*Твоя группа: {group}.*\n*Сейчас идёт {get_weekname()} неделя.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
     elif get_state(m.from_user.id) == 'find_class':
         if re.match(r'(\b[1-9][1-9]\b|\b[1-9]\b)', m.text):
             await bot.send_photo(m.chat.id, photo=building_1, caption=f'Аудитория {m.text} находится в корпусе №1 _\\(Институтская, 16\\)_.', parse_mode='Markdown')
             await bot.send_location(m.chat.id, latitude=53.305077, longitude=34.305080)
             set_state(m.chat.id, 'default')
             group = get_group(m.from_user.id)
-            await bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа {group}.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
+            await bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Твоя группа: {group}.*\n*Сейчас идёт {get_weekname()} неделя.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
         elif re.match(r'\b[1-9][0-9][0-9]\b', m.text):
             await bot.send_photo(m.chat.id, photo=building_2, caption=f'Аудитория {m.text} находится в корпусе №2 _\\(бульвар 50 лет Октября, 7\\)_.', parse_mode='Markdown')
             await bot.send_location(m.chat.id, latitude=53.304442, longitude=34.303849)
             set_state(m.chat.id, 'default')
             group = get_group(m.from_user.id)
-            await bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа {group}.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
+            await bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Твоя группа: {group}.*\n*Сейчас идёт {get_weekname()} неделя.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
         elif re.match(r'(\bА\d{3}\b|\b[Аа]\b|\b[Бб]\b|\b[Вв]\b|\b[Гг]\b|\b[Дд]\b)', m.text):
             await bot.send_photo(m.chat.id, photo=building_3, caption=f'Аудитория {m.text} находится в корпусе №3 _\\(Харьковская, 8\\)_.', parse_mode='Markdown')
             await bot.send_location(m.chat.id, latitude=53.304991, longitude=34.306688)
             set_state(m.chat.id, 'default')
             group = get_group(m.from_user.id)
-            await bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа {group}.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
+            await bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Твоя группа: {group}.*\n*Сейчас идёт {get_weekname()} неделя.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
         elif re.match(r'\bБ\d{3}\b', m.text):
             await bot.send_photo(m.chat.id, photo=building_4, caption=f'Аудитория {m.text} находится в корпусе №4 _\\(Харьковская, 10Б\\)_.', parse_mode='Markdown')
             await bot.send_location(m.chat.id, latitude=53.303513, longitude=34.305085)
             set_state(m.chat.id, 'default')
             group = get_group(m.from_user.id)
-            await bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Сейчас выбрана группа {group}.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
+            await bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Твоя группа: {group}.*\n*Сейчас идёт {get_weekname()} неделя.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
         else:
             await bot.send_message(m.chat.id, 'Данный номер аудитории некорректен\\. Повторите попытку или отмените действие:', reply_markup=kb_cancel_building)
     elif get_state(m.from_user.id) == 'add_notification':
@@ -374,10 +382,10 @@ async def button_func(call):
     if call.data == 'days':
         await bot.answer_callback_query(call.id)
         if datetime.datetime.today().isocalendar()[1] % 2 == 0:
-            weekname = '[Н] \\- нечётная'
+            weekname = '\\[Н\\] \\- нечётная'
             buttons = ['[Н]', 'Ч']
         else:
-            weekname = '[Ч] \\- чётная'
+            weekname = '\\[Ч\\] \\- чётная'
             buttons = ['Н', '[Ч]']
 
         kb_dn = types.InlineKeyboardMarkup()
@@ -506,7 +514,7 @@ async def button_func(call):
         await bot.answer_callback_query(call.id, text='Возврат в главное меню...')
         await bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
-        text=f'Привет, {call.from_user.first_name}!\n*Сейчас выбрана группа {get_group(call.from_user.id)}.*\nВот главное меню:',
+        text=f'Привет, {call.from_user.first_name}!\n*Твоя группа: {get_group(call.from_user.id)}.*\n*Сейчас идёт {get_weekname()} неделя.*\nВот главное меню:',
         reply_markup=kbm, parse_mode='Markdown')
     elif call.data == 'building':
         await bot.answer_callback_query(call.id)
@@ -517,7 +525,7 @@ async def button_func(call):
         set_state(call.from_user.id, 'default')
         await bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
-        text=f'Привет, {call.from_user.first_name}!\n*Сейчас выбрана группа {get_group(call.from_user.id)}.*\nВот главное меню:',
+        text=f'Привет, {call.from_user.first_name}!\n*Твоя группа: {get_group(call.from_user.id)}.*\n*Сейчас идёт {get_weekname()} неделя.*\nВот главное меню:',
         reply_markup=kbm, parse_mode='Markdown')
     elif call.data == 'change_faculty':
         await bot.answer_callback_query(call.id)
@@ -603,7 +611,7 @@ async def button_func(call):
             users.update_one({'user_id': call.from_user.id}, {'$set': {'favorite_groups': favorite_groups}})
             await bot.edit_message_text(chat_id=call.message.chat.id,
             message_id=call.message.message_id,
-            text=f'Группа {group} удалена из избранных\\!\n*Сейчас выбрана группа {get_group(call.from_user.id)}.*\nВот главное меню:',
+            text=f'Группа {group} удалена из избранных\\!\n*Твоя группа: {get_group(call.from_user.id)}.*\n*Сейчас идёт {get_weekname()} неделя.*\nВот главное меню:',
             reply_markup=kbm, parse_mode='Markdown')
             set_state(call.from_user.id, 'default')
         else:
@@ -612,7 +620,7 @@ async def button_func(call):
                 set_group(call.from_user.id, group)
                 await bot.edit_message_text(chat_id=call.message.chat.id,
                 message_id=call.message.message_id,
-                text=f'Привет, {call.from_user.first_name}\\!\n*Сейчас выбрана группа {get_group(call.from_user.id)}.*\nВот главное меню:',
+                text=f'Привет, {call.from_user.first_name}\\!\n*Твоя группа: {get_group(call.from_user.id)}.*\n*Сейчас идёт {get_weekname()} неделя.*\nВот главное меню:',
                 reply_markup=kbm, parse_mode='Markdown')
             elif get_state(call.from_user.id) == 'add_favorite':
                 user = users.find_one({'user_id': call.from_user.id})
@@ -621,7 +629,7 @@ async def button_func(call):
                 users.update_one({'user_id': call.from_user.id}, {'$set': {'favorite_groups': favorite_groups}})
                 await bot.edit_message_text(chat_id=call.message.chat.id,
                 message_id=call.message.message_id,
-                text=f'Группа {call.data} добавлена в избранные\\!\n*Сейчас выбрана группа {get_group(call.from_user.id)}.*\nВот главное меню:',
+                text=f'Группа {call.data} добавлена в избранные\\!\n*Твоя группа: {get_group(call.from_user.id)}.*\n*Сейчас идёт {get_weekname()} неделя.*\nВот главное меню:',
                 reply_markup=kbm, parse_mode='Markdown')
                 set_state(call.from_user.id, 'default')
     
