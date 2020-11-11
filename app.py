@@ -68,7 +68,7 @@ index = [i for i in range(1, 6)]
 
 rings_list = ['8:00-9:35', '9:45-11:20', '11:30-13:05', '13:20-14:55', '15:05-16:40']
 
-ADMINS = [124361528, 436335947]
+ADMINS = [124361528, 436335947, 465503110]
 
 table = PrettyTable(border=False)
 table.border = False
