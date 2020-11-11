@@ -693,7 +693,7 @@ async def button_func(call):
     elif call.data == 'notifications':
         await bot.answer_callback_query(call.id)
         notification_time = users.find_one({"user_id": call.from_user.id}).get('notification_time')
-        print(f"not. time == {notification_time}")
+        print(f"not. time ({call.from_user.id}) == {notification_time}")
         if notification_time is None or notification_time == {}:
             #users.update_one({"user_id": call.from_user.id}, {'$set': {'notification_time': notification_time}})
             await bot.edit_message_text(chat_id=call.message.chat.id,
@@ -744,9 +744,11 @@ async def button_func(call):
         weekday = str(call.data).split('_')[2]
         notification_time = users.find_one({"user_id": call.from_user.id}).get('notification_time')[weekday]
 
-        time_list = list(scheduled_msg.find_one({"id": 1})[weekday][notification_time])
-        time_list.pop(time_list.index(call.from_user.id))
-        scheduled_msg.update_one({'id': 1}, {"$set": {notification_time: time_list}})
+        user_list = list(scheduled_msg.find_one({"id": 1})[weekday][notification_time])
+        user_list.pop(user_list.index(call.from_user.id))
+        scheduled_msg_dict = {weekday: {notification_time: user_list}}
+        print(f'user_list == {user_list}')
+        scheduled_msg.update_one({'id': 1}, {"$set": scheduled_msg_dict})
 
         user_time_dict = dict(users.find_one({"user_id": call.from_user.id})['notification_time'])
         user_time_dict[weekday] = ''
