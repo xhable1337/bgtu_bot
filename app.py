@@ -387,9 +387,11 @@ async def anymess(m):
             # Удаляем прошлое напоминание на этот день (edit notification)
             try:
                 old_notification_time = users.find_one({"user_id": m.from_user.id}).get('notification_time')[weekday]
+                scheduled_ = scheduled_msg.find_one({"id": 1})[weekday]
                 user_list = list(scheduled_msg.find_one({"id": 1})[weekday][old_notification_time])
                 user_list.pop(user_list.index(m.from_user.id))
-                scheduled_msg_dict = {weekday: {old_notification_time: user_list}}
+                scheduled_[old_notification_time] = user_list
+                scheduled_msg_dict = {weekday: scheduled_}
                 scheduled_msg.update_one({'id': 1}, {"$set": scheduled_msg_dict})
                 user_time_dict[weekday] = ''
                 users.update_one({'user_id': m.from_user.id}, {"$set": {"notification_time": user_time_dict}})
