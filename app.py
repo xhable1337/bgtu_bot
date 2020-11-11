@@ -239,39 +239,42 @@ async def users_handler(m):
 @dp.message_handler(commands=['broadcast'])
 async def broadcast(m):
     if m.chat.id in ADMINS:
-        raw_text = str(m.text)
-        group = raw_text.split(' ', maxsplit=2)[1]
-        text = raw_text.split(' ', maxsplit=2)[2]
-        i = 0
-        if group == 'all':
-            text = f'🔔 *Сообщение для всех групп!*\n' + text
-            for user in users.find():
-                if i == 25:
-                    time.sleep(1)
-                user_id = user['user_id']
-                try:
-                    await bot.send_message(user_id, text, parse_mode='Markdown')
-                    i += 1
-                except:
-                    pass
-                #except bot.apihelper.ApiTelegramException:
-                #    pass
-        elif group == 'test':
-            text = f'🔔 *Тестовое сообщение!*\n' + text
-            await bot.send_message(m.chat.id, text, parse_mode='Markdown')
-        else:
-            text = f'🔔 *Сообщение для группы {group}!*\n' + text
-            for user in users.find({'group': group}):
-                if i == 25:
-                    time.sleep(1)
-                user_id = user['user_id']
-                try:
-                    await bot.send_message(user_id, text, parse_mode='Markdown')
-                    i += 1
-                except:
-                    pass
-                #except Exceptions.TelegramAPIError:
-                #    pass
+        if m.text != '/broadcast':
+            raw_text = str(m.text)
+            group = raw_text.split(' ', maxsplit=2)[1]
+            text = raw_text.split(' ', maxsplit=2)[2]
+            i = 0
+            if group == 'all':
+                text = f'🔔 *Сообщение для всех групп!*\n' + text
+                for user in users.find():
+                    if i == 25:
+                        time.sleep(1)
+                    user_id = user['user_id']
+                    try:
+                        await bot.send_message(user_id, text, parse_mode='Markdown')
+                        i += 1
+                    except:
+                        pass
+                    #except bot.apihelper.ApiTelegramException:
+                    #    pass
+            elif group == 'test':
+                text = f'🔔 *Тестовое сообщение!*\n' + text
+                await bot.send_message(m.chat.id, text, parse_mode='Markdown')
+            else:
+                text = f'🔔 *Сообщение для группы {group}!*\n' + text
+                for user in users.find({'group': group}):
+                    if i == 25:
+                        time.sleep(1)
+                    user_id = user['user_id']
+                    try:
+                        await bot.send_message(user_id, text, parse_mode='Markdown')
+                        i += 1
+                    except:
+                        pass
+                    #except Exceptions.TelegramAPIError:
+                    #    pass
+        elif m.text == '/broadcast':
+            pass
 
 @dp.message_handler(commands=['exec'])
 async def execute(m):
@@ -299,8 +302,6 @@ kb_r.row(types.InlineKeyboardButton(text='Понедельник', callback_data
 kb_r.row(types.InlineKeyboardButton(text='Остальные дни', callback_data='r_others'))
 kb_r.row(types.InlineKeyboardButton(text='В главное меню', callback_data='tomain'))
 
-
-
 kbb = types.InlineKeyboardMarkup()
 kbb.row(types.InlineKeyboardButton(text='↩️ Назад', callback_data='days'))
 
@@ -315,6 +316,15 @@ kb_notifications.row(types.InlineKeyboardButton(text='❌ Удалить', callb
 kb_notifications.row(types.InlineKeyboardButton(text='✍ Изменить', callback_data='edit_notification'))
 kb_notifications.row(types.InlineKeyboardButton(text='🔄 В главное меню', callback_data='tomain'))
 
+kb_notifications_days = types.InlineKeyboardMarkup()
+kb_notifications_days.row(
+    types.InlineKeyboardButton(text='Пн', callback_data='notify_monday'),
+    types.InlineKeyboardButton(text='Вт', callback_data='notify_tuesday'),
+    types.InlineKeyboardButton(text='Ср', callback_data='notify_wednesday'),
+    types.InlineKeyboardButton(text='Чт', callback_data='notify_thursday'),
+    types.InlineKeyboardButton(text='Пт', callback_data='notify_friday'),
+    types.InlineKeyboardButton(text='Вс', callback_data='notify_sunday'))
+kb_notifications_days.row(types.InlineKeyboardButton(text='🔄 В главное меню', callback_data='tomain'))
 #kb_group = types.InlineKeyboardMarkup()
 #kb_group.row(types.InlineKeyboardButton(text='1️⃣', callback_data='group_1'), types.InlineKeyboardButton(text='2️⃣', callback_data='group_2'))
 #kb_group.row(types.InlineKeyboardButton(text='🚫 Отмена', callback_data='cancel_find_class'))
@@ -354,23 +364,45 @@ async def anymess(m):
             await bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Твоя группа: {group}.*\n*Сейчас идёт {get_weekname()} неделя.*\nВот главное меню:', reply_markup=kbm, parse_mode='Markdown')
         else:
             await bot.send_message(m.chat.id, 'Данный номер аудитории некорректен\\. Повторите попытку или отмените действие:', reply_markup=kb_cancel_building)
-    elif get_state(m.from_user.id) == 'add_notification':
-        if re.match(r'\b2[1-3]:[0-5][0-9]\b|\b[0]{1,2}:[0-5][0-9]\b|\b1[0-9]:[0-5][0-9]\b|0?[1-9]:[0-5][0-9]', m.text):
+    elif get_state(m.from_user.id).startswith('add_notification_'):
+        if re.match(r'^2[1-3]:[0-5][0-9]$|^[0]{1,2}:[0-5][0-9]$|^1[0-9]:[0-5][0-9]$|^0?[1-9]:[0-5][0-9]$', m.text):
             if re.match(r'\b[1-9]:[0-5][0-9]\b', m.text):
                 notification_time = f"0{m.text}"
             else:
                 notification_time = str(m.text)
-            users.update_one({'user_id': m.from_user.id}, {"$set": {"notification_time": notification_time}})
-            notification_list = scheduled_msg.find_one({'id': 1}).get(notification_time)
-            if notification_list == None:
-                time_list = []
-                time_list.append(m.from_user.id)
-                scheduled_msg.update_one({'id': 1}, {"$set": {notification_time: time_list}})
-            else:
-                time_list = list(scheduled_msg.find_one({"id": 1})[m.text])
-                time_list.append(m.from_user.id)
-                scheduled_msg.update_one({'id': 1}, {"$set": {m.text: time_list}})
+
+            weekday = get_state(m.from_user.id).split('_')[2]
             
+            user_time_dict = users.find_one({'user_id': m.from_user.id})['notification_time']
+            
+            # Удаляем прошлое напоминание на этот день (edit notification)
+            try:
+                old_notification_time = users.find_one({"user_id": m.from_user.id}).get('notification_time')[weekday]
+                user_list = list(scheduled_msg.find_one({"id": 1})[weekday][old_notification_time])
+                user_list.pop(user_list.index(m.from_user.id))
+                scheduled_msg_dict = {weekday: {old_notification_time: user_list}}
+                scheduled_msg.update_one({'id': 1}, {"$set": scheduled_msg_dict})
+                user_time_dict[weekday] = ''
+                users.update_one({'user_id': m.from_user.id}, {"$set": {"notification_time": user_time_dict}})
+                user_time_dict = users.find_one({'user_id': m.from_user.id})['notification_time']
+            except:
+                pass
+            
+            user_time_dict[weekday] = notification_time
+            users.update_one({'user_id': m.from_user.id}, {"$set": {"notification_time": user_time_dict}})
+
+            notification_list = scheduled_msg.find_one({'id': 1})[weekday].get(notification_time)
+            if notification_list == None:
+                user_list = []
+                user_list.append(m.from_user.id)
+                scheduled_msg_dict = {weekday: {notification_time: user_list}}
+                scheduled_msg.update_one({'id': 1}, {"$set": scheduled_msg_dict})
+            else:
+                user_list = list(scheduled_msg.find_one({"id": 1})[weekday][notification_time])
+                user_list.append(m.from_user.id)
+                scheduled_msg_dict = {weekday: {notification_time: user_list}}
+                scheduled_msg.update_one({'id': 1}, {"$set": scheduled_msg_dict})
+
             await bot.send_message(m.chat.id, f'Уведомление на {m.text} установлено\\!', reply_markup=kbbb)
             set_state(m.chat.id, 'default')
         else:
@@ -653,48 +685,88 @@ async def button_func(call):
         await bot.answer_callback_query(call.id)
         notification_time = users.find_one({"user_id": call.from_user.id}).get('notification_time')
         print(f"not. time == {notification_time}")
-        if notification_time is None or notification_time == "":
-            set_state(call.from_user.id, 'add_notification')
+        if notification_time is None or notification_time == {}:
+            #users.update_one({"user_id": call.from_user.id}, {'$set': {'notification_time': notification_time}})
             await bot.edit_message_text(chat_id=call.message.chat.id,
             message_id=call.message.message_id,
-            text=f'Введите время, в которое вы хотите получать расписание:\n\
-————————————————————\n\
-`00:00 — 12:59`: расписание на сегодня\n\
-`13:00 — 23:59`: расписание на завтра',
-            reply_markup=kb_cancel_building, parse_mode='MarkdownV2')
+            text=f'Уведомления с расписанием отсутствуют.\n\
+Выберите день недели для установки времени автоматической отправки расписания:',
+            reply_markup=kb_notifications_days, parse_mode='MarkdownV2')
         else:
+            text = 'Дни недели, по которым вы получаете уведомления с расписанием: \n\n'
+            notification_time = users.find_one({"user_id": call.from_user.id}).get('notification_time')
+            for day in notification_time:
+                if notification_time[day] != "":
+                    day_ru = wdays.translate(day)
+                    text += f'{day_ru.capitalize()}: {notification_time[day]}\n'
+            text += '\nХотите изменить время, добавить или удалить напоминания? Выберите день:'
             await bot.edit_message_text(chat_id=call.message.chat.id,
             message_id=call.message.message_id,
-            text=f'Каждый день в {notification_time} вы будете получать расписание\\.\n\
-Хотите изменить время или удалить напоминание?',
-            reply_markup=kb_notifications)
-    
-    elif call.data == 'del_notification':
-        await bot.answer_callback_query(call.id)
+            text=text,
+            reply_markup=kb_notifications_days)
+
+    elif str(call.data).startswith('notify_'):
+        weekday = str(call.data).split('_')[1]
         notification_time = users.find_one({"user_id": call.from_user.id}).get('notification_time')
-        time_list = list(scheduled_msg.find_one({"id": 1})[notification_time])
+
+        if notification_time.get(weekday) is None or notification_time.get('weekday') == "":
+            set_state(call.from_user, f'add_notification_{weekday}')
+            text = f"Добавление напоминания \\({wdays.translate(weekday)}\\)\n\n\
+Введите время, в которое вы хотите получать расписание:\n\
+————————————————————\n\
+Если введённое время в диапазоне от 00:00 до 12:59, то бот отправит расписание на сегодня.\n\
+Если же введённое время в диапазоне от 13:00 до 23:59, то расписание на завтра."
+            reply_markup = kb_cancel_building
+        else:
+            text = f'Изменение напоминания \\({wdays.translate(weekday)}\\):'
+            kb_notifications = types.InlineKeyboardMarkup()
+            kb_notifications.row(types.InlineKeyboardButton(text='❌ Удалить', callback_data=f'del_notification_{weekday}'))
+            kb_notifications.row(types.InlineKeyboardButton(text='✍ Изменить', callback_data=f'edit_notification_{weekday}'))
+            kb_notifications.row(types.InlineKeyboardButton(text='🔄 В главное меню', callback_data='tomain'))
+            reply_markup = kb_notifications
+
+        await bot.edit_message_text(chat_id=call.message.chat.id,
+        message_id=call.message.message_id,
+        text=text,
+        reply_markup=reply_markup)
+
+    elif str(call.data).startswith('del_notification_'):
+        await bot.answer_callback_query(call.id)
+        weekday = str(call.data).split('_')[2]
+        notification_time = users.find_one({"user_id": call.from_user.id}).get('notification_time')[weekday]
+
+        time_list = list(scheduled_msg.find_one({"id": 1})[weekday][notification_time])
         time_list.pop(time_list.index(call.from_user.id))
         scheduled_msg.update_one({'id': 1}, {"$set": {notification_time: time_list}})
-        users.update_one({'user_id': call.from_user.id}, {"$set": {"notification_time": ""}})
+
+        user_time_dict = dict(users.find_one({"user_id": call.from_user.id})[weekday])
+        user_time_dict.pop(weekday)
+        users.update_one({'user_id': call.from_user.id}, {"$set": {"notification_time": user_time_dict}})
+
         await bot.edit_message_text(chat_id=call.message.chat.id,
             message_id=call.message.message_id,
-            text=f'Ежедневные уведомления выключены\\.',
+            text=f'Уведомление \\({wdays.translate(weekday)}\\) выключено\\.',
             reply_markup=kbbb)
 
-    elif call.data == 'edit_notification':
+    elif str(call.data).startswith('edit_notification_'):
         await bot.answer_callback_query(call.id)
+        weekday = str(call.data).split('_')[2]
         notification_time = users.find_one({"user_id": call.from_user.id}).get('notification_time')
-        time_list = list(scheduled_msg.find_one({"id": 1})[notification_time])
-        time_list.pop(time_list.index(call.from_user.id))
-        scheduled_msg.update_one({'id': 1}, {"$set": {notification_time: time_list}})
+        
+        #time_list = list(scheduled_msg.find_one({"id": 1})[][notification_time])
+        #time_list.pop(time_list.index(m.from_user.id))
+        #scheduled_msg.update_one({'id': 1}, {"$set": {notification_time: time_list}})
+
+        text = f"Сейчас вы получаете расписание \\({wdays.translate(weekday)}\\) в {notification_time}\\.\n\
+Введите время, в которое вы хотите получать расписание:\n\
+————————————————————\n\
+Если введённое время в диапазоне от 00:00 до 12:59, то бот отправит расписание на сегодня.\n\
+Если же введённое время в диапазоне от 13:00 до 23:59, то расписание на завтра."
+
         set_state(call.from_user.id, 'add_notification')
         await bot.edit_message_text(chat_id=call.message.chat.id,
             message_id=call.message.message_id,
-            text=f'Сейчас вы получаете расписание каждый день в {notification_time}\\.\n\
-Введите время, в которое вы хотите получать расписание:\n\
-————————————————————\n\
-`00:00 — 12:59`: расписание на сегодня\n\
-`13:00 — 23:59`: расписание на завтра',
+            text=text,
             reply_markup=kb_cancel_building, parse_mode='MarkdownV2')
 
 async def time_trigger():
@@ -702,20 +774,23 @@ async def time_trigger():
         print(f'time_trigger(): {time.strftime("%H:%M:%S")}')
 
         hour = time.strftime("%H")
-        minute = time.strftime("%M")
+        #minute = time.strftime("%M")
         fulltime = time.strftime("%H:%M")
+        weekday_name = time.strftime('%A').lower()
+
         if int(hour) < 24 and int(hour) >= 12:
             day = 'tomorrow'
             ru_day = 'Завтра'
-            inc = 86400
         else:
             day = 'today'
             ru_day = 'Сегодня'
-            inc = 0
+        
+        timetable = scheduled_msg.find_one({"id": 1})[weekday_name]
+        #scheduled_list = scheduled_msg.find_one({"id": 1})
 
-        if fulltime in scheduled_msg.find_one({"id": 1}):
+        if fulltime in timetable:
             print("time_trigger() [709]. heelllloooooo")
-            for user_id in scheduled_msg.find_one({"id": 1})[fulltime]:
+            for user_id in timetable[fulltime]:
                 print("time_trigger() [711]. heelllloooooo")
                 #user = users.find_one({"user_id": user_id})
                 group = get_group(user_id)
@@ -767,6 +842,7 @@ async def time_trigger():
 `[Л]` - *лекция*\n`[ПЗ]` - *практическое занятие*\n`[ЛАБ]` - *лабораторное занятие*'
 
                     await bot.send_message(user_id, text, reply_markup=kbbb, parse_mode='Markdown')
+                await asyncio.sleep(1)
         
 
         #if fulltime in scheduled_msg.find_one({"id": 1}):
