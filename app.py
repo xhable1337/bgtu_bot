@@ -173,7 +173,7 @@ async def start_handler(m):
         for faculty in faculty_list:
             kb_faculty.row(types.InlineKeyboardButton(text=faculty, callback_data=ru_en('f_' + faculty)))
 
-        await bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Для начала работы с ботом выбери свою группу \\(впоследствии выбор можно изменить\\):*', reply_markup=kb_faculty, parse_mode='Markdown')
+        await bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Для начала работы с ботом выбери свою группу \(впоследствии выбор можно изменить\):*', reply_markup=kb_faculty, parse_mode='Markdown')
     else:
         user = users.find_one({'user_id': m.from_user.id})
         if user.get('favorite_groups') == None:
@@ -385,13 +385,16 @@ async def anymess(m):
                 }
             
             # Удаляем прошлое напоминание на этот день (edit notification)
+            # БЕРЕТ ТОЛЬКО ОЛД НОТИФИКЕЙШН
             try:
                 old_notification_time = users.find_one({"user_id": m.from_user.id}).get('notification_time')[weekday]
                 scheduled_ = scheduled_msg.find_one({"id": 1})[weekday]
                 user_list = list(scheduled_msg.find_one({"id": 1})[weekday][old_notification_time])
                 user_list.pop(user_list.index(m.from_user.id))
                 scheduled_[old_notification_time] = user_list
+                print(f'!! scheduled_ == {scheduled_}')
                 scheduled_msg_dict = {weekday: scheduled_}
+                #scheduled_msg_dict = {weekday: {old_notification_time: user_list}}
                 scheduled_msg.update_one({'id': 1}, {"$set": scheduled_msg_dict})
                 user_time_dict[weekday] = ''
                 users.update_one({'user_id': m.from_user.id}, {"$set": {"notification_time": user_time_dict}})
