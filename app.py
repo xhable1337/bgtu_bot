@@ -689,7 +689,7 @@ async def button_func(call):
             #users.update_one({"user_id": call.from_user.id}, {'$set': {'notification_time': notification_time}})
             await bot.edit_message_text(chat_id=call.message.chat.id,
             message_id=call.message.message_id,
-            text=f'Уведомления с расписанием отсутствуют.\n\
+            text=f'Уведомления с расписанием отсутствуют\\.\n\
 Выберите день недели для установки времени автоматической отправки расписания:',
             reply_markup=kb_notifications_days, parse_mode='MarkdownV2')
         else:
@@ -699,7 +699,7 @@ async def button_func(call):
                 if notification_time[day] != "":
                     day_ru = wdays.translate(day)
                     text += f'{day_ru.capitalize()}: {notification_time[day]}\n'
-            text += '\nХотите изменить время, добавить или удалить напоминания? Выберите день:'
+            text += '\nХотите изменить время, добавить или удалить напоминания\\? Выберите день:'
             await bot.edit_message_text(chat_id=call.message.chat.id,
             message_id=call.message.message_id,
             text=text,
@@ -714,8 +714,8 @@ async def button_func(call):
             text = f"Добавление напоминания \\({wdays.translate(weekday)}\\)\n\n\
 Введите время, в которое вы хотите получать расписание:\n\
 ————————————————————\n\
-Если введённое время в диапазоне от 00:00 до 12:59, то бот отправит расписание на сегодня.\n\
-Если же введённое время в диапазоне от 13:00 до 23:59, то расписание на завтра."
+Если введённое время в диапазоне от 00:00 до 12:59, то бот отправит расписание на сегодня\\.\n\
+Если же введённое время в диапазоне от 13:00 до 23:59, то расписание на завтра\\."
             reply_markup = kb_cancel_building
         else:
             text = f'Изменение напоминания \\({wdays.translate(weekday)}\\):'
@@ -760,8 +760,8 @@ async def button_func(call):
         text = f"Сейчас вы получаете расписание \\({wdays.translate(weekday)}\\) в {notification_time}\\.\n\
 Введите время, в которое вы хотите получать расписание:\n\
 ————————————————————\n\
-Если введённое время в диапазоне от 00:00 до 12:59, то бот отправит расписание на сегодня.\n\
-Если же введённое время в диапазоне от 13:00 до 23:59, то расписание на завтра."
+Если введённое время в диапазоне от 00:00 до 12:59, то бот отправит расписание на сегодня\\.\n\
+Если же введённое время в диапазоне от 13:00 до 23:59, то расписание на завтра\\."
 
         set_state(call.from_user.id, 'add_notification')
         await bot.edit_message_text(chat_id=call.message.chat.id,
