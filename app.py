@@ -173,7 +173,7 @@ async def start_handler(m):
         for faculty in faculty_list:
             kb_faculty.row(types.InlineKeyboardButton(text=faculty, callback_data=ru_en('f_' + faculty)))
 
-        await bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Для начала работы с ботом выбери свою группу \(впоследствии выбор можно изменить\):*', reply_markup=kb_faculty, parse_mode='Markdown')
+        await bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n*Для начала работы с ботом выбери свою группу (впоследствии выбор можно изменить):*', reply_markup=kb_faculty, parse_mode='Markdown')
     else:
         user = users.find_one({'user_id': m.from_user.id})
         if user.get('favorite_groups') == None:
@@ -407,14 +407,18 @@ async def anymess(m):
 
             notification_list = scheduled_msg.find_one({'id': 1})[weekday].get(notification_time)
             if notification_list == None:
+                scheduled_ = scheduled_msg.find_one({"id": 1})[weekday]
                 user_list = []
                 user_list.append(m.from_user.id)
-                scheduled_msg_dict = {weekday: {notification_time: user_list}}
+                scheduled_[notification_time] = user_list
+                scheduled_msg_dict = {weekday: scheduled_}
                 scheduled_msg.update_one({'id': 1}, {"$set": scheduled_msg_dict})
             else:
-                user_list = list(scheduled_msg.find_one({"id": 1})[weekday][notification_time])
+                scheduled_ = scheduled_msg.find_one({"id": 1})[weekday]
+                user_list = list(scheduled_[notification_time])
                 user_list.append(m.from_user.id)
-                scheduled_msg_dict = {weekday: {notification_time: user_list}}
+                scheduled_[notification_time] = user_list
+                scheduled_msg_dict = {weekday: scheduled_}
                 scheduled_msg.update_one({'id': 1}, {"$set": scheduled_msg_dict})
 
             await bot.send_message(m.chat.id, f'Уведомление на {m.text} установлено\\!', reply_markup=kbbb)
