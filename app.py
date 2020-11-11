@@ -748,8 +748,8 @@ async def button_func(call):
         time_list.pop(time_list.index(call.from_user.id))
         scheduled_msg.update_one({'id': 1}, {"$set": {notification_time: time_list}})
 
-        user_time_dict = dict(users.find_one({"user_id": call.from_user.id})[weekday])
-        user_time_dict.pop(weekday)
+        user_time_dict = dict(users.find_one({"user_id": call.from_user.id})['notification_time'])
+        user_time_dict[weekday] = ''
         users.update_one({'user_id': call.from_user.id}, {"$set": {"notification_time": user_time_dict}})
 
         await bot.edit_message_text(chat_id=call.message.chat.id,
@@ -760,19 +760,19 @@ async def button_func(call):
     elif str(call.data).startswith('edit_notification_'):
         await bot.answer_callback_query(call.id)
         weekday = str(call.data).split('_')[2]
-        notification_time = users.find_one({"user_id": call.from_user.id}).get('notification_time')
+        notification_time = users.find_one({"user_id": call.from_user.id}).get('notification_time')[weekday]
         
         #time_list = list(scheduled_msg.find_one({"id": 1})[][notification_time])
         #time_list.pop(time_list.index(m.from_user.id))
         #scheduled_msg.update_one({'id': 1}, {"$set": {notification_time: time_list}})
 
-        text = f"Сейчас вы получаете расписание \\({wdays.translate(weekday)}\\) в {notification_time}\\.\n\
+        text = f'Сейчас вы получаете расписание \\({wdays.translate(weekday)}\\) в {notification_time}\\.\n\
 Введите время, в которое вы хотите получать расписание:\n\
 ————————————————————\n\
 Если введённое время в диапазоне от 00:00 до 12:59, то бот отправит расписание на сегодня\\.\n\
-Если же введённое время в диапазоне от 13:00 до 23:59, то расписание на завтра\\."
+Если же введённое время в диапазоне от 13:00 до 23:59, то расписание на завтра\\.'
 
-        set_state(call.from_user.id, 'add_notification')
+        set_state(call.from_user.id, f'add_notification_{weekday}')
         await bot.edit_message_text(chat_id=call.message.chat.id,
             message_id=call.message.message_id,
             text=text,
