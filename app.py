@@ -373,7 +373,16 @@ async def anymess(m):
 
             weekday = get_state(m.from_user.id).split('_')[2]
             
-            user_time_dict = users.find_one({'user_id': m.from_user.id})['notification_time']
+            user_time_dict = users.find_one({'user_id': m.from_user.id}).get('notification_time')
+            if user_time_dict is None or user_time_dict == {}:
+                user_time_dict = {
+                    "monday": "",
+                    "tuesday": "",
+                    "wednesday": "",
+                    "thursday": "",
+                    "friday": "",
+                    "sunday": ""
+                }
             
             # Удаляем прошлое напоминание на этот день (edit notification)
             try:
