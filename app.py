@@ -710,7 +710,7 @@ async def button_func(call):
         notification_time = users.find_one({"user_id": call.from_user.id}).get('notification_time')
 
         if notification_time is None or notification_time == {} or notification_time.get(weekday) is None or notification_time.get(weekday) == "":
-            set_state(call.from_user, f'add_notification_{weekday}')
+            set_state(call.from_user.id, f'add_notification_{weekday}')
             text = f"Добавление напоминания \\({wdays.translate(weekday)}\\)\n\n\
 Введите время, в которое вы хотите получать расписание:\n\
 ————————————————————\n\
