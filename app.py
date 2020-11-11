@@ -365,7 +365,7 @@ async def anymess(m):
         else:
             await bot.send_message(m.chat.id, 'Данный номер аудитории некорректен\\. Повторите попытку или отмените действие:', reply_markup=kb_cancel_building)
     elif get_state(m.from_user.id).startswith('add_notification_'):
-        if re.match(r'^2[1-3]:[0-5][0-9]$|^[0]{1,2}:[0-5][0-9]$|^1[0-9]:[0-5][0-9]$|^0?[1-9]:[0-5][0-9]$', m.text):
+        if re.match(r'^2[0-3]:[0-5][0-9]$|^[0]{1,2}:[0-5][0-9]$|^1[0-9]:[0-5][0-9]$|^0?[1-9]:[0-5][0-9]$', m.text):
             if re.match(r'\b[1-9]:[0-5][0-9]\b', m.text):
                 notification_time = f"0{m.text}"
             else:
