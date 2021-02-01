@@ -155,6 +155,26 @@ def get_faculties():
         faculties.append(item['faculty'])
     return faculties    
 
+@dp.message_handler(commands=['force-update'])
+async def force_update_schedule(m):
+    if m.from_user.id in ADMINS:
+        groups_text = '⚙ Запущено обновление групп...\n\n'
+        faculties = get_faculties()
+        for faculty in faculties:
+            groups_text += f'{faculty}: \n'
+            groups = get_groups(faculty=faculty, year='20', force_update=True)
+            for group in groups:
+                groups_text += f'{group}\n'
+            groups_text += '\n'
+        groups_text += '\nХотите ли вы обновить расписание всех групп? (может занять много времени)'
+        keyboard = types.InlineKeyboardMarkup()
+        keyboard.row(
+            types.InlineKeyboardButton(text='✔ Да', callback_data='force-update-yes'),
+            types.InlineKeyboardButton(text='❌ Нет', callback_data='force-update-no')
+        )
+        
+        await bot.send_message(m.chat.id, text=groups_text, reply_markup=keyboard)
+
 
 @dp.message_handler(commands=["start"])
 async def start_handler(m):
@@ -917,6 +937,27 @@ async def button_func(call):
             message_id=call.message.message_id,
             text=text,
             reply_markup=kb_cancel_building, parse_mode='MarkdownV2')
+    
+    elif str(call.data).startswith('force-update-'):
+        choice = str(call.data).split('-')[2]
+        text = ''
+        if choice == 'no':
+            await bot.edit_message_text(chat_id=call.message.chat.id,
+                                        message_id=call.message.message_id,
+                                        text='Хорошо, не обновляем расписание.')
+        else:
+            text = '⚙ Запущено обновление расписания...\n\n'
+            faculties = get_faculties()
+            for faculty in faculties:
+                text += f'{faculty}: \n'
+                groups = get_groups(faculty)
+                for group in groups:
+                    get_schedule(group, 'monday', '1')
+                    text += f'✔ {group}\n'
+                    await bot.edit_message_text(chat_id=call.message.chat.id,
+                                        message_id=call.message.message_id,
+                                        text=text)
+            text += '\nРасписание обновлено успешно!'
 
 async def time_trigger():
     while True:
