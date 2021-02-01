@@ -537,12 +537,12 @@ async def button_func(call):
         elif weeknum == '2':
             weekname = 'чётная'
 
-        table = ''
+        schedule_txt = ''
 
         for lesson in schedule:
             if lesson[1] != '-':
                 #print(f'{lesson[0]}) {lesson[1]}')
-                table += f'Пара №{lesson[0]} <i>({rings_list[lesson[0]-1]})</i>\n<code>{lesson[1].split(" ", maxsplit=1)[0]}</code> <b>{lesson[1].split(" ", maxsplit=1)[1]}</b>\n<b>Аудитория:</b> <code>{lesson[2]}</code>\n\n'
+                schedule_txt += f'Пара №{lesson[0]} <i>({rings_list[lesson[0]-1]})</i>\n<code>{lesson[1].split(" ", maxsplit=1)[0]}</code> <b>{lesson[1].split(" ", maxsplit=1)[1]}</b>\n<b>Аудитория:</b> <code>{lesson[2]}</code>\n\n'
             #table.add_row(lesson)
         
         await bot.edit_message_text(chat_id=call.message.chat.id,
@@ -550,7 +550,7 @@ async def button_func(call):
         text=f'<b>Выбрана группа {group}</b>\n'
         f'<b>Расписание:</b> {wdays.translate(weekday)}\n'
         f'<b>Неделя:</b> {weekname}\n\n'
-        f'{table}\n'
+        f'{schedule_txt}\n'
         '<code>[Л]</code> - <b>лекция</b>\n'
         '<code>[ПЗ]</code> - <b>практическое занятие</b>\n'
         '<code>[ЛАБ]</code> - <b>лабораторное занятие</b>',
@@ -562,31 +562,37 @@ async def button_func(call):
         if isoweekday == 6 or isoweekday == 7:
             text = f'*Выбрана группа {group}*\nСегодня: {wdays.names(isoweekday)[0]}\n\nУдачных выходных!'
         else:
-            table = PrettyTable(border=False)
-            table.field_names = ['№', 'Пара', 'Кабинет']
             group = get_group(call.from_user.id)
             isoweekday = datetime.datetime.today().isoweekday()
             weekday = wdays.names(isoweekday)[1]
 
             if datetime.datetime.today().isocalendar()[1] % 2 == 0:
                 weeknum = '1'
+                weekname = 'нечётная'
             else:
                 weeknum = '2'
+                weekname = 'чётная'
 
             schedule = get_schedule(group, weekday, weeknum)
+            schedule_txt = ''
 
             for lesson in schedule:
-                table.add_row(lesson)
-            text = (f'*Выбрана группа {group}*\n'
-                    f'Сегодня: {wdays.names(isoweekday)[0]}\n\n'
-                    f'{table}\n\n'
-                    '`[Л]` - *лекция*\n'
-                    '`[ПЗ]` - *практическое занятие*\n'
-                    '`[ЛАБ]` - *лабораторное занятие*')
+                if lesson[1] != '-':
+                    schedule_txt += f'Пара №{lesson[0]} <i>({rings_list[lesson[0]-1]})</i>\n<code>{lesson[1].split(" ", maxsplit=1)[0]}</code> <b>{lesson[1].split(" ", maxsplit=1)[1]}</b>\n<b>Аудитория:</b> <code>{lesson[2]}</code>\n\n'
+            
+            text = (
+                f'<b>Выбрана группа {group}</b>\n'
+                f'<b>Сегодня:</b> {wdays.names(isoweekday)[0]}\n'
+                f'<b>Неделя:</b> {weekname}\n\n'
+                f'{schedule_txt}\n'
+                '<code>[Л]</code> - <b>лекция</b>\n'
+                '<code>[ПЗ]</code> - <b>практическое занятие</b>\n'
+                '<code>[ЛАБ]</code> - <b>лабораторное занятие</b>'
+            )
 
         await bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
-        text=text, reply_markup=kbbb, parse_mode='Markdown')
+        text=text, reply_markup=kbbb, parse_mode='HTML')
     elif call.data == 'rings':
         await bot.answer_callback_query(call.id)
         table_r.clear()
@@ -602,52 +608,63 @@ async def button_func(call):
         if isoweekday == 6 or isoweekday == 7:
             text = f'*Выбрана группа {group}*\nЗавтра: {wdays.names(isoweekday)[0]}\n\nУдачных выходных!'
         elif isoweekday == 8:
-            table = PrettyTable(border=False)
-            table.field_names = ['№', 'Пара', 'Кабинет']
-            weekday = wdays.names(isoweekday)[1]
-
-            if datetime.datetime.today().isocalendar()[1] % 2 != 0:
-                weeknum = '1'
-            else:
-                weeknum = '2'
-
-            schedule = get_schedule(group, weekday, weeknum)
-
-            for lesson in schedule:
-                table.add_row(lesson)
-            text = (f'*Выбрана группа {group}*\n'
-                    'Завтра: {wdays.names(isoweekday)[0]}\n\n'
-                    '```{table}```\n\n'
-                    '`[Л]` - *лекция*\n'
-                    '`[ПЗ]` - *практическое занятие*\n'
-                    '`[ЛАБ]` - *лабораторное занятие*')
-        else:
-            table = PrettyTable(border=False)
-            table.field_names = ['№', 'Пара', 'Кабинет']
             weekday = wdays.names(isoweekday)[1]
 
             if datetime.datetime.today().isocalendar()[1] % 2 == 0:
                 weeknum = '1'
+                weekname = 'нечётная'
             else:
                 weeknum = '2'
+                weekname = 'чётная'
 
             schedule = get_schedule(group, weekday, weeknum)
 
-            print(f'369. schedule = {schedule}')
             for lesson in schedule:
-                print(f'371. lesson = {lesson}')
-                table.add_row(lesson)
-            text = (f'*Выбрана группа {group}*\n'
-                    'Завтра: {wdays.names(isoweekday)[0]}\n\n'
-                    '```{table}```\n\n'
-                    '`[Л]` - *лекция*\n'
-                    '`[ПЗ]` - *практическое занятие*\n'
-                    '`[ЛАБ]` - *лабораторное занятие*')
+                if lesson[1] != '-':
+                    schedule_txt += f'Пара №{lesson[0]} <i>({rings_list[lesson[0]-1]})</i>\n<code>{lesson[1].split(" ", maxsplit=1)[0]}</code> <b>{lesson[1].split(" ", maxsplit=1)[1]}</b>\n<b>Аудитория:</b> <code>{lesson[2]}</code>\n\n'
+            
+            text = (
+                f'<b>Выбрана группа {group}</b>\n'
+                f'<b>Завтра:</b> {wdays.names(isoweekday)[0]}\n'
+                f'<b>Неделя:</b> {weekname}\n\n'
+                f'{schedule_txt}\n'
+                '<code>[Л]</code> - <b>лекция</b>\n'
+                '<code>[ПЗ]</code> - <b>практическое занятие</b>\n'
+                '<code>[ЛАБ]</code> - <b>лабораторное занятие</b>'
+            )
+        else:
+            weekday = wdays.names(isoweekday)[1]
 
+            if datetime.datetime.today().isocalendar()[1] % 2 == 0:
+                weeknum = '1'
+                weekname = 'нечётная'
+            else:
+                weeknum = '2'
+                weekname = 'чётная'
+
+            schedule = get_schedule(group, weekday, weeknum)
+
+            #print(f'369. schedule = {schedule}')
+            for lesson in schedule:
+                if lesson[1] != '-':
+                    schedule_txt += f'Пара №{lesson[0]} <i>({rings_list[lesson[0]-1]})</i>\n<code>{lesson[1].split(" ", maxsplit=1)[0]}</code> <b>{lesson[1].split(" ", maxsplit=1)[1]}</b>\n<b>Аудитория:</b> <code>{lesson[2]}</code>\n\n'                
+                #print(f'371. lesson = {lesson}')
+                #table.add_row(lesson)
+            
+            text = (
+                f'<b>Выбрана группа {group}</b>\n'
+                f'<b>Завтра:</b> {wdays.names(isoweekday)[0]}\n'
+                f'<b>Неделя:</b> {weekname}\n\n'
+                f'{schedule_txt}\n'
+                '<code>[Л]</code> - <b>лекция</b>\n'
+                '<code>[ПЗ]</code> - <b>практическое занятие</b>\n'
+                '<code>[ЛАБ]</code> - <b>лабораторное занятие</b>'
+            )
+            
         await bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
         text=text,
-        reply_markup=kbbb, parse_mode='Markdown')
+        reply_markup=kbbb, parse_mode='HTML')
     elif call.data == 'tomain':
         await bot.answer_callback_query(call.id, text='Возврат в главное меню...')
         await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
