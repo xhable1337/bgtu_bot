@@ -344,8 +344,8 @@ kb_notifications_days.row(
                                callback_data='notify_thursday'),
     types.InlineKeyboardButton(text='Пт', 
                                callback_data='notify_friday'),
-    types.InlineKeyboardButton(text='Вс', c
-                               allback_data='notify_sunday'))
+    types.InlineKeyboardButton(text='Вс',
+                               callback_data='notify_sunday'))
 kb_notifications_days.row(
     types.InlineKeyboardButton(text='🔄 В главное меню', 
                                callback_data='tomain')
