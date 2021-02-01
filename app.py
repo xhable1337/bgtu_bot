@@ -819,7 +819,7 @@ async def button_func(call):
         if notification_time is None or notification_time == {}:
             await bot.edit_message_text(chat_id=call.message.chat.id,
                                         message_id=call.message.message_id,
-                                        text=f'Уведомления с расписанием отсутствуют\\.\n',
+                                        text=f'Уведомления с расписанием отсутствуют\\.\n'
                                         'Выберите день недели для установки времени автоматической отправки расписания:',
                                         reply_markup=kb_notifications_days, parse_mode='MarkdownV2')
         else:
