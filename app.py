@@ -619,6 +619,7 @@ async def button_func(call):
 
             schedule = get_schedule(group, weekday, weeknum)
 
+            schedule_txt = ''
             for lesson in schedule:
                 if lesson[1] != '-':
                     schedule_txt += f'Пара №{lesson[0]} <i>({rings_list[lesson[0]-1]})</i>\n<code>{lesson[1].split(" ", maxsplit=1)[0]}</code> <b>{lesson[1].split(" ", maxsplit=1)[1]}</b>\n<b>Аудитория:</b> <code>{lesson[2]}</code>\n\n'
@@ -644,6 +645,7 @@ async def button_func(call):
 
             schedule = get_schedule(group, weekday, weeknum)
 
+            schedule_txt = ''
             #print(f'369. schedule = {schedule}')
             for lesson in schedule:
                 if lesson[1] != '-':
