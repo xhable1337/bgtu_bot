@@ -541,6 +541,7 @@ async def button_func(call):
 
         for lesson in schedule:
             if lesson[1] != '-':
+                print(f'{lesson[0]}) {lesson[1]}')
                 table += f'Пара №{lesson[0]} ({rings_list[lesson[0]-1]})\n{lesson[1]}\nАудитория: {lesson[2]}\n\n'
             #table.add_row(lesson)
         
