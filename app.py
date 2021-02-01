@@ -195,8 +195,8 @@ async def start_handler(m):
         group = get_group(m.from_user.id)
         await bot.send_message(m.chat.id, 
                                f'Привет, {m.from_user.first_name}!\n'
-                               '*Твоя группа: {group}.*\n'
-                               '*Сейчас идёт {get_weekname()} неделя.*\n'
+                               f'*Твоя группа: {group}.*\n'
+                               f'*Сейчас идёт {get_weekname()} неделя.*\n'
                                'Вот главное меню:', 
                                reply_markup=kbm, 
                                parse_mode='Markdown')
@@ -363,8 +363,8 @@ async def anymess(m):
     elif users.find_one({'user_id': m.from_user.id}) != None and get_state(m.from_user.id) == 'default':
         group = get_group(m.from_user.id)
         await bot.send_message(m.chat.id, text=f'Привет, {m.from_user.first_name}!\n'
-                               '*Твоя группа: {group}.*\n'
-                               '*Сейчас идёт {get_weekname()} неделя.*\n'
+                               f'*Твоя группа: {group}.*\n'
+                               f'*Сейчас идёт {get_weekname()} неделя.*\n'
                                'Вот главное меню:', 
                                reply_markup=kbm,
                                parse_mode='Markdown')
@@ -380,8 +380,8 @@ async def anymess(m):
             set_state(m.chat.id, 'default')
             group = get_group(m.from_user.id)
             await bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n'
-                                   '*Твоя группа: {group}.*\n'
-                                   '*Сейчас идёт {get_weekname()} неделя.*\n'
+                                   f'*Твоя группа: {group}.*\n'
+                                   f'*Сейчас идёт {get_weekname()} неделя.*\n'
                                    'Вот главное меню:', 
                                    reply_markup=kbm, parse_mode='Markdown')
         elif re.match(r'\b[1-9][0-9][0-9]\b', m.text):
@@ -395,8 +395,8 @@ async def anymess(m):
             set_state(m.chat.id, 'default')
             group = get_group(m.from_user.id)
             await bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n'
-                                   '*Твоя группа: {group}.*\n'
-                                   '*Сейчас идёт {get_weekname()} неделя.*\n'
+                                   f'*Твоя группа: {group}.*\n'
+                                   f'*Сейчас идёт {get_weekname()} неделя.*\n'
                                    'Вот главное меню:', 
                                    reply_markup=kbm, parse_mode='Markdown')
         elif re.match(r'(\bА\d{3}\b|\b[Аа]\b|\b[Бб]\b|\b[Вв]\b|\b[Гг]\b|\b[Дд]\b)', m.text):
@@ -421,8 +421,8 @@ async def anymess(m):
             set_state(m.chat.id, 'default')
             group = get_group(m.from_user.id)
             await bot.send_message(m.chat.id, f'Привет, {m.from_user.first_name}!\n'
-                                   '*Твоя группа: {group}.*\n'
-                                   '*Сейчас идёт {get_weekname()} неделя.*\n'
+                                   f'*Твоя группа: {group}.*\n'
+                                   f'*Сейчас идёт {get_weekname()} неделя.*\n'
                                    'Вот главное меню:', reply_markup=kbm, parse_mode='Markdown')
         else:
             await bot.send_message(m.chat.id, 'Данный номер аудитории некорректен\\. Повторите попытку или отмените действие:', reply_markup=kb_cancel_building)
@@ -671,8 +671,8 @@ async def button_func(call):
         await bot.answer_callback_query(call.id, text='Возврат в главное меню...')
         await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
                                     text=f'Привет, {call.from_user.first_name}!\n'
-                                    '*Твоя группа: {get_group(call.from_user.id)}.*\n'
-                                    '*Сейчас идёт {get_weekname()} неделя.*\n'
+                                    f'*Твоя группа: {get_group(call.from_user.id)}.*\n'
+                                    f'*Сейчас идёт {get_weekname()} неделя.*\n'
                                     'Вот главное меню:',
                                     reply_markup=kbm, parse_mode='Markdown')
     elif call.data == 'building':
@@ -689,8 +689,8 @@ async def button_func(call):
         await bot.edit_message_text(chat_id=call.message.chat.id,
                                     message_id=call.message.message_id,
                                     text=f'Привет, {call.from_user.first_name}!\n'
-                                    '*Твоя группа: {get_group(call.from_user.id)}.*\n'
-                                    '*Сейчас идёт {get_weekname()} неделя.*\n'
+                                    f'*Твоя группа: {get_group(call.from_user.id)}.*\n'
+                                    f'*Сейчас идёт {get_weekname()} неделя.*\n'
                                     'Вот главное меню:',
                                     reply_markup=kbm, parse_mode='Markdown')
     elif call.data == 'change_faculty':
@@ -785,8 +785,8 @@ async def button_func(call):
             await bot.edit_message_text(chat_id=call.message.chat.id,
                                         message_id=call.message.message_id,
                                         text=f'Группа {group} удалена из избранных\\!\n'
-                                        '*Твоя группа: {get_group(call.from_user.id)}.*\n'
-                                        '*Сейчас идёт {get_weekname()} неделя.*\n'
+                                        f'*Твоя группа: {get_group(call.from_user.id)}.*\n'
+                                        f'*Сейчас идёт {get_weekname()} неделя.*\n'
                                         'Вот главное меню:',
                                         reply_markup=kbm, parse_mode='Markdown')
             set_state(call.from_user.id, 'default')
@@ -797,8 +797,8 @@ async def button_func(call):
                 await bot.edit_message_text(chat_id=call.message.chat.id,
                                             message_id=call.message.message_id,
                                             text=f'Привет, {call.from_user.first_name}\\!\n'
-                                            '*Твоя группа: {get_group(call.from_user.id)}.*\n'
-                                            '*Сейчас идёт {get_weekname()} неделя.*\n'
+                                            f'*Твоя группа: {get_group(call.from_user.id)}.*\n'
+                                            f'*Сейчас идёт {get_weekname()} неделя.*\n'
                                             'Вот главное меню:',
                                             reply_markup=kbm, parse_mode='Markdown')
                 
@@ -810,8 +810,8 @@ async def button_func(call):
                 await bot.edit_message_text(chat_id=call.message.chat.id,
                                             message_id=call.message.message_id,
                                             text=f'Группа {call.data} добавлена в избранные\\!\n'
-                                            '*Твоя группа: {get_group(call.from_user.id)}.*\n'
-                                            '*Сейчас идёт {get_weekname()} неделя.*\n'
+                                            f'*Твоя группа: {get_group(call.from_user.id)}.*\n'
+                                            f'*Сейчас идёт {get_weekname()} неделя.*\n'
                                             'Вот главное меню:',
                                             reply_markup=kbm, parse_mode='Markdown')
                 set_state(call.from_user.id, 'default')
@@ -947,53 +947,63 @@ async def time_trigger():
                 if isoweekday == 6 or isoweekday == 7:
                     pass
                 elif isoweekday == 8:
-                    table = PrettyTable(border=False)
-                    table.field_names = ['№', 'Пара', 'Кабинет']
-                    weekday = wdays.names(isoweekday)[1]
-
-                    if datetime.datetime.today().isocalendar()[1] % 2 != 0:
-                        weeknum = '1'
-                    else:
-                        weeknum = '2'
-
-                    schedule = get_schedule(group, weekday, weeknum)
-
-                    for lesson in schedule:
-                        table.add_row(lesson)
-
-                    text = (f'[🔔 Ежедневное уведомление в {fulltime}]\n'
-                            '*Выбрана группа {group}*\n'
-                            '{ru_day}: {wdays.names(isoweekday)[0]}\n\n'
-                            '```{table}```\n\n'
-                            '`[Л]` - *лекция*\n'
-                            '`[ПЗ]` - *практическое занятие*\n'
-                            '`[ЛАБ]` - *лабораторное занятие*')
-
-                    await bot.send_message(user_id, text, reply_markup=kbbb, parse_mode='Markdown')
-                else:
-                    table = PrettyTable(border=False)
-                    table.field_names = ['№', 'Пара', 'Кабинет']
                     weekday = wdays.names(isoweekday)[1]
 
                     if datetime.datetime.today().isocalendar()[1] % 2 == 0:
                         weeknum = '1'
+                        weeknum = 'нечётная'
                     else:
                         weeknum = '2'
+                        weekname = 'чётная'
 
                     schedule = get_schedule(group, weekday, weeknum)
 
                     for lesson in schedule:
-                        table.add_row(lesson)
+                        if lesson[1] != '-':
+                            schedule_txt += f'Пара №{lesson[0]} <i>({rings_list[lesson[0]-1]})</i>\n<code>{lesson[1].split(" ", maxsplit=1)[0]}</code> <b>{lesson[1].split(" ", maxsplit=1)[1]}</b>\n<b>Аудитория:</b> <code>{lesson[2]}</code>\n\n'
 
-                    text = (f'[🔔 Ежедневное уведомление в {fulltime}]\n'
-                            '*Выбрана группа {group}*\n'
-                            '{ru_day}: {wdays.names(isoweekday)[0]}\n\n'
-                            '```{table}```\n\n'
-                            '`[Л]` - *лекция*\n'
-                            '`[ПЗ]` - *практическое занятие*\n'
-                            '`[ЛАБ]` - *лабораторное занятие*')
+                        #table.add_row(lesson)
+                    
+                    text = (
+                        f'[🔔 Ежедневное уведомление в {fulltime}]\n'
+                        f'<b>Выбрана группа {group}</b>\n'
+                        f'<b>{ru_day}:</b> {wdays.names(isoweekday)[0]}\n'
+                        f'<b>Неделя:</b> {weekname}\n\n'
+                        f'{schedule_txt}\n'
+                        '<code>[Л]</code> - <b>лекция</b>\n'
+                        '<code>[ПЗ]</code> - <b>практическое занятие</b>\n'
+                        '<code>[ЛАБ]</code> - <b>лабораторное занятие</b>'
+                    )
 
-                    await bot.send_message(user_id, text, reply_markup=kbbb, parse_mode='Markdown')
+                    await bot.send_message(user_id, text, reply_markup=kbbb, parse_mode='HTML')
+                else:
+                    weekday = wdays.names(isoweekday)[1]
+
+                    if datetime.datetime.today().isocalendar()[1] % 2 == 0:
+                        weeknum = '1'
+                        weeknum = 'нечётная'
+                    else:
+                        weeknum = '2'
+                        weekname = 'чётная'
+
+                    schedule = get_schedule(group, weekday, weeknum)
+
+                    for lesson in schedule:
+                        if lesson[1] != '-':
+                            schedule_txt += f'Пара №{lesson[0]} <i>({rings_list[lesson[0]-1]})</i>\n<code>{lesson[1].split(" ", maxsplit=1)[0]}</code> <b>{lesson[1].split(" ", maxsplit=1)[1]}</b>\n<b>Аудитория:</b> <code>{lesson[2]}</code>\n\n'
+                    
+                    text = (
+                        f'[🔔 Ежедневное уведомление в {fulltime}]\n'
+                        f'<b>Выбрана группа {group}</b>\n'
+                        f'<b>{ru_day}:</b> {wdays.names(isoweekday)[0]}\n'
+                        f'<b>Неделя:</b> {weekname}\n\n'
+                        f'{schedule_txt}\n'
+                        '<code>[Л]</code> - <b>лекция</b>\n'
+                        '<code>[ПЗ]</code> - <b>практическое занятие</b>\n'
+                        '<code>[ЛАБ]</code> - <b>лабораторное занятие</b>'
+                    )
+
+                    await bot.send_message(user_id, text, reply_markup=kbbb, parse_mode='HTML')
                 await asyncio.sleep(1)
         
         await asyncio.sleep(60)
