@@ -132,13 +132,13 @@ def get_groups(faculty='Факультет информационных техн
         group_list = api_get_groups(faculty, year)
         print(group_list)
         groups_db.insert_one({'faculty': faculty, 'year': year, 'groups': group_list, 'last_updated': time.time()})
-        return group_list['groups']
+        return group_list
     else:
         if force_update == True:
             group_list = api_get_groups(faculty, year)
             if group_list != None:
                 groups_db.update_one({'faculty': f'faculty_{faculty}', 'year': year}, {'$set': {'groups': group_list, 'last_updated': time.time()}})
-                return group_list['groups']
+                return group_list
             else:
                 return groups_db.find_one({'faculty': faculty, 'year': year})['groups']
         else:
