@@ -542,7 +542,7 @@ async def button_func(call):
         for lesson in schedule:
             if lesson[1] != '-':
                 #print(f'{lesson[0]}) {lesson[1]}')
-                table += f'Пара №{lesson[0]} _({rings_list[lesson[0]-1]})_\n`{lesson[1].split(" ", maxsplit=1)[0]}` *{lesson[1].split(" ", maxsplit=1)[1]}*\nАудитория: {lesson[2]}\n\n'
+                table += f'Пара №{lesson[0]} <i>({rings_list[lesson[0]-1]})</i>\n<code>{lesson[1].split(" ", maxsplit=1)[0]}</code> <b>{lesson[1].split(" ", maxsplit=1)[1]}</b>\n<b>Аудитория:</b> {lesson[2]}\n\n'
             #table.add_row(lesson)
         
         await bot.edit_message_text(chat_id=call.message.chat.id,
@@ -554,7 +554,7 @@ async def button_func(call):
         '[Л]` - *лекция*\n'
         '`[ПЗ]` - *практическое занятие*\n'
         '`[ЛАБ]` - *лабораторное занятие*',
-        reply_markup=kbb, parse_mode='Markdown')
+        reply_markup=kbb, parse_mode='HTML')
     elif call.data == 'today':
         await bot.answer_callback_query(call.id)
         group = get_group(call.from_user.id)
