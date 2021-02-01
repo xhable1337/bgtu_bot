@@ -540,7 +540,8 @@ async def button_func(call):
         table = ''
 
         for lesson in schedule:
-            table += f'Пара №{lesson[0]} ({rings_list[lesson[0]-1]})\n{lesson[1]}\nАудитория: {lesson[2]}\n\n'
+            if lesson[1] != '-':
+                table += f'Пара №{lesson[0]} ({rings_list[lesson[0]-1]})\n{lesson[1]}\nАудитория: {lesson[2]}\n\n'
             #table.add_row(lesson)
         
         await bot.edit_message_text(chat_id=call.message.chat.id,
