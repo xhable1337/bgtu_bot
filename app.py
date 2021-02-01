@@ -173,7 +173,7 @@ async def force_update_schedule(m):
             types.InlineKeyboardButton(text='❌ Нет', callback_data='force-update-no')
         )
         
-        await bot.send_message(m.chat.id, text=groups_text, reply_markup=keyboard)
+        await bot.send_message(m.chat.id, text=groups_text, reply_markup=keyboard, parse_mode='HTML')
 
 
 @dp.message_handler(commands=["start"])
@@ -956,7 +956,8 @@ async def button_func(call):
                     text += f'✔ {group}\n'
                     await bot.edit_message_text(chat_id=call.message.chat.id,
                                         message_id=call.message.message_id,
-                                        text=text)
+                                        text=text,
+                                        parse_mode='HTML')
             text += '\nРасписание обновлено успешно!'
 
 async def time_trigger():
