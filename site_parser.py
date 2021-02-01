@@ -3,7 +3,7 @@ import ast
 import os
 
 password = os.environ.get('password')
-API_URL = 'https://bgtu-parser.herokuapp.com/'
+API_URL = os.environ.get('PARSER_URL')
 
 
 def api_get_schedule(group, weekday, weeknum):
