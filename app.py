@@ -546,9 +546,9 @@ async def button_func(call):
         await bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
         text=f'*Выбрана группа {group}*\n'
-        'Расписание: {wdays.translate(weekday)}\n'
-        'Неделя: {weekname}\n\n'
-        '```{table}```\n\n`'
+        f'Расписание: {wdays.translate(weekday)}\n'
+        f'Неделя: {weekname}\n\n'
+        f'{table}\n\n`'
         '[Л]` - *лекция*\n'
         '`[ПЗ]` - *практическое занятие*\n'
         '`[ЛАБ]` - *лабораторное занятие*',
@@ -576,8 +576,8 @@ async def button_func(call):
             for lesson in schedule:
                 table.add_row(lesson)
             text = (f'*Выбрана группа {group}*\n'
-                    'Сегодня: {wdays.names(isoweekday)[0]}\n\n'
-                    '```{table}```\n\n'
+                    f'Сегодня: {wdays.names(isoweekday)[0]}\n\n'
+                    f'{table}\n\n'
                     '`[Л]` - *лекция*\n'
                     '`[ПЗ]` - *практическое занятие*\n'
                     '`[ЛАБ]` - *лабораторное занятие*')
