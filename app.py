@@ -542,18 +542,18 @@ async def button_func(call):
         for lesson in schedule:
             if lesson[1] != '-':
                 #print(f'{lesson[0]}) {lesson[1]}')
-                table += f'Пара №{lesson[0]} <i>({rings_list[lesson[0]-1]})</i>\n<code>{lesson[1].split(" ", maxsplit=1)[0]}</code> <b>{lesson[1].split(" ", maxsplit=1)[1]}</b>\n<b>Аудитория:</b> {lesson[2]}\n\n'
+                table += f'Пара №{lesson[0]} <i>({rings_list[lesson[0]-1]})</i>\n<code>{lesson[1].split(" ", maxsplit=1)[0]}</code> <b>{lesson[1].split(" ", maxsplit=1)[1]}</b>\n<b>Аудитория:</b> <code>{lesson[2]}</code>\n\n'
             #table.add_row(lesson)
         
         await bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
-        text=f'*Выбрана группа {group}*\n'
-        f'*Расписание:* {wdays.translate(weekday)}\n'
-        f'*Неделя:* {weekname}\n\n'
+        text=f'<b>Выбрана группа {group}</b>\n'
+        f'<b>Расписание:</b> {wdays.translate(weekday)}\n'
+        f'<b>Неделя:</b> {weekname}\n\n'
         f'{table}\n'
-        '[Л]` - *лекция*\n'
-        '`[ПЗ]` - *практическое занятие*\n'
-        '`[ЛАБ]` - *лабораторное занятие*',
+        '<code>[Л]</code> - <b>лекция</b>\n'
+        '<code>[ПЗ]</code> - <b>практическое занятие</b>\n'
+        '<code>[ЛАБ]</code> - <b>лабораторное занятие</b>',
         reply_markup=kbb, parse_mode='HTML')
     elif call.data == 'today':
         await bot.answer_callback_query(call.id)
