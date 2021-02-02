@@ -155,7 +155,7 @@ def get_faculties():
         faculties.append(item['faculty'])
     return faculties    
 
-@dp.message_handler(commands=['force-update'])
+@dp.message_handler(commands=['force_update'])
 async def force_update_schedule(m):
     if m.from_user.id in ADMINS:
         groups_text = '⚙ Запущено обновление групп...\n\n'
@@ -959,6 +959,10 @@ async def button_func(call):
                                         text=text,
                                         parse_mode='HTML')
             text += '\nРасписание обновлено успешно!'
+            await bot.edit_message_text(chat_id=call.message.chat.id,
+                                        message_id=call.message.message_id,
+                                        text=text,
+                                        parse_mode='HTML')
 
 async def time_trigger():
     while True:
