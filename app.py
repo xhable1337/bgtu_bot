@@ -1003,6 +1003,7 @@ async def time_trigger():
                         weekname = 'чётная'
 
                     schedule = get_schedule(group, weekday, weeknum)
+                    schedule_txt = ''
 
                     for lesson in schedule:
                         if lesson[1] != '-':
@@ -1033,6 +1034,7 @@ async def time_trigger():
                         weekname = 'чётная'
 
                     schedule = get_schedule(group, weekday, weeknum)
+                    schedule_txt = ''
 
                     for lesson in schedule:
                         if lesson[1] != '-':
