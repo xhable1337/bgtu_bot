@@ -364,6 +364,8 @@ kb_notifications_days.row(
                                callback_data='notify_thursday'),
     types.InlineKeyboardButton(text='Пт', 
                                callback_data='notify_friday'),
+    types.InlineKeyboardButton(text='Сб', 
+                               callback_data='notify_saturday'),
     types.InlineKeyboardButton(text='Вс',
                                callback_data='notify_sunday'))
 kb_notifications_days.row(
@@ -463,6 +465,7 @@ async def anymess(m):
                     "wednesday": "",
                     "thursday": "",
                     "friday": "",
+                    "saturday": "",
                     "sunday": ""
                 }
             
@@ -527,14 +530,16 @@ async def button_func(call):
             types.InlineKeyboardButton(text='Вт', callback_data='wday_tuesday_1'),
             types.InlineKeyboardButton(text='Ср', callback_data='wday_wednesday_1'),
             types.InlineKeyboardButton(text='Чт', callback_data='wday_thursday_1'),
-            types.InlineKeyboardButton(text='Пт', callback_data='wday_friday_1'))
+            types.InlineKeyboardButton(text='Пт', callback_data='wday_friday_1'),
+            types.InlineKeyboardButton(text='Сб', callback_data='wday_saturday_1'))
         kb_dn.row(
             types.InlineKeyboardButton(text=buttons[1], callback_data='week_2'),
             types.InlineKeyboardButton(text='Пн', callback_data='wday_monday_2'),
             types.InlineKeyboardButton(text='Вт', callback_data='wday_tuesday_2'),
             types.InlineKeyboardButton(text='Ср', callback_data='wday_wednesday_2'),
             types.InlineKeyboardButton(text='Чт', callback_data='wday_thursday_2'),
-            types.InlineKeyboardButton(text='Пт', callback_data='wday_friday_2'))
+            types.InlineKeyboardButton(text='Пт', callback_data='wday_friday_2'),
+            types.InlineKeyboardButton(text='Сб', callback_data='wday_saturday_2'))
         kb_dn.row(types.InlineKeyboardButton(text='🔄 В главное меню', callback_data='tomain'))
 
         await bot.edit_message_text(chat_id=call.message.chat.id,
