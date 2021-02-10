@@ -6,13 +6,11 @@ password = os.environ.get('password')
 API_URL = os.environ.get('PARSER_URL')
 
 
-def api_get_schedule(group, weekday, weeknum):
+def api_get_schedule(group):
     """Функция получения расписания от API."""
     url = API_URL + password + '/get_schedule/'
     params = {
-        'group': group,
-        'weekday': weekday,
-        'weeknum': weeknum
+        'group': group
     }
     response = requests.get(url, params=params)
     if response.status_code == 200:

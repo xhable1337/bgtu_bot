@@ -112,12 +112,12 @@ def get_schedule(group, weekday, weeknum):
     """Функция получения расписания от API."""
     if schedule_db.find_one({'group': group}) is None or time.time() - schedule_db.find_one({'group': group})['last_updated'] > UPDATE_TIME:
         if schedule_db.find_one({'group': group}) is None:
-            schedule = api_get_schedule(group, weekday, weeknum)
+            schedule = api_get_schedule(group)
             schedule_db.insert_one(schedule)
             return schedule[weekday][f'{weeknum}']
 
         elif time.time() - schedule_db.find_one({'group': group})['last_updated'] > UPDATE_TIME:
-            schedule = api_get_schedule(group, weekday, weeknum)
+            schedule = api_get_schedule(group)
             if schedule != None:
                 schedule_db.update_one({'group': group}, {'$set': schedule})
                 return schedule[weekday][f'{weeknum}']
