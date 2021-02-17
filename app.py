@@ -184,7 +184,8 @@ async def admin_menu(m):
             chat_id=m.chat.id,
             text=f'Добро пожаловать в админ-панель, {m.from_user.first_name}.\n'
             'Выберите пункт в меню для дальнейших действий:',
-            reply_markup=kb_admin
+            reply_markup=kb_admin,
+            parse_mode='HTML'
         )
 
 @dp.message_handler(commands=["start"])
