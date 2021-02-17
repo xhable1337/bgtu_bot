@@ -937,7 +937,6 @@ async def button_func(call):
         block_count = 0
         count = users.count_documents({})
         text = f"Всего пользователей: {count}\n\n" + text
-        last_message = ''
         for user in users.find():
             first_name = user['first_name']
             last_name = user['last_name']
@@ -973,12 +972,13 @@ async def button_func(call):
             
             block_count += 1
             text = ''
-            
-        await bot.edit_message_reply_markup(
-            chat_id=call.from_user.id,
-            message_id=last_message.message_id,
-            reply_markup=kb_admin_back
-        )
+        
+        if block_count != 0:
+            await bot.edit_message_reply_markup(
+                chat_id=call.from_user.id,
+                message_id=last_message.message_id,
+                reply_markup=kb_admin_back
+            )
 
     elif str(call.data) == 'toadmin':
         await bot.edit_message_text(
