@@ -980,7 +980,6 @@ async def button_func(call):
             print(f"\n\ntext: {text}\n\n")
             
             block_count += 1
-            text = ''
         # print("last_msgid: ", globals()['last_msgid'])
         if block_count != 0:
             pass
