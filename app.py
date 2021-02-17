@@ -937,40 +937,43 @@ async def button_func(call):
         block_count = 0
         count = users.count_documents({})
         text = f"Всего пользователей: {count}\n\n" + text
+        await bot.answer_callback_query(call.id, "Ожидайте загрузки из базы...")
         for user in users.find():
             first_name = user['first_name']
             last_name = user['last_name']
             user_id = user['user_id']
             group = user['group']
-
+            print(f"• {first_name} (id: {user_id})")
             if last_name != None or last_name != "None":
                 if len(text + f'<a href="tg://user?id={user_id}">{first_name} {last_name}</a> ◼ <b>Группа {group}</b>\n') <= 4096:
                     text += f'<a href="tg://user?id={user_id}">{first_name} {last_name}</a> ◼ <b>Группа {group}</b>\n'
                 else:
                     if block_count == 0:
                         await bot.edit_message_text(
-                        text=text,
-                        chat_id=call.from_user.id,
-                        message_id=call.message.message_id,
-                        parse_mode='HTML'
+                            text=text,
+                            chat_id=call.message.chat.id,
+                            message_id=call.message.message_id,
+                            parse_mode='HTML'
                         )
                     else:
-                        last_msg = await bot.send_message(call.from_user.id, text, parse_mode='HTML')
+                        last_msg = await bot.send_message(call.message.chat.id, text, parse_mode='HTML')
                         globals()['last_msgid'] = last_msg.message_id
+                        text = f'<a href="tg://user?id={user_id}">{first_name} {last_name}</a> ◼ <b>Группа {group}</b>\n'
             else:
                 if len(text + f'<a href="tg://user?id={user_id}">{first_name}</a> ◼ <b>Группа {group}</b>\n') <= 4096:
                     text += f'<a href="tg://user?id={user_id}">{first_name}</a> ◼ <b>Группа {group}</b>\n'
                 else:
                     if block_count == 0:
                         await bot.edit_message_text(
-                        text=text, 
-                        chat_id=call.from_user.id,
-                        message_id=call.message.message_id,
-                        parse_mode='HTML'
+                            text=text, 
+                            chat_id=call.message.chat.id,
+                            message_id=call.message.message_id,
+                            parse_mode='HTML'
                         )
                     else:
-                        last_msg = await bot.send_message(call.from_user.id, text, parse_mode='HTML')
+                        last_msg = await bot.send_message(call.message.chat.id, text, parse_mode='HTML')
                         globals()['last_msgid'] = last_msg.message_id
+                        text = f'<a href="tg://user?id={user_id}">{first_name}</a> ◼ <b>Группа {group}</b>\n'
             
             block_count += 1
             text = ''
