@@ -955,12 +955,10 @@ async def button_func(call):
                             message_id=call.message.message_id,
                             parse_mode='HTML'
                         )
-                        print("fn | block_count == 0")
                     else:
                         last_msg = await bot.send_message(call.message.chat.id, text, parse_mode='HTML')
                         globals()['last_msgid'] = last_msg.message_id
                         text = f'<a href="tg://user?id={user_id}">{first_name} {last_name}</a> ◼ <b>Группа {group}</b>\n'
-                        print("fn | block_count != 0")
             else:
                 if len(text + f'<a href="tg://user?id={user_id}">{first_name}</a> ◼ <b>Группа {group}</b>\n') <= 4096:
                     text += f'<a href="tg://user?id={user_id}">{first_name}</a> ◼ <b>Группа {group}</b>\n'
@@ -972,19 +970,23 @@ async def button_func(call):
                             message_id=call.message.message_id,
                             parse_mode='HTML'
                         )
-                        print("fn+ln | block_count == 0")
                     else:
                         last_msg = await bot.send_message(call.message.chat.id, text, parse_mode='HTML')
                         globals()['last_msgid'] = last_msg.message_id
                         text = f'<a href="tg://user?id={user_id}">{first_name}</a> ◼ <b>Группа {group}</b>\n'
-                        print("fn+ln | block_count != 0")
-            print(f"\n\ntext: {text}\n\n")
             
             block_count += 1
         print("last_msgid: ", globals()['last_msgid'])
-        if block_count != 0:
+        
+        if block_count == 0:
             await bot.edit_message_reply_markup(
-                chat_id=call.from_user.id,
+                chat_id=call.message.chat.id,
+                message_id=call.message.message_id,
+                reply_markup=kb_admin_back
+            )
+        else:
+            await bot.edit_message_reply_markup(
+                chat_id=call.message.chat.id,
                 message_id=globals()['last_msgid'],
                 reply_markup=kb_admin_back
             )
