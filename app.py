@@ -975,7 +975,7 @@ async def button_func(call):
             text = ''
             
         await bot.edit_message_reply_markup(
-            chat_id=m.chat.id,
+            chat_id=call.from_user.id,
             message_id=last_message.message_id,
             reply_markup=kb_admin_back
         )
