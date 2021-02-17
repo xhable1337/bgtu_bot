@@ -974,13 +974,13 @@ async def button_func(call):
             
             block_count += 1
             text = ''
-        print("last_msgid: ", globals()['last_msgid'])
+        # print("last_msgid: ", globals()['last_msgid'])
         if block_count != 0:
-            await bot.edit_message_reply_markup(
-                chat_id=call.from_user.id,
-                message_id=globals()['last_msgid'],
-                reply_markup=kb_admin_back
-            )
+            # await bot.edit_message_reply_markup(
+            #     chat_id=call.from_user.id,
+            #     message_id=globals()['last_msgid'],
+            #     reply_markup=kb_admin_back
+            # )
 
     elif str(call.data) == 'toadmin':
         await bot.edit_message_text(
