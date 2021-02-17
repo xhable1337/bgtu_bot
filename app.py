@@ -4,6 +4,7 @@
 
 #from site_parser import get_state, set_state, get_group, set_group
 from site_parser import api_get_groups, api_get_schedule
+from keyboards import kbm, kbb, kbbb, kb_cancel_building, kb_notifications, kb_notifications_days, days_keyboard, kb_admin, kb_admin_back
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.utils.executor import start_webhook
 from aiogram.dispatcher.webhook import get_new_configured_app
@@ -14,6 +15,7 @@ from pymongo import MongoClient
 from transliterate import translit
 from aiohttp import web
 from concurrent.futures import ProcessPoolExecutor
+from math import ceil
 
 import asyncio
 import aiohttp
@@ -175,6 +177,15 @@ async def force_update_schedule(m):
         
         await bot.send_message(m.chat.id, text=groups_text, reply_markup=keyboard, parse_mode='HTML')
 
+@dp.message_handler(commands=["admin"])
+async def admin_menu(m):
+    if m.from_user.id in ADMINS:
+        await bot.send_message(
+            chat_id=m.chat.id,
+            text=f'Добро пожаловать в админ-панель, {m.from_user.first_name}.\n'
+            'Выберите пункт в меню для дальнейших действий:',
+            reply_markup=kb_admin
+        )
 
 @dp.message_handler(commands=["start"])
 async def start_handler(m):
@@ -322,60 +333,6 @@ async def execute(m):
         except Exception as e:
             await bot.send_message(m.chat.id, f'Произошла ошибка!\n\n`{e}`')
 
-# Блок создания клавиатур для бота
-kbm = types.InlineKeyboardMarkup()
-kbm.row(types.InlineKeyboardButton(text='📅 Расписание по дням', callback_data='days'))
-kbm.row(types.InlineKeyboardButton(text='⚡️ Сегодня', callback_data='today'), 
-        types.InlineKeyboardButton(text='⚡️ Завтра', callback_data='tomorrow'))
-kbm.row(types.InlineKeyboardButton(text='🕔 Расписание пар', callback_data='rings'))
-kbm.row(types.InlineKeyboardButton(text='🏠 Найти корпус по аудитории', callback_data='building'))
-kbm.row(types.InlineKeyboardButton(text='🔂 Сменить факультет/группу', callback_data='change_faculty'))
-kbm.row(types.InlineKeyboardButton(text='🔔 Ежедневные уведомления', callback_data='notifications'))
-kbm.row(types.InlineKeyboardButton(text='⭐ Избранные группы', callback_data='favorite_groups'))
-
-kb_r = types.InlineKeyboardMarkup()
-kb_r.row(types.InlineKeyboardButton(text='Понедельник', callback_data='r_monday'))
-kb_r.row(types.InlineKeyboardButton(text='Остальные дни', callback_data='r_others'))
-kb_r.row(types.InlineKeyboardButton(text='В главное меню', callback_data='tomain'))
-
-kbb = types.InlineKeyboardMarkup()
-kbb.row(types.InlineKeyboardButton(text='↩️ Назад', callback_data='days'))
-
-kbbb = types.InlineKeyboardMarkup()
-kbbb.row(types.InlineKeyboardButton(text='🔄 В главное меню', callback_data='tomain'))
-
-kb_cancel_building = types.InlineKeyboardMarkup()
-kb_cancel_building.row(types.InlineKeyboardButton(text='🚫 Отмена', callback_data='cancel_find_class'))
-
-kb_notifications = types.InlineKeyboardMarkup()
-kb_notifications.row(types.InlineKeyboardButton(text='❌ Удалить', callback_data='del_notification'))
-kb_notifications.row(types.InlineKeyboardButton(text='✍ Изменить', callback_data='edit_notification'))
-kb_notifications.row(types.InlineKeyboardButton(text='🔄 В главное меню', callback_data='tomain'))
-
-kb_notifications_days = types.InlineKeyboardMarkup()
-kb_notifications_days.row(
-    types.InlineKeyboardButton(text='Пн', 
-                               callback_data='notify_monday'),
-    types.InlineKeyboardButton(text='Вт', 
-                               callback_data='notify_tuesday'),
-    types.InlineKeyboardButton(text='Ср', 
-                               callback_data='notify_wednesday'),
-    types.InlineKeyboardButton(text='Чт', 
-                               callback_data='notify_thursday'),
-    types.InlineKeyboardButton(text='Пт', 
-                               callback_data='notify_friday'),
-    types.InlineKeyboardButton(text='Сб', 
-                               callback_data='notify_saturday'),
-    types.InlineKeyboardButton(text='Вс',
-                               callback_data='notify_sunday'))
-kb_notifications_days.row(
-    types.InlineKeyboardButton(text='🔄 В главное меню', 
-                               callback_data='tomain')
-    )
-
-#kb_group = types.InlineKeyboardMarkup()
-#kb_group.row(types.InlineKeyboardButton(text='1️⃣', callback_data='group_1'), types.InlineKeyboardButton(text='2️⃣', callback_data='group_2'))
-#kb_group.row(types.InlineKeyboardButton(text='🚫 Отмена', callback_data='cancel_find_class'))
 
 # Хэндлер для текста
 @dp.message_handler(content_types=["text", "sticker", "photo", "audio", "video", "voice", "video_note", "document", "animation"])
@@ -523,29 +480,14 @@ async def button_func(call):
             weekname = '\\[Ч\\] \\- чётная'
             buttons = ['Н', '[Ч]']
 
-        kb_dn = types.InlineKeyboardMarkup()
-        kb_dn.row(
-            types.InlineKeyboardButton(text=buttons[0], callback_data='week_1'),
-            types.InlineKeyboardButton(text='Пн', callback_data='wday_monday_1'),
-            types.InlineKeyboardButton(text='Вт', callback_data='wday_tuesday_1'),
-            types.InlineKeyboardButton(text='Ср', callback_data='wday_wednesday_1'),
-            types.InlineKeyboardButton(text='Чт', callback_data='wday_thursday_1'),
-            types.InlineKeyboardButton(text='Пт', callback_data='wday_friday_1'),
-            types.InlineKeyboardButton(text='Сб', callback_data='wday_saturday_1'))
-        kb_dn.row(
-            types.InlineKeyboardButton(text=buttons[1], callback_data='week_2'),
-            types.InlineKeyboardButton(text='Пн', callback_data='wday_monday_2'),
-            types.InlineKeyboardButton(text='Вт', callback_data='wday_tuesday_2'),
-            types.InlineKeyboardButton(text='Ср', callback_data='wday_wednesday_2'),
-            types.InlineKeyboardButton(text='Чт', callback_data='wday_thursday_2'),
-            types.InlineKeyboardButton(text='Пт', callback_data='wday_friday_2'),
-            types.InlineKeyboardButton(text='Сб', callback_data='wday_saturday_2'))
-        kb_dn.row(types.InlineKeyboardButton(text='🔄 В главное меню', callback_data='tomain'))
+        kb_dn = days_keyboard(buttons)
 
-        await bot.edit_message_text(chat_id=call.message.chat.id,
-        message_id=call.message.message_id,
-        text=f'Выберите неделю и день \\(сейчас идёт {weekname}\\):\n',
-        reply_markup=kb_dn)
+        await bot.edit_message_text(
+            chat_id=call.message.chat.id,
+            message_id=call.message.message_id,
+            text=f'Выберите неделю и день \\(сейчас идёт {weekname}\\):\n',
+            reply_markup=kb_dn
+        )
     elif call.data[:5] == 'wday_':
         await bot.answer_callback_query(call.id)
         table = PrettyTable(border=False)
@@ -570,21 +512,22 @@ async def button_func(call):
                 schedule_txt += f'Пара №{lesson[0]} <i>({rings_list[lesson[0]-1]})</i>\n<code>{lesson[1].split(" ", maxsplit=1)[0]}</code> <b>{lesson[1].split(" ", maxsplit=1)[1]}</b>\n<b>Аудитория:</b> <code>{lesson[2]}</code>\n\n'
             #table.add_row(lesson)
         
-        await bot.edit_message_text(chat_id=call.message.chat.id,
-        message_id=call.message.message_id,
-        text=f'<b>Выбрана группа {group}</b>\n'
-        f'<b>Расписание:</b> {wdays.translate(weekday)}\n'
-        f'<b>Неделя:</b> {weekname}\n\n'
-        f'{schedule_txt}\n'
-        '<code>[Л]</code> - <b>лекция</b>\n'
-        '<code>[ПЗ]</code> - <b>практическое занятие</b>\n'
-        '<code>[ЛАБ]</code> - <b>лабораторное занятие</b>',
-        reply_markup=kbb, parse_mode='HTML')
+        await bot.edit_message_text(
+            chat_id=call.message.chat.id,
+            message_id=call.message.message_id,
+            text=f'<b>Выбрана группа {group}</b>\n'
+            f'<b>Расписание:</b> {wdays.translate(weekday)}\n'
+            f'<b>Неделя:</b> {weekname}\n\n'
+            f'{schedule_txt}\n'
+            '<code>[Л]</code> - <b>лекция</b>\n'
+            '<code>[ПЗ]</code> - <b>практическое занятие</b>\n'
+            '<code>[ЛАБ]</code> - <b>лабораторное занятие</b>',
+            reply_markup=kbb, parse_mode='HTML')
     elif call.data == 'today':
         await bot.answer_callback_query(call.id)
         group = get_group(call.from_user.id)
         isoweekday = datetime.datetime.today().isoweekday()
-        if isoweekday == 6 or isoweekday == 7:
+        if isoweekday == 7:
             text = f'*Выбрана группа {group}*\nСегодня: {wdays.names(isoweekday)[0]}\n\nУдачных выходных!'
         else:
             group = get_group(call.from_user.id)
@@ -630,7 +573,7 @@ async def button_func(call):
         await bot.answer_callback_query(call.id)
         group = get_group(call.from_user.id)
         isoweekday = datetime.datetime.today().isoweekday() + 1
-        if isoweekday == 6 or isoweekday == 7:
+        if isoweekday == 6:
             text = f'*Выбрана группа {group}*\nЗавтра: {wdays.names(isoweekday)[0]}\n\nУдачных выходных!'
         elif isoweekday == 8:
             weekday = wdays.names(isoweekday)[1]
@@ -694,30 +637,39 @@ async def button_func(call):
         reply_markup=kbbb, parse_mode='HTML')
     elif call.data == 'tomain':
         await bot.answer_callback_query(call.id, text='Возврат в главное меню...')
-        await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                    text=f'Привет, {call.from_user.first_name}!\n'
-                                    f'*Твоя группа: {get_group(call.from_user.id)}.*\n'
-                                    f'*Сейчас идёт {get_weekname()} неделя.*\n'
-                                    'Вот главное меню:',
-                                    reply_markup=kbm, parse_mode='Markdown')
+        await bot.edit_message_text(
+            chat_id=call.message.chat.id, 
+            message_id=call.message.message_id,
+            text=f'Привет, {call.from_user.first_name}!\n'
+            f'*Твоя группа: {get_group(call.from_user.id)}.*\n'
+            f'*Сейчас идёт {get_weekname()} неделя.*\n'
+            'Вот главное меню:',
+            reply_markup=kbm, 
+            parse_mode='Markdown'
+        )
     elif call.data == 'building':
         await bot.answer_callback_query(call.id)
         set_state(call.from_user.id, 'find_class')
-        await bot.edit_message_text(chat_id=call.message.chat.id, 
-                                    message_id=call.message.message_id, 
-                                    text='Отправьте номер аудитории:', 
-                                    reply_markup=kb_cancel_building, 
-                                    parse_mode='Markdown')
+        await bot.edit_message_text(
+            chat_id=call.message.chat.id, 
+            message_id=call.message.message_id, 
+            text='Отправьте номер аудитории:', 
+            reply_markup=kb_cancel_building, 
+            parse_mode='Markdown'
+        )
     elif call.data == 'cancel_find_class':
         await bot.answer_callback_query(call.id)
         set_state(call.from_user.id, 'default')
-        await bot.edit_message_text(chat_id=call.message.chat.id,
-                                    message_id=call.message.message_id,
-                                    text=f'Привет, {call.from_user.first_name}!\n'
-                                    f'*Твоя группа: {get_group(call.from_user.id)}.*\n'
-                                    f'*Сейчас идёт {get_weekname()} неделя.*\n'
-                                    'Вот главное меню:',
-                                    reply_markup=kbm, parse_mode='Markdown')
+        await bot.edit_message_text(
+            chat_id=call.message.chat.id,
+            message_id=call.message.message_id,
+            text=f'Привет, {call.from_user.first_name}!\n'
+            f'*Твоя группа: {get_group(call.from_user.id)}.*\n'
+            f'*Сейчас идёт {get_weekname()} неделя.*\n'
+            'Вот главное меню:',
+            reply_markup=kbm, 
+            parse_mode='Markdown'
+        )
     elif call.data == 'change_faculty':
         await bot.answer_callback_query(call.id)
         faculty_list = get_faculties()
@@ -728,11 +680,13 @@ async def button_func(call):
             kb_faculty.row(types.InlineKeyboardButton(text=faculty, callback_data=ru_en(callback_faculty)))
 
         kb_faculty.row(types.InlineKeyboardButton(text='🚫 Отмена', callback_data='cancel_find_class'))
-        await bot.edit_message_text(chat_id=call.message.chat.id,
-                                    message_id=call.message.message_id,
-                                    text=f'Выберите факультет:',
-                                    reply_markup=kb_faculty, 
-                                    parse_mode='Markdown')
+        await bot.edit_message_text(
+            chat_id=call.message.chat.id,
+            message_id=call.message.message_id,
+            text=f'Выберите факультет:',
+            reply_markup=kb_faculty, 
+            parse_mode='Markdown'
+        )
     elif str(call.data).startswith('f_'):
         await bot.answer_callback_query(call.id)
         in_faculty = str(call.data[2:])
@@ -766,10 +720,13 @@ async def button_func(call):
             kb_group.row(types.InlineKeyboardButton(text=group, callback_data=group))
 
         kb_group.row(types.InlineKeyboardButton(text='🚫 Отмена', callback_data='cancel_find_class'))
-        await bot.edit_message_text(chat_id=call.message.chat.id,
-                                    message_id=call.message.message_id,
-                                    text=f'Выберите группу:',
-                                    reply_markup=kb_group, parse_mode='Markdown')
+        await bot.edit_message_text(
+            chat_id=call.message.chat.id,
+            message_id=call.message.message_id,
+            text=f'Выберите группу:',
+            reply_markup=kb_group, 
+            parse_mode='Markdown'
+        )
     elif call.data == 'favorite_groups':
         await bot.answer_callback_query(call.id)
         kb_favorite = types.InlineKeyboardMarkup()
@@ -791,10 +748,12 @@ async def button_func(call):
             for i in range(5):
                 kb_favorite.row(types.InlineKeyboardButton(text='➕ Добавить', callback_data='add_favorite'))
         kb_favorite.row(types.InlineKeyboardButton(text='🔄 В главное меню', callback_data='tomain'))
-        await bot.edit_message_text(chat_id=call.message.chat.id,
-                                    message_id=call.message.message_id,
-                                    text='Твой список избранных групп:',
-                                    reply_markup=kb_favorite)
+        await bot.edit_message_text(
+            chat_id=call.message.chat.id,
+            message_id=call.message.message_id,
+            text='Твой список избранных групп:',
+            reply_markup=kb_favorite
+        )
         
     elif str(call.data).startswith('О-20'):
         await bot.answer_callback_query(call.id)
@@ -807,13 +766,16 @@ async def button_func(call):
                 {'user_id': call.from_user.id}, 
                 {'$set': {'favorite_groups': favorite_groups}})
             
-            await bot.edit_message_text(chat_id=call.message.chat.id,
-                                        message_id=call.message.message_id,
-                                        text=f'Группа {group} удалена из избранных\\!\n'
-                                        f'*Твоя группа: {get_group(call.from_user.id)}.*\n'
-                                        f'*Сейчас идёт {get_weekname()} неделя.*\n'
-                                        'Вот главное меню:',
-                                        reply_markup=kbm, parse_mode='Markdown')
+            await bot.edit_message_text(
+                chat_id=call.message.chat.id,
+                message_id=call.message.message_id,
+                text=f'Группа {group} удалена из избранных\\!\n'
+                f'*Твоя группа: {get_group(call.from_user.id)}.*\n'
+                f'*Сейчас идёт {get_weekname()} неделя.*\n'
+                'Вот главное меню:',
+                reply_markup=kbm,
+                parse_mode='Markdown'
+            )
             set_state(call.from_user.id, 'default')
         else:
             if get_state(call.from_user.id) == 'default':
@@ -857,7 +819,7 @@ async def button_func(call):
                                     message_id=call.message.message_id,
                                     text=f'Выберите факультет:',
                                     reply_markup=kb_faculty, parse_mode='Markdown')
-
+        
     elif call.data == 'notifications':
         await bot.answer_callback_query(call.id)
         notification_time = users.find_one({"user_id": call.from_user.id}).get('notification_time')
@@ -968,6 +930,55 @@ async def button_func(call):
                                         message_id=call.message.message_id,
                                         text=text,
                                         parse_mode='HTML')
+    
+    elif str(call.data) == 'user_list':
+        text = '*Список пользователей бота:*\n\n'
+        for user in users.find():
+            first_name = user['first_name']
+            last_name = user['last_name']
+            user_id = user['user_id']
+            group = user['group']
+
+            if last_name != None or last_name != "None":
+                text += f'<a href="tg://user?id={user_id}">{first_name} {last_name}</a> ◼ <b>Группа {group}</b>\n'
+            else:
+                text += f'<a href="tg://user?id={user_id}">{first_name}</a> ◼ <b>Группа {group}</b>\n'
+
+        count = users.count_documents({})
+        text = f"Всего пользователей: {count}\n\n" + text
+        block_count = ceil(len(text) / 4096)
+        
+        if len(text) > 4096:
+            for x in range(0, block_count):
+                if x == 0:
+                    await bot.edit_message_text(
+                        text=text[x*4096:x*4096+4096], 
+                        chat_id=call.from_user.id,
+                        message_id=call.message.message_id,
+                        parse_mode='HTML'
+                    )
+                if x != block_count:
+                    await bot.send_message(call.from_user.id, text[x*4096:x*4096+4096], parse_mode='HTML')
+                else:
+                    await bot.send_message(call.from_user.id, text[x*4096:x*4096+4096], parse_mode='HTML', reply_markup=kb_admin_back)
+        else:
+            await bot.edit_message_text(
+                text=text, 
+                chat_id=call.from_user.id,
+                message_id=call.message.message_id,
+                parse_mode='HTML',
+                reply_markup=kb_admin_back
+            )
+            
+    elif str(call.data) == 'toadmin':
+        await bot.edit_message_text(
+                text=f'Добро пожаловать в админ-панель, {m.from_user.first_name}.\n'
+                'Выберите пункт в меню для дальнейших действий:', 
+                chat_id=call.from_user.id,
+                message_id=call.message.message_id,
+                parse_mode='HTML',
+                reply_markup=kb_admin
+            )
 
 async def time_trigger():
     while True:
