@@ -976,6 +976,7 @@ async def button_func(call):
             text = ''
         # print("last_msgid: ", globals()['last_msgid'])
         if block_count != 0:
+            pass
             # await bot.edit_message_reply_markup(
             #     chat_id=call.from_user.id,
             #     message_id=globals()['last_msgid'],
