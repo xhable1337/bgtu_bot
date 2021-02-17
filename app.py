@@ -950,14 +950,14 @@ async def button_func(call):
                 else:
                     if block_count == 0:
                         await bot.edit_message_text(
-                        text=text, 
+                        text=text,
                         chat_id=call.from_user.id,
                         message_id=call.message.message_id,
                         parse_mode='HTML'
                         )
                     else:
                         last_msg = await bot.send_message(call.from_user.id, text, parse_mode='HTML')
-                        last_msgid = last_message.message_id
+                        last_msgid = last_msg.message_id
             else:
                 if len(text + f'<a href="tg://user?id={user_id}">{first_name}</a> ◼ <b>Группа {group}</b>\n') <= 4096:
                     text += f'<a href="tg://user?id={user_id}">{first_name}</a> ◼ <b>Группа {group}</b>\n'
@@ -971,11 +971,11 @@ async def button_func(call):
                         )
                     else:
                         last_msg = await bot.send_message(call.from_user.id, text, parse_mode='HTML')
-                        last_msgid = last_message.message_id
+                        last_msgid = last_msg.message_id
             
             block_count += 1
             text = ''
-        
+        print("last_msgid: ", last_msgid)
         if block_count != 0:
             await bot.edit_message_reply_markup(
                 chat_id=call.from_user.id,
