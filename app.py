@@ -943,7 +943,6 @@ async def button_func(call):
             last_name = user['last_name']
             user_id = user['user_id']
             group = user['group']
-            print(f"• {first_name} (id: {user_id})")
             if last_name != None or last_name != "None":
                 if len(text + f'<a href="tg://user?id={user_id}">{first_name} {last_name}</a> ◼ <b>Группа {group}</b>\n') <= 4096:
                     text += f'<a href="tg://user?id={user_id}">{first_name} {last_name}</a> ◼ <b>Группа {group}</b>\n'
@@ -955,10 +954,12 @@ async def button_func(call):
                             message_id=call.message.message_id,
                             parse_mode='HTML'
                         )
+                        print("fn | block_count == 0")
                     else:
                         last_msg = await bot.send_message(call.message.chat.id, text, parse_mode='HTML')
                         globals()['last_msgid'] = last_msg.message_id
                         text = f'<a href="tg://user?id={user_id}">{first_name} {last_name}</a> ◼ <b>Группа {group}</b>\n'
+                        print("fn | block_count != 0")
             else:
                 if len(text + f'<a href="tg://user?id={user_id}">{first_name}</a> ◼ <b>Группа {group}</b>\n') <= 4096:
                     text += f'<a href="tg://user?id={user_id}">{first_name}</a> ◼ <b>Группа {group}</b>\n'
@@ -970,10 +971,12 @@ async def button_func(call):
                             message_id=call.message.message_id,
                             parse_mode='HTML'
                         )
+                        print("fn+ln | block_count == 0")
                     else:
                         last_msg = await bot.send_message(call.message.chat.id, text, parse_mode='HTML')
                         globals()['last_msgid'] = last_msg.message_id
                         text = f'<a href="tg://user?id={user_id}">{first_name}</a> ◼ <b>Группа {group}</b>\n'
+                        print("fn+ln | block_count != 0")
             
             block_count += 1
             text = ''
