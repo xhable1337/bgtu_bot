@@ -957,7 +957,7 @@ async def button_func(call):
                         print("fn | block_count == 0")
                     else:
                         last_msg = await bot.send_message(call.message.chat.id, text, parse_mode='HTML')
-                        globals()['last_msgid'] = last_msg.message_id
+                        # globals()['last_msgid'] = last_msg.message_id
                         text = f'<a href="tg://user?id={user_id}">{first_name} {last_name}</a> ◼ <b>Группа {group}</b>\n'
                         print("fn | block_count != 0")
             else:
@@ -974,9 +974,10 @@ async def button_func(call):
                         print("fn+ln | block_count == 0")
                     else:
                         last_msg = await bot.send_message(call.message.chat.id, text, parse_mode='HTML')
-                        globals()['last_msgid'] = last_msg.message_id
+                        # globals()['last_msgid'] = last_msg.message_id
                         text = f'<a href="tg://user?id={user_id}">{first_name}</a> ◼ <b>Группа {group}</b>\n'
                         print("fn+ln | block_count != 0")
+            print(f"\n\ntext: {text}\n\n")
             
             block_count += 1
             text = ''
