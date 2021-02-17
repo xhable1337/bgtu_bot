@@ -78,6 +78,8 @@ table.field_names = ['№', 'Пара', 'Кабинет']
 
 table_r = PrettyTable()
 
+last_msgid = 0
+
 def get_state(user_id):
     """Позволяет просмотреть state по user_id."""
     return users.find_one({'user_id': user_id})['state']
@@ -933,10 +935,9 @@ async def button_func(call):
                                         parse_mode='HTML')
     
     elif str(call.data) == 'user_list':
-        text = '*Список пользователей бота:*\n\n'
-        block_count = 0
         count = users.count_documents({})
-        text = f"Всего пользователей: {count}\n\n" + text
+        text = f'<u>Список пользователей бота (всего {count}):</u>\n\n'
+        block_count = 0
         await bot.answer_callback_query(call.id, "Ожидайте загрузки из базы...")
         for user in users.find():
             first_name = user['first_name']
@@ -957,7 +958,7 @@ async def button_func(call):
                         print("fn | block_count == 0")
                     else:
                         last_msg = await bot.send_message(call.message.chat.id, text, parse_mode='HTML')
-                        # globals()['last_msgid'] = last_msg.message_id
+                        globals()['last_msgid'] = last_msg.message_id
                         text = f'<a href="tg://user?id={user_id}">{first_name} {last_name}</a> ◼ <b>Группа {group}</b>\n'
                         print("fn | block_count != 0")
             else:
@@ -974,20 +975,19 @@ async def button_func(call):
                         print("fn+ln | block_count == 0")
                     else:
                         last_msg = await bot.send_message(call.message.chat.id, text, parse_mode='HTML')
-                        # globals()['last_msgid'] = last_msg.message_id
+                        globals()['last_msgid'] = last_msg.message_id
                         text = f'<a href="tg://user?id={user_id}">{first_name}</a> ◼ <b>Группа {group}</b>\n'
                         print("fn+ln | block_count != 0")
             print(f"\n\ntext: {text}\n\n")
             
             block_count += 1
-        # print("last_msgid: ", globals()['last_msgid'])
+        print("last_msgid: ", globals()['last_msgid'])
         if block_count != 0:
-            pass
-            # await bot.edit_message_reply_markup(
-            #     chat_id=call.from_user.id,
-            #     message_id=globals()['last_msgid'],
-            #     reply_markup=kb_admin_back
-            # )
+            await bot.edit_message_reply_markup(
+                chat_id=call.from_user.id,
+                message_id=globals()['last_msgid'],
+                reply_markup=kb_admin_back
+            )
 
     elif str(call.data) == 'toadmin':
         await bot.edit_message_text(
