@@ -935,6 +935,7 @@ async def button_func(call):
     elif str(call.data) == 'user_list':
         text = '*Список пользователей бота:*\n\n'
         block_count = 0
+        last_msgid = 0
         count = users.count_documents({})
         text = f"Всего пользователей: {count}\n\n" + text
         for user in users.find():
@@ -955,7 +956,8 @@ async def button_func(call):
                         parse_mode='HTML'
                         )
                     else:
-                        last_message = await bot.send_message(call.from_user.id, text, parse_mode='HTML')
+                        last_msg = await bot.send_message(call.from_user.id, text, parse_mode='HTML')
+                        last_msgid = last_message.message_id
             else:
                 if len(text + f'<a href="tg://user?id={user_id}">{first_name}</a> ◼ <b>Группа {group}</b>\n') <= 4096:
                     text += f'<a href="tg://user?id={user_id}">{first_name}</a> ◼ <b>Группа {group}</b>\n'
@@ -968,7 +970,8 @@ async def button_func(call):
                         parse_mode='HTML'
                         )
                     else:
-                        last_message = await bot.send_message(call.from_user.id, text, parse_mode='HTML')
+                        last_msg = await bot.send_message(call.from_user.id, text, parse_mode='HTML')
+                        last_msgid = last_message.message_id
             
             block_count += 1
             text = ''
@@ -976,7 +979,7 @@ async def button_func(call):
         if block_count != 0:
             await bot.edit_message_reply_markup(
                 chat_id=call.from_user.id,
-                message_id=last_message.message_id,
+                message_id=last_msgid,
                 reply_markup=kb_admin_back
             )
 
