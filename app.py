@@ -934,6 +934,10 @@ async def button_func(call):
     
     elif str(call.data) == 'user_list':
         text = '*Список пользователей бота:*\n\n'
+        block_count = 0
+        count = users.count_documents({})
+        text = f"Всего пользователей: {count}\n\n" + text
+        last_message = ''
         for user in users.find():
             first_name = user['first_name']
             last_name = user['last_name']
@@ -941,36 +945,41 @@ async def button_func(call):
             group = user['group']
 
             if last_name != None or last_name != "None":
-                text += f'<a href="tg://user?id={user_id}">{first_name} {last_name}</a> ◼ <b>Группа {group}</b>\n'
-            else:
-                text += f'<a href="tg://user?id={user_id}">{first_name}</a> ◼ <b>Группа {group}</b>\n'
-
-        count = users.count_documents({})
-        text = f"Всего пользователей: {count}\n\n" + text
-        block_count = ceil(len(text) / 4096)
-        
-        if len(text) > 4096:
-            for x in range(0, block_count):
-                if x == 0:
-                    await bot.edit_message_text(
-                        text=text[x*4096:x*4096+4096], 
+                if len(text + f'<a href="tg://user?id={user_id}">{first_name} {last_name}</a> ◼ <b>Группа {group}</b>\n') <= 4096:
+                    text += f'<a href="tg://user?id={user_id}">{first_name} {last_name}</a> ◼ <b>Группа {group}</b>\n'
+                else:
+                    if block_count == 0:
+                        await bot.edit_message_text(
+                        text=text, 
                         chat_id=call.from_user.id,
                         message_id=call.message.message_id,
                         parse_mode='HTML'
-                    )
-                if x != block_count:
-                    await bot.send_message(call.from_user.id, text[x*4096:x*4096+4096], parse_mode='HTML')
+                        )
+                    else:
+                        last_message = await bot.send_message(call.from_user.id, text, parse_mode='HTML')
+            else:
+                if len(text + f'<a href="tg://user?id={user_id}">{first_name}</a> ◼ <b>Группа {group}</b>\n') <= 4096:
+                    text += f'<a href="tg://user?id={user_id}">{first_name}</a> ◼ <b>Группа {group}</b>\n'
                 else:
-                    await bot.send_message(call.from_user.id, text[x*4096:x*4096+4096], parse_mode='HTML', reply_markup=kb_admin_back)
-        else:
-            await bot.edit_message_text(
-                text=text, 
-                chat_id=call.from_user.id,
-                message_id=call.message.message_id,
-                parse_mode='HTML',
-                reply_markup=kb_admin_back
-            )
+                    if block_count == 0:
+                        await bot.edit_message_text(
+                        text=text, 
+                        chat_id=call.from_user.id,
+                        message_id=call.message.message_id,
+                        parse_mode='HTML'
+                        )
+                    else:
+                        last_message = await bot.send_message(call.from_user.id, text, parse_mode='HTML')
             
+            block_count += 1
+            text = ''
+            
+        await bot.edit_message_reply_markup(
+            chat_id=m.chat.id,
+            message_id=last_message.message_id,
+            reply_markup=kb_admin_back
+        )
+
     elif str(call.data) == 'toadmin':
         await bot.edit_message_text(
                 text=f'Добро пожаловать в админ-панель, {m.from_user.first_name}.\n'
