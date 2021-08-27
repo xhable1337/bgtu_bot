@@ -8,7 +8,6 @@ from aiogram import Bot, Dispatcher, executor, types
 from aiogram.utils.executor import start_webhook
 from aiogram.dispatcher.webhook import get_new_configured_app
 from prettytable import PrettyTable
-from telebot import types as teletypes
 from flask import Flask, request
 from pymongo import MongoClient
 from transliterate import translit
@@ -17,7 +16,6 @@ from concurrent.futures import ProcessPoolExecutor
 
 import asyncio
 import aiohttp
-import telebot
 import datetime
 import wdays
 import os
@@ -204,13 +202,13 @@ async def start_handler(m):
             users.update_one({'user_id': m.from_user.id}, 
                              {'$set': {'favorite_groups': []}})
         elif user.get('first_name') != m.from_user.first_name:
-            users.update_one({'first_name': m.from_user.first_name}, 
+            users.update_one({'user_id': m.from_user.id}, , 
                              {'$set': {'first_name': m.from_user.first_name}})
         elif user.get('last_name') != m.from_user.last_name:
-            users.update_one({'last_name': m.from_user.last_name}, 
+            users.update_one({'user_id': m.from_user.id}, , 
                              {'$set': {'last_name': m.from_user.last_name}})
         elif user.get('username') != m.from_user.username:
-            users.update_one({'username': m.from_user.username}, 
+            users.update_one({'user_id': m.from_user.id}, 
                              {'$set': {'username': m.from_user.username}})
         group = get_group(m.from_user.id)
         await bot.send_message(m.chat.id, 
