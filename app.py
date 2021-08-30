@@ -885,7 +885,7 @@ async def button_func(call: types.CallbackQuery):
         if str(call.data).endswith('__del'):
             user = users.find_one({'user_id': call.from_user.id})
             favorite_groups = user.get('favorite_groups')
-            group = str(call.data).split('__')[0]
+            group = str(call.data).split('g_')[1].split('__')[0]
             favorite_groups.pop(favorite_groups.index(group))
             users.update_one(
                 {'user_id': call.from_user.id}, 
@@ -904,7 +904,7 @@ async def button_func(call: types.CallbackQuery):
             set_state(call.from_user.id, 'default')
         else:
             if get_state(call.from_user.id) == 'default':
-                group = str(call.data)
+                group = str(call.data).split('g_')[1]
                 set_group(call.from_user.id, group)
                 await bot.edit_message_text(
                     chat_id=call.message.chat.id,
@@ -918,7 +918,7 @@ async def button_func(call: types.CallbackQuery):
             elif get_state(call.from_user.id) == 'add_favorite':
                 user = users.find_one({'user_id': call.from_user.id})
                 favorite_groups = user.get('favorite_groups')
-                favorite_groups.append(call.data)
+                favorite_groups.append(call.data.split('g_')[1])
                 users.update_one({'user_id': call.from_user.id}, {'$set': {'favorite_groups': favorite_groups}})
                 await bot.edit_message_text(
                     chat_id=call.message.chat.id,
