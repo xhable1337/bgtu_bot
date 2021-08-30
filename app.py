@@ -1029,6 +1029,36 @@ async def button_func(call: types.CallbackQuery):
                                         message_id=call.message.message_id,
                                         text='Хорошо, не обновляем расписание.')
         else:
+            ######################################
+            dt = datetime.datetime.now()
+            year = int(dt.strftime('%y'))
+            faculties = get_faculties()
+            text = '⚙ Запущено обновление расписания...\n\n'
+            msg = await bot.send_message(call.message.chat.id, text=text, parse_mode='HTML')
+            msgid = msg.message_id
+
+            for _ in range(4):
+                for faculty in faculties:
+                    text += f'{faculty} (20{year} год): \n'
+                    groups = get_groups(faculty=faculty, year=str(year), force_update=True)
+                    for group in groups:
+                        get_schedule(group, 'monday', '1')
+                        text += f'✔ {group}\n'
+                        await bot.edit_message_text(
+                            chat_id=call.message.chat.id,
+                            message_id=call.message.message_id,
+                            text=text,
+                            parse_mode='HTML'
+                        )
+                    text += '\n'
+                
+                msg = await bot.send_message(call.message.chat.id, text=text, parse_mode='HTML')
+                msgid = msg.message_id
+
+                text = ''
+                year -= 1
+            ######################################
+
             text = '⚙ Запущено обновление расписания...\n\n'
             faculties = get_faculties()
             for faculty in faculties:
