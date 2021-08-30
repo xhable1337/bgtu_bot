@@ -860,8 +860,8 @@ async def button_func(call: types.CallbackQuery):
         if user.get('favorite_groups') is not None:
             for group in user.get('favorite_groups'):
                 kb_favorite.row(
-                    types.InlineKeyboardButton(text=group, callback_data=group),
-                    types.InlineKeyboardButton(text='❌', callback_data=f'{group}__del'))
+                    types.InlineKeyboardButton(text=group, callback_data=f'g_{group}'),
+                    types.InlineKeyboardButton(text='❌', callback_data=f'g_{group}__del'))
                 i += 1
             space_left = 5 - i
             for i in range(space_left):
