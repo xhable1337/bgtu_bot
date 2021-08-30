@@ -923,7 +923,7 @@ async def button_func(call: types.CallbackQuery):
                 await bot.edit_message_text(
                     chat_id=call.message.chat.id,
                     message_id=call.message.message_id,
-                    text=f'Группа {call.data} добавлена в избранные!\n'
+                    text=f'Группа {call.data.split("g_")[1]} добавлена в избранные!\n'
                     f'<b>Твоя группа: {get_group(call.from_user.id)}.</b>\n'
                     f'<b>Сейчас идёт {get_weekname()} неделя.</b>\n'
                     'Вот главное меню:',
