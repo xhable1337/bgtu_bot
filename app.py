@@ -37,7 +37,6 @@ groups_db = db.groups
 users = db.users
 scheduled_msg = db.scheduled_messages
 
-
 # aiogram init
 token = os.environ['token']
 bot = Bot(token=token, parse_mode='MarkdownV2')
@@ -130,7 +129,7 @@ def get_schedule(group, weekday, weeknum):
 
 def get_groups(faculty='Факультет информационных технологий', year='20', force_update=False):
     """Функция получения расписания от API."""
-    if groups_db.find_one({"faculty": faculty}) is None:
+    if groups_db.find_one({"faculty": faculty, "year": year}) is None:
         group_list = api_get_groups(faculty, year)
         print(group_list)
         groups_db.insert_one({'faculty': faculty, 'year': year, 'groups': group_list, 'last_updated': time.time()})
@@ -179,7 +178,9 @@ def get_faculties():
 @dp.message_handler(commands=['force_update'])
 async def force_update_schedule(m):
     if m.from_user.id in ADMINS:
-        groups_text = '⚙ Запущено обновление групп...\n\n'
+        groups_text = ''
+        await bot.send_message(m.chat.id, text='⚙ Запущено обновление групп...\n\nПожалуйста, ожидайте завершения. Это занимает некоторое время (обычно 1-2 минуты).', parse_mode='HTML')
+        
         faculties = get_faculties()
 
         dt = datetime.datetime.now()
@@ -188,21 +189,23 @@ async def force_update_schedule(m):
 
         for _ in range(4):
             for faculty in faculties:
-                groups_text += f'{faculty}: \n'
+                groups_text += f'{faculty} (20{year} год): \n'
                 groups = get_groups(faculty=faculty, year=str(year), force_update=True)
                 for group in groups:
                     groups_text += f'{group}\n'
                 groups_text += '\n'
+            await bot.send_message(m.chat.id, text=groups_text, parse_mode='HTML')
+            groups_text = ''
             year -= 1
 
-        groups_text += '\nХотите ли вы обновить расписание всех групп? (может занять много времени)'
+        prompt_text = 'Хотите ли вы обновить расписание всех групп? (может занять много времени)'
         keyboard = types.InlineKeyboardMarkup()
         keyboard.row(
             types.InlineKeyboardButton(text='✔ Да', callback_data='force-update-yes'),
             types.InlineKeyboardButton(text='❌ Нет', callback_data='force-update-no')
         )
         
-        await bot.send_message(m.chat.id, text=groups_text, reply_markup=keyboard, parse_mode='HTML')
+        await bot.send_message(m.chat.id, text=prompt_text, reply_markup=keyboard, parse_mode='HTML')
 
 @dp.message_handler(commands=['force_update_groups'])
 async def force_update_groups(m: types.Message):
