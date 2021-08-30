@@ -818,7 +818,7 @@ async def button_func(call: types.CallbackQuery):
         kb_group = types.InlineKeyboardMarkup()
 
         for group in group_list:
-            kb_group.row(types.InlineKeyboardButton(text=group, callback_data=group))
+            kb_group.row(types.InlineKeyboardButton(text=group, callback_data=f"g_{group}"))
 
         kb_group.row(
             types.InlineKeyboardButton(
@@ -880,7 +880,7 @@ async def button_func(call: types.CallbackQuery):
             reply_markup=kb_favorite
         )
         
-    elif str(call.data).startswith('О-20'):
+    elif str(call.data).startswith('g_'):
         await bot.answer_callback_query(call.id)
         if str(call.data).endswith('__del'):
             user = users.find_one({'user_id': call.from_user.id})
@@ -894,38 +894,40 @@ async def button_func(call: types.CallbackQuery):
             await bot.edit_message_text(
                 chat_id=call.message.chat.id,
                 message_id=call.message.message_id,
-                text=f'Группа {group} удалена из избранных\\!\n'
-                f'*Твоя группа: {get_group(call.from_user.id)}.*\n'
-                f'*Сейчас идёт {get_weekname()} неделя.*\n'
+                text=f'Группа {group} удалена из избранных!\n'
+                f'<b>Твоя группа: {get_group(call.from_user.id)}.</b>\n'
+                f'<b>Сейчас идёт {get_weekname()} неделя.</b>\n'
                 'Вот главное меню:',
                 reply_markup=kbm,
-                parse_mode='Markdown'
+                parse_mode='HTML'
             )
             set_state(call.from_user.id, 'default')
         else:
             if get_state(call.from_user.id) == 'default':
                 group = str(call.data)
                 set_group(call.from_user.id, group)
-                await bot.edit_message_text(chat_id=call.message.chat.id,
-                                            message_id=call.message.message_id,
-                                            text=f'Привет, {call.from_user.first_name}\\!\n'
-                                            f'*Твоя группа: {get_group(call.from_user.id)}.*\n'
-                                            f'*Сейчас идёт {get_weekname()} неделя.*\n'
-                                            'Вот главное меню:',
-                                            reply_markup=kbm, parse_mode='Markdown')
+                await bot.edit_message_text(
+                    chat_id=call.message.chat.id,
+                    message_id=call.message.message_id,
+                    text=f'Привет, {call.from_user.first_name}!\n'
+                    f'<b>Твоя группа: {get_group(call.from_user.id)}.</b>\n'
+                    f'<b>Сейчас идёт {get_weekname()} неделя.</b>\n'
+                    'Вот главное меню:',
+                    reply_markup=kbm, parse_mode='Markdown')
                 
             elif get_state(call.from_user.id) == 'add_favorite':
                 user = users.find_one({'user_id': call.from_user.id})
                 favorite_groups = user.get('favorite_groups')
                 favorite_groups.append(call.data)
                 users.update_one({'user_id': call.from_user.id}, {'$set': {'favorite_groups': favorite_groups}})
-                await bot.edit_message_text(chat_id=call.message.chat.id,
-                                            message_id=call.message.message_id,
-                                            text=f'Группа {call.data} добавлена в избранные\\!\n'
-                                            f'*Твоя группа: {get_group(call.from_user.id)}.*\n'
-                                            f'*Сейчас идёт {get_weekname()} неделя.*\n'
-                                            'Вот главное меню:',
-                                            reply_markup=kbm, parse_mode='Markdown')
+                await bot.edit_message_text(
+                    chat_id=call.message.chat.id,
+                    message_id=call.message.message_id,
+                    text=f'Группа {call.data} добавлена в избранные!\n'
+                    f'<b>Твоя группа: {get_group(call.from_user.id)}.</b>\n'
+                    f'<b>Сейчас идёт {get_weekname()} неделя.</b>\n'
+                    'Вот главное меню:',
+                    reply_markup=kbm, parse_mode='Markdown')
                 set_state(call.from_user.id, 'default')
     
     elif call.data == 'add_favorite':
@@ -952,9 +954,9 @@ async def button_func(call: types.CallbackQuery):
         if notification_time is None or notification_time == {}:
             await bot.edit_message_text(chat_id=call.message.chat.id,
                                         message_id=call.message.message_id,
-                                        text=f'Уведомления с расписанием отсутствуют\\.\n'
+                                        text=f'Уведомления с расписанием отсутствуют.\n'
                                         'Выберите день недели для установки времени автоматической отправки расписания:',
-                                        reply_markup=kb_notifications_days, parse_mode='MarkdownV2')
+                                        reply_markup=kb_notifications_days, parse_mode='HTML')
         else:
             text = 'Дни недели, по которым вы получаете уведомления с расписанием: \n\n'
             notification_time = users.find_one({"user_id": call.from_user.id}).get('notification_time')
@@ -962,7 +964,7 @@ async def button_func(call: types.CallbackQuery):
                 if notification_time[day] != "":
                     day_ru = wdays.translate(day)
                     text += f'{day_ru.capitalize()}: {notification_time[day]}\n'
-            text += '\nХотите изменить время, добавить или удалить напоминания\\? Выберите день:'
+            text += '\nХотите изменить время, добавить или удалить напоминания? Выберите день:'
             await bot.edit_message_text(chat_id=call.message.chat.id,
                                         message_id=call.message.message_id,
                                         text=text,
@@ -974,14 +976,14 @@ async def button_func(call: types.CallbackQuery):
 
         if notification_time is None or notification_time == {} or notification_time.get(weekday) is None or notification_time.get(weekday) == "":
             set_state(call.from_user.id, f'add_notification_{weekday}')
-            text = (f'Добавление напоминания \\({wdays.translate(weekday)}\\)\n\n'
+            text = (f'Добавление напоминания ({wdays.translate(weekday)})\n\n'
                     'Введите время, в которое вы хотите получать расписание:\n'
                     '————————————————————\n'
-                    'Если введённое время в диапазоне от 00:00 до 12:59, то бот отправит расписание на сегодня\\.\n'
-                    'Если же введённое время в диапазоне от 13:00 до 23:59, то расписание на завтра\\.')
+                    'Если введённое время в диапазоне от 00:00 до 12:59, то бот отправит расписание на сегодня.\n'
+                    'Если же введённое время в диапазоне от 13:00 до 23:59, то расписание на завтра.')
             reply_markup = kb_cancel_building
         else:
-            text = f'Изменение напоминания \\({wdays.translate(weekday)}\\):'
+            text = f'Изменение напоминания ({wdays.translate(weekday)}):'
             kb_notifications = types.InlineKeyboardMarkup()
             kb_notifications.row(types.InlineKeyboardButton(text='❌ Удалить', callback_data=f'del_notification_{weekday}'))
             kb_notifications.row(types.InlineKeyboardButton(text='✍ Изменить', callback_data=f'edit_notification_{weekday}'))
@@ -991,7 +993,8 @@ async def button_func(call: types.CallbackQuery):
         await bot.edit_message_text(chat_id=call.message.chat.id,
         message_id=call.message.message_id,
         text=text,
-        reply_markup=reply_markup)
+        reply_markup=reply_markup,
+        parse_mode="HTML")
 
     elif str(call.data).startswith('del_notification_'):
         await bot.answer_callback_query(call.id)
@@ -1010,25 +1013,26 @@ async def button_func(call: types.CallbackQuery):
 
         await bot.edit_message_text(chat_id=call.message.chat.id,
                                     message_id=call.message.message_id,
-                                    text=f'Уведомление \\({wdays.translate(weekday)}\\) выключено\\.',
-                                    reply_markup=kbbb)
+                                    text=f'Уведомление ({wdays.translate(weekday)}) выключено.',
+                                    reply_markup=kbbb,
+                                    parse_mode="HTML")
 
     elif str(call.data).startswith('edit_notification_'):
         await bot.answer_callback_query(call.id)
         weekday = str(call.data).split('_')[2]
         notification_time = users.find_one({"user_id": call.from_user.id}).get('notification_time')[weekday]
         
-        text = (f'Сейчас вы получаете расписание \\({wdays.translate(weekday)}\\) в {notification_time}\\.\n'
+        text = (f'Сейчас вы получаете расписание ({wdays.translate(weekday)}) в {notification_time}.\n'
                 'Введите время, в которое вы хотите получать расписание:\n'
                 '————————————————————\n'
-                'Если введённое время в диапазоне от 00:00 до 12:59, то бот отправит расписание на сегодня\\.\n'
-                'Если же введённое время в диапазоне от 13:00 до 23:59, то расписание на завтра\\.')
+                'Если введённое время в диапазоне от 00:00 до 12:59, то бот отправит расписание на сегодня.\n'
+                'Если же введённое время в диапазоне от 13:00 до 23:59, то расписание на завтра.')
 
         set_state(call.from_user.id, f'add_notification_{weekday}')
         await bot.edit_message_text(chat_id=call.message.chat.id,
             message_id=call.message.message_id,
             text=text,
-            reply_markup=kb_cancel_building, parse_mode='MarkdownV2')
+            reply_markup=kb_cancel_building, parse_mode='HTML')
     
     elif str(call.data).startswith('force-update-'):
         choice = str(call.data).split('-')[2]
@@ -1055,16 +1059,15 @@ async def button_func(call: types.CallbackQuery):
                         text += f'✔ {group}\n'
                         await bot.edit_message_text(
                             chat_id=call.message.chat.id,
-                            message_id=call.message.message_id,
+                            message_id=msgid,
                             text=text,
                             parse_mode='HTML'
                         )
                     text += '\n'
                 
+                text = ''
                 msg = await bot.send_message(call.message.chat.id, text=text, parse_mode='HTML')
                 msgid = msg.message_id
-
-                text = ''
                 year -= 1
             ######################################
 
