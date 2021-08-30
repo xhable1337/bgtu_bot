@@ -170,9 +170,18 @@ def get_years():
 
 def get_faculties():
     """Возвращает список факультетов из БД."""
-    faculties = []
-    for item in groups_db.find({}):
-        faculties.append(item['faculty'])
+    faculties = [
+        'Факультет информационных технологий',
+        'Факультет энергетики и электроники',
+        'Факультет отраслевой и цифровой экономики',
+        'Учебно-научный технологический институт',
+        'Механико-технологический факультет',
+        'Учебно-научный институт транспорта'
+    ]
+
+    # for item in groups_db.find({}):
+    #     faculties.append(item['faculty'])
+
     return faculties    
 
 @dp.message_handler(commands=['force_update'])
