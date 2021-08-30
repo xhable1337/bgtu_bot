@@ -39,7 +39,7 @@ scheduled_msg = db.scheduled_messages
 
 # aiogram init
 token = os.environ['token']
-bot = Bot(token=token, parse_mode='MarkdownV2')
+bot = Bot(token=token, parse_mode='HTML')
 dp = Dispatcher(bot)
 
 # webhook settings
@@ -252,9 +252,9 @@ async def start_handler(m: types.Message):
         await bot.send_message(
             m.chat.id, 
             f'Привет, {m.from_user.first_name}!\n'
-            '*Для начала работы с ботом выбери свою группу (впоследствии выбор можно изменить):*',
+            '<b>Для начала работы с ботом выбери свою группу (впоследствии выбор можно изменить):</b>',
             reply_markup=kb_faculty, 
-            parse_mode='Markdown')
+            parse_mode='HTML')
     else:
         user = users.find_one({'user_id': m.from_user.id})
         if user.get('favorite_groups') == None:
@@ -277,11 +277,11 @@ async def start_handler(m: types.Message):
         await bot.send_message(
             m.chat.id, 
             f'Привет, {m.from_user.first_name}!\n'
-            f'*Твоя группа: {group}.*\n'
-            f'*Сейчас идёт {get_weekname()} неделя.*\n'
+            f'<b>Твоя группа: {group}.</b>\n'
+            f'<b>Сейчас идёт {get_weekname()} неделя.</b>\n'
             'Вот главное меню:', 
             reply_markup=kbm, 
-            parse_mode='Markdown')
+            parse_mode='HTML')
         set_state(m.from_user.id, 'default')
 
 @dp.message_handler(commands=['whatis'])
@@ -291,9 +291,9 @@ async def whatis(m: types.Message):
         key = raw_text.split(' ', maxsplit=1)[1]
         try:
             value = globals()[f'{key}']
-            await bot.send_message(m.chat.id, f'Сейчас `{key}` == `{value}`', parse_mode='Markdown')
+            await bot.send_message(m.chat.id, f'Сейчас <code>{key}</code> == <code>{value}</code>', parse_mode='HTML')
         except KeyError:
-            await bot.send_message(m.chat.id, f'Переменная `{key}` не найдена!', parse_mode='Markdown')
+            await bot.send_message(m.chat.id, f'Переменная <code>{key}</code> не найдена!', parse_mode='HTML')
 
 @dp.message_handler(commands=['users_reset'])
 async def users_reset(m: types.Message):
@@ -651,9 +651,9 @@ async def button_func(call: types.CallbackQuery):
         table_r.clear()
         table_r.add_column(fieldname="№", column=index)
         table_r.add_column(fieldname="Время", column=rings_list)
-        text = f'Расписание пар\n\n```{table_r}```'
+        text = f'Расписание пар\n\n<code>{table_r}</code>'
         await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=text,
-        reply_markup=kbbb, parse_mode='Markdown')
+        reply_markup=kbbb, parse_mode='HTML')
     elif call.data == 'tomorrow':
         await bot.answer_callback_query(call.id)
         group = get_group(call.from_user.id)
@@ -727,11 +727,11 @@ async def button_func(call: types.CallbackQuery):
             chat_id=call.message.chat.id, 
             message_id=call.message.message_id,
             text=f'Привет, {call.from_user.first_name}!\n'
-            f'*Твоя группа: {get_group(call.from_user.id)}.*\n'
-            f'*Сейчас идёт {get_weekname()} неделя.*\n'
+            f'<b>Твоя группа: {get_group(call.from_user.id)}.</b>\n'
+            f'<b>Сейчас идёт {get_weekname()} неделя.</b>\n'
             'Вот главное меню:',
             reply_markup=kbm, 
-            parse_mode='Markdown'
+            parse_mode='HTML'
         )
 
     elif call.data == 'building':
@@ -742,7 +742,7 @@ async def button_func(call: types.CallbackQuery):
             message_id=call.message.message_id, 
             text='Отправьте номер аудитории:', 
             reply_markup=kb_cancel_building, 
-            parse_mode='Markdown'
+            parse_mode='HTML'
         )
 
     elif call.data == 'cancel_find_class':
@@ -752,11 +752,11 @@ async def button_func(call: types.CallbackQuery):
             chat_id=call.message.chat.id,
             message_id=call.message.message_id,
             text=f'Привет, {call.from_user.first_name}!\n'
-            f'*Твоя группа: {get_group(call.from_user.id)}.*\n'
-            f'*Сейчас идёт {get_weekname()} неделя.*\n'
+            f'<b>Твоя группа: {get_group(call.from_user.id)}.</b>\n'
+            f'<b>Сейчас идёт {get_weekname()} неделя.</b>\n'
             'Вот главное меню:',
             reply_markup=kbm, 
-            parse_mode='Markdown'
+            parse_mode='HTML'
         )
 
     # Выбор факультета
@@ -775,7 +775,7 @@ async def button_func(call: types.CallbackQuery):
             message_id=call.message.message_id,
             text=f'Выберите факультет:', # Выберите год поступления:
             reply_markup=kb_faculty, 
-            parse_mode='Markdown'
+            parse_mode='HTML'
         )
 
     # Выбор года поступления
@@ -797,7 +797,7 @@ async def button_func(call: types.CallbackQuery):
             message_id=call.message.message_id,
             text=f'Выберите год поступления:',
             reply_markup=kb_years, 
-            parse_mode='Markdown'
+            parse_mode='HTML'
         )
 
     # Выбор группы
@@ -831,7 +831,7 @@ async def button_func(call: types.CallbackQuery):
             chat_id=call.message.chat.id,
             message_id=call.message.message_id,
             text=f'Выберите группу:',
-            reply_markup=kb_group, parse_mode='Markdown'
+            reply_markup=kb_group, parse_mode='HTML'
         )
 
 
@@ -849,7 +849,7 @@ async def button_func(call: types.CallbackQuery):
             message_id=call.message.message_id,
             text=f'Выберите группу:',
             reply_markup=kb_group, 
-            parse_mode='Markdown'
+            parse_mode='HTML'
         )
 
     elif call.data == 'favorite_groups':
@@ -913,7 +913,7 @@ async def button_func(call: types.CallbackQuery):
                     f'<b>Твоя группа: {get_group(call.from_user.id)}.</b>\n'
                     f'<b>Сейчас идёт {get_weekname()} неделя.</b>\n'
                     'Вот главное меню:',
-                    reply_markup=kbm, parse_mode='Markdown')
+                    reply_markup=kbm, parse_mode='HTML')
                 
             elif get_state(call.from_user.id) == 'add_favorite':
                 user = users.find_one({'user_id': call.from_user.id})
@@ -927,7 +927,7 @@ async def button_func(call: types.CallbackQuery):
                     f'<b>Твоя группа: {get_group(call.from_user.id)}.</b>\n'
                     f'<b>Сейчас идёт {get_weekname()} неделя.</b>\n'
                     'Вот главное меню:',
-                    reply_markup=kbm, parse_mode='Markdown')
+                    reply_markup=kbm, parse_mode='HTML')
                 set_state(call.from_user.id, 'default')
     
     elif call.data == 'add_favorite':
@@ -945,7 +945,7 @@ async def button_func(call: types.CallbackQuery):
         await bot.edit_message_text(chat_id=call.message.chat.id,
                                     message_id=call.message.message_id,
                                     text=f'Выберите факультет:',
-                                    reply_markup=kb_faculty, parse_mode='Markdown')
+                                    reply_markup=kb_faculty, parse_mode='HTML')
         
     elif call.data == 'notifications':
         await bot.answer_callback_query(call.id)
