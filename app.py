@@ -1059,23 +1059,23 @@ async def button_func(call: types.CallbackQuery):
                 year -= 1
             ######################################
 
-            text = '⚙ Запущено обновление расписания...\n\n'
-            faculties = get_faculties()
-            for faculty in faculties:
-                text += f'{faculty}: \n'
-                groups = get_groups(faculty)
-                for group in groups:
-                    get_schedule(group, 'monday', '1')
-                    text += f'✔ {group}\n'
-                    await bot.edit_message_text(chat_id=call.message.chat.id,
-                                        message_id=call.message.message_id,
-                                        text=text,
-                                        parse_mode='HTML')
-            text += '\nРасписание обновлено успешно!'
-            await bot.edit_message_text(chat_id=call.message.chat.id,
-                                        message_id=call.message.message_id,
-                                        text=text,
-                                        parse_mode='HTML')
+            # text = '⚙ Запущено обновление расписания...\n\n'
+            # faculties = get_faculties()
+            # for faculty in faculties:
+            #     text += f'{faculty}: \n'
+            #     groups = get_groups(faculty)
+            #     for group in groups:
+            #         get_schedule(group, 'monday', '1')
+            #         text += f'✔ {group}\n'
+            #         await bot.edit_message_text(chat_id=call.message.chat.id,
+            #                             message_id=call.message.message_id,
+            #                             text=text,
+            #                             parse_mode='HTML')
+            # text += '\nРасписание обновлено успешно!'
+            # await bot.edit_message_text(chat_id=call.message.chat.id,
+            #                             message_id=call.message.message_id,
+            #                             text=text,
+            #                             parse_mode='HTML')
     
     elif str(call.data) == 'user_list':
         count = users.count_documents({})
