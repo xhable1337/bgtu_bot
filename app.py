@@ -342,11 +342,11 @@ async def broadcast(m: types.Message):
             raw_text = str(m.text)
             group = raw_text.split(' ', maxsplit=2)[1]
             text = raw_text.split(' ', maxsplit=2)[2]
-            i = 0
+            i = 1
             if group == 'all':
                 text = f'🔔 *Сообщение для всех групп!*\n' + text
                 for user in users.find():
-                    if i == 25:
+                    if i % 25 == 0:
                         time.sleep(1)
                     user_id = user['user_id']
                     try:
