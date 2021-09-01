@@ -103,7 +103,7 @@ def en_ru(text):
 
 def get_weekname():
     """Функция получения чётности/нечётности недели."""
-    if datetime.datetime.today().isocalendar()[1] % 2 == 0:
+    if datetime.datetime.today().isocalendar()[1] % 2 != 0:
         weekname = 'нечётная'
     else:
         weekname = 'чётная'
@@ -557,7 +557,7 @@ async def anymess(m: types.Message):
 async def button_func(call: types.CallbackQuery):
     if call.data == 'days':
         await bot.answer_callback_query(call.id)
-        if datetime.datetime.today().isocalendar()[1] % 2 == 0:
+        if datetime.datetime.today().isocalendar()[1] % 2 != 0:
             weekname = '[Н] - нечётная'
             buttons = ['[Н]', 'Ч']
         else:
@@ -619,7 +619,7 @@ async def button_func(call: types.CallbackQuery):
             isoweekday = datetime.datetime.today().isoweekday()
             weekday = wdays.names(isoweekday)[1]
 
-            if datetime.datetime.today().isocalendar()[1] % 2 == 0:
+            if datetime.datetime.today().isocalendar()[1] % 2 != 0:
                 weeknum = '1'
                 weekname = 'нечётная'
             else:
@@ -663,7 +663,7 @@ async def button_func(call: types.CallbackQuery):
         elif isoweekday == 8:
             weekday = wdays.names(isoweekday)[1]
 
-            if datetime.datetime.today().isocalendar()[1] % 2 == 0:
+            if datetime.datetime.today().isocalendar()[1] % 2 != 0:
                 weeknum = '1'
                 weekname = 'нечётная'
             else:
@@ -689,7 +689,7 @@ async def button_func(call: types.CallbackQuery):
         else:
             weekday = wdays.names(isoweekday)[1]
 
-            if datetime.datetime.today().isocalendar()[1] % 2 == 0:
+            if datetime.datetime.today().isocalendar()[1] % 2 != 0:
                 weeknum = '1'
                 weekname = 'нечётная'
             else:
@@ -1187,7 +1187,7 @@ async def time_trigger():
                 elif isoweekday == 8:
                     weekday = wdays.names(isoweekday)[1]
 
-                    if datetime.datetime.today().isocalendar()[1] % 2 == 0:
+                    if datetime.datetime.today().isocalendar()[1] % 2 != 0:
                         weeknum = '1'
                         weeknum = 'нечётная'
                     else:
@@ -1218,7 +1218,7 @@ async def time_trigger():
                 else:
                     weekday = wdays.names(isoweekday)[1]
 
-                    if datetime.datetime.today().isocalendar()[1] % 2 == 0:
+                    if datetime.datetime.today().isocalendar()[1] % 2 != 0:
                         weeknum = '1'
                         weeknum = 'нечётная'
                     else:
