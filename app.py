@@ -1136,7 +1136,7 @@ async def button_func(call: types.CallbackQuery):
                     msgid = msg.message_id
                     year -= 1
                 
-                msg.edit_text('✅ Расписание успешно обновлено!')
+                await msg.edit_text('✅ Расписание успешно обновлено!')
                 ######################################
 
                 # text = '⚙ Запущено обновление расписания...\n\n'
