@@ -613,21 +613,33 @@ async def button_func(call: types.CallbackQuery):
 
             for lesson in schedule:
                 if lesson[1] != '-':
-                    #print(f'{lesson[0]}) {lesson[1]}')
-                    schedule_txt += f'Пара №{lesson[0]} <i>({rings_list[lesson[0]-1]})</i>\n<code>{lesson[1].split(" ", maxsplit=1)[0]}</code> <b>{lesson[1].split(" ", maxsplit=1)[1]}</b>\n<b>Аудитория:</b> <code>{lesson[2]}</code>\n\n'
-                #table.add_row(lesson)
+                    teacher_text = ''
+                    if ',' in lesson[3]:
+                        teacher_text = f'<b>Преподаватели:</b> {lesson[3]}'
+                    else:
+                        teacher_text = f'<b>Преподаватель:</b> {lesson[3]}'
+                    schedule_txt += (
+                        f'<u>Пара №{lesson[0]} <i>({rings_list[lesson[0]-1]})</i></u>\n'
+                        f'<code>{lesson[1].split(" ", maxsplit=1)[0]}</code> <b>{lesson[1].split(" ", maxsplit=1)[1]}</b>\n'
+                        f'<b>Аудитория:</b> <code>{lesson[2]}</code>\n'
+                        f'{teacher_text}\n\n')
             
-            await bot.edit_message_text(
-                chat_id=call.message.chat.id,
-                message_id=call.message.message_id,
-                text=f'<b>Выбрана группа {group}</b>\n'
-                f'<b>Расписание:</b> {wdays.translate(weekday)}\n'
-                f'<b>Неделя:</b> {weekname}\n\n'
-                f'{schedule_txt}\n'
-                '<code>[Л]</code> - <b>лекция</b>\n'
-                '<code>[ПЗ]</code> - <b>практическое занятие</b>\n'
-                '<code>[ЛАБ]</code> - <b>лабораторное занятие</b>',
-                reply_markup=kbb, parse_mode='HTML')
+            text = (
+                    f'<b><u>Выбрана группа {group}</u></b>\n'
+                    f'<b>Расписание:</b> {wdays.translate(weekday)}\n'
+                    f'<b>Неделя:</b> {weekname}\n\n'
+                    f'{schedule_txt}\n'
+                    '<code>[Л]</code> - <b>лекция</b>\n'
+                    '<code>[ПЗ]</code> - <b>практическое занятие</b>\n'
+                    '<code>[ЛАБ]</code> - <b>лабораторное занятие</b>'
+                )
+
+            await call.message.edit_text(
+                text=text,
+                reply_markup=kbb,
+                parse_mode='HTML'
+            )
+
         
         elif call.data == 'today':
             await bot.answer_callback_query(call.id)
@@ -649,13 +661,24 @@ async def button_func(call: types.CallbackQuery):
 
                 schedule = get_schedule(group, weekday, weeknum)
                 schedule_txt = ''
+                
+                
 
                 for lesson in schedule:
                     if lesson[1] != '-':
-                        schedule_txt += f'Пара №{lesson[0]} <i>({rings_list[lesson[0]-1]})</i>\n<code>{lesson[1].split(" ", maxsplit=1)[0]}</code> <b>{lesson[1].split(" ", maxsplit=1)[1]}</b>\n<b>Аудитория:</b> <code>{lesson[2]}</code>\n\n'
+                        teacher_text = ''
+                        if ',' in lesson[3]:
+                            teacher_text = f'<b>Преподаватели:</b> {lesson[3]}'
+                        else:
+                            teacher_text = f'<b>Преподаватель:</b> {lesson[3]}'
+                        schedule_txt += (
+                            f'<u>Пара №{lesson[0]} <i>({rings_list[lesson[0]-1]})</i></u>\n'
+                            f'<code>{lesson[1].split(" ", maxsplit=1)[0]}</code> <b>{lesson[1].split(" ", maxsplit=1)[1]}</b>\n'
+                            f'<b>Аудитория:</b> <code>{lesson[2]}</code>\n'
+                            f'{teacher_text}\n\n')
                 
                 text = (
-                    f'<b>Выбрана группа {group}</b>\n'
+                    f'<b><u>Выбрана группа {group}</u></b>\n'
                     f'<b>Сегодня:</b> {wdays.names(isoweekday)[0]}\n'
                     f'<b>Неделя:</b> {weekname}\n\n'
                     f'{schedule_txt}\n'
@@ -682,11 +705,12 @@ async def button_func(call: types.CallbackQuery):
             group = get_group(call.from_user.id)
             isoweekday = datetime.datetime.today().isoweekday() + 1
             if isoweekday == 6:
-                text = f'<b>Выбрана группа {group}</b>\nЗавтра: {wdays.names(isoweekday)[0]}\n\nУдачных выходных!'
+                text = f'<b><u>Выбрана группа {group}</u></b>\nЗавтра: {wdays.names(isoweekday)[0]}\n\nУдачных выходных!'
             elif isoweekday == 8:
                 weekday = wdays.names(isoweekday)[1]
 
-                if datetime.datetime.today().isocalendar()[1] % 2 != 0:
+                # Если завтра понедельник, то неделя должна меняться 
+                if datetime.datetime.today().isocalendar()[1] % 2 == 0:
                     weeknum = '1'
                     weekname = 'нечётная'
                 else:
@@ -696,12 +720,22 @@ async def button_func(call: types.CallbackQuery):
                 schedule = get_schedule(group, weekday, weeknum)
 
                 schedule_txt = ''
+
                 for lesson in schedule:
                     if lesson[1] != '-':
-                        schedule_txt += f'Пара №{lesson[0]} <i>({rings_list[lesson[0]-1]})</i>\n<code>{lesson[1].split(" ", maxsplit=1)[0]}</code> <b>{lesson[1].split(" ", maxsplit=1)[1]}</b>\n<b>Аудитория:</b> <code>{lesson[2]}</code>\n\n'
-                
+                        teacher_text = ''
+                        if ',' in lesson[3]:
+                            teacher_text = f'<b>Преподаватели:</b> {lesson[3]}'
+                        else:
+                            teacher_text = f'<b>Преподаватель:</b> {lesson[3]}'
+                        schedule_txt += (
+                            f'<u>Пара №{lesson[0]} <i>({rings_list[lesson[0]-1]})</i></u>\n'
+                            f'<code>{lesson[1].split(" ", maxsplit=1)[0]}</code> <b>{lesson[1].split(" ", maxsplit=1)[1]}</b>\n'
+                            f'<b>Аудитория:</b> <code>{lesson[2]}</code>\n'
+                            f'{teacher_text}\n\n')
+
                 text = (
-                    f'<b>Выбрана группа {group}</b>\n'
+                    f'<b><u>Выбрана группа {group}</u></b>\n'
                     f'<b>Завтра:</b> {wdays.names(isoweekday)[0]}\n'
                     f'<b>Неделя:</b> {weekname}\n\n'
                     f'{schedule_txt}\n'
@@ -712,6 +746,7 @@ async def button_func(call: types.CallbackQuery):
             else:
                 weekday = wdays.names(isoweekday)[1]
 
+                # Обратная величина прошлому блоку if
                 if datetime.datetime.today().isocalendar()[1] % 2 != 0:
                     weeknum = '1'
                     weekname = 'нечётная'
@@ -725,12 +760,19 @@ async def button_func(call: types.CallbackQuery):
                 #print(f'369. schedule = {schedule}')
                 for lesson in schedule:
                     if lesson[1] != '-':
-                        schedule_txt += f'Пара №{lesson[0]} <i>({rings_list[lesson[0]-1]})</i>\n<code>{lesson[1].split(" ", maxsplit=1)[0]}</code> <b>{lesson[1].split(" ", maxsplit=1)[1]}</b>\n<b>Аудитория:</b> <code>{lesson[2]}</code>\n\n'                
-                    #print(f'371. lesson = {lesson}')
-                    #table.add_row(lesson)
+                        teacher_text = ''
+                        if ',' in lesson[3]:
+                            teacher_text = f'<b>Преподаватели:</b> {lesson[3]}'
+                        else:
+                            teacher_text = f'<b>Преподаватель:</b> {lesson[3]}'
+                        schedule_txt += (
+                            f'<u>Пара №{lesson[0]} <i>({rings_list[lesson[0]-1]})</i></u>\n'
+                            f'<code>{lesson[1].split(" ", maxsplit=1)[0]}</code> <b>{lesson[1].split(" ", maxsplit=1)[1]}</b>\n'
+                            f'<b>Аудитория:</b> <code>{lesson[2]}</code>\n'
+                            f'{teacher_text}\n\n')     
                 
                 text = (
-                    f'<b>Выбрана группа {group}</b>\n'
+                    f'<b><u>Выбрана группа {group}</u></b>\n'
                     f'<b>Завтра:</b> {wdays.names(isoweekday)[0]}\n'
                     f'<b>Неделя:</b> {weekname}\n\n'
                     f'{schedule_txt}\n'
@@ -738,11 +780,12 @@ async def button_func(call: types.CallbackQuery):
                     '<code>[ПЗ]</code> - <b>практическое занятие</b>\n'
                     '<code>[ЛАБ]</code> - <b>лабораторное занятие</b>'
                 )
-                
-            await bot.edit_message_text(chat_id=call.message.chat.id,
-            message_id=call.message.message_id,
-            text=text,
-            reply_markup=kbbb, parse_mode='HTML')
+            
+            await call.message.edit_text(
+                text=text,
+                reply_markup=kbbb,
+                parse_mode='HTML'
+            )
 
         elif call.data == 'tomain':
             await bot.answer_callback_query(call.id, text='Возврат в главное меню...')
@@ -1057,6 +1100,7 @@ async def button_func(call: types.CallbackQuery):
                 reply_markup=kb_cancel_building, parse_mode='HTML')
         
         elif str(call.data).startswith('force-update-'):
+            await call.answer()
             choice = str(call.data).split('-')[2]
             text = ''
             if choice == 'no':
@@ -1091,6 +1135,8 @@ async def button_func(call: types.CallbackQuery):
                     msg = await bot.send_message(call.message.chat.id, text=text, parse_mode='HTML')
                     msgid = msg.message_id
                     year -= 1
+                
+                msg.edit_text('✅ Расписание успешно обновлено!')
                 ######################################
 
                 # text = '⚙ Запущено обновление расписания...\n\n'
@@ -1229,7 +1275,8 @@ async def time_trigger():
                 elif isoweekday == 8:
                     weekday = wdays.names(isoweekday)[1]
 
-                    if datetime.datetime.today().isocalendar()[1] % 2 != 0:
+                    # Если завтра понедельник, то неделя должна меняться
+                    if datetime.datetime.today().isocalendar()[1] % 2 == 0:
                         weeknum = '1'
                         weeknum = 'нечётная'
                     else:
@@ -1241,13 +1288,20 @@ async def time_trigger():
 
                     for lesson in schedule:
                         if lesson[1] != '-':
-                            schedule_txt += f'Пара №{lesson[0]} <i>({rings_list[lesson[0]-1]})</i>\n<code>{lesson[1].split(" ", maxsplit=1)[0]}</code> <b>{lesson[1].split(" ", maxsplit=1)[1]}</b>\n<b>Аудитория:</b> <code>{lesson[2]}</code>\n\n'
-
-                        #table.add_row(lesson)
+                            teacher_text = ''
+                            if ',' in lesson[3]:
+                                teacher_text = f'<b>Преподаватели:</b> {lesson[3]}'
+                            else:
+                                teacher_text = f'<b>Преподаватель:</b> {lesson[3]}'
+                            schedule_txt += (
+                                f'<u>Пара №{lesson[0]} <i>({rings_list[lesson[0]-1]})</i></u>\n'
+                                f'<code>{lesson[1].split(" ", maxsplit=1)[0]}</code> <b>{lesson[1].split(" ", maxsplit=1)[1]}</b>\n'
+                                f'<b>Аудитория:</b> <code>{lesson[2]}</code>\n'
+                                f'{teacher_text}\n\n')
                     
                     text = (
                         f'[🔔 Ежедневное уведомление в {fulltime}]\n'
-                        f'<b>Выбрана группа {group}</b>\n'
+                        f'<b><u>Выбрана группа {group}</u></b>\n'
                         f'<b>{ru_day}:</b> {wdays.names(isoweekday)[0]}\n'
                         f'<b>Неделя:</b> {weekname}\n\n'
                         f'{schedule_txt}\n'
@@ -1260,6 +1314,7 @@ async def time_trigger():
                 else:
                     weekday = wdays.names(isoweekday)[1]
 
+                    # Величина, обратная прошлому блоку if
                     if datetime.datetime.today().isocalendar()[1] % 2 != 0:
                         weeknum = '1'
                         weeknum = 'нечётная'
@@ -1272,11 +1327,20 @@ async def time_trigger():
 
                     for lesson in schedule:
                         if lesson[1] != '-':
-                            schedule_txt += f'Пара №{lesson[0]} <i>({rings_list[lesson[0]-1]})</i>\n<code>{lesson[1].split(" ", maxsplit=1)[0]}</code> <b>{lesson[1].split(" ", maxsplit=1)[1]}</b>\n<b>Аудитория:</b> <code>{lesson[2]}</code>\n\n'
-                    
+                            teacher_text = ''
+                            if ',' in lesson[3]:
+                                teacher_text = f'<b>Преподаватели:</b> {lesson[3]}'
+                            else:
+                                teacher_text = f'<b>Преподаватель:</b> {lesson[3]}'
+                            schedule_txt += (
+                                f'<u>Пара №{lesson[0]} <i>({rings_list[lesson[0]-1]})</i></u>\n'
+                                f'<code>{lesson[1].split(" ", maxsplit=1)[0]}</code> <b>{lesson[1].split(" ", maxsplit=1)[1]}</b>\n'
+                                f'<b>Аудитория:</b> <code>{lesson[2]}</code>\n'
+                                f'{teacher_text}\n\n')
+
                     text = (
                         f'[🔔 Ежедневное уведомление в {fulltime}]\n'
-                        f'<b>Выбрана группа {group}</b>\n'
+                        f'<b><u>Выбрана группа {group}</u></b>\n'
                         f'<b>{ru_day}:</b> {wdays.names(isoweekday)[0]}\n'
                         f'<b>Неделя:</b> {weekname}\n\n'
                         f'{schedule_txt}\n'
