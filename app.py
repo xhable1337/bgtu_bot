@@ -1087,7 +1087,7 @@ async def button_func(call: types.CallbackQuery):
                             )
                         text += '\n'
                     
-                    text = ''
+                    text = '⚙ Продолжаем обновлять расписание...\n\n'
                     msg = await bot.send_message(call.message.chat.id, text=text, parse_mode='HTML')
                     msgid = msg.message_id
                     year -= 1
