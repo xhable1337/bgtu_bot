@@ -230,12 +230,17 @@ async def force_update_groups(m: types.Message):
 @dp.message_handler(commands=["admin"])
 async def admin_menu(m: types.Message):
     if m.from_user.id in ADMINS:
-        await bot.send_message(
-            chat_id=m.chat.id,
+        count = users.count_documents({})
+        maintenance_state = '🟢 Включены' if settings.find_one({})['maintenance'] else '🔴 Выключены'
+        await bot.edit_message_text(
             text=f'Добро пожаловать в админ-панель, {m.from_user.first_name}.\n'
-            'Выберите пункт в меню для дальнейших действий:',
-            reply_markup=kb_admin,
-            parse_mode='HTML'
+            f'<b>Количество пользователей: <u>{count}</u></b>\n'
+            f'<b>Состояние тех.работ: <u>{maintenance_state}</u></b>\n'
+            'Выберите пункт в меню для дальнейших действий:', 
+            chat_id=m.from_user.id,
+            message_id=m.message_id,
+            parse_mode='HTML',
+            reply_markup=kb_admin
         )
 
 @dp.message_handler(commands=["start"])
@@ -1162,7 +1167,6 @@ async def button_func(call: types.CallbackQuery):
         elif str(call.data) == 'toadmin':
             count = users.count_documents({})
             maintenance_state = '🟢 Включены' if settings.find_one({})['maintenance'] else '🔴 Выключены'
-            text = f'<u>Список пользователей бота (всего {count}):</u>\n\n'
             await bot.edit_message_text(
                 text=f'Добро пожаловать в админ-панель, {call.from_user.first_name}.\n'
                 f'<b>Количество пользователей: <u>{count}</u></b>\n'
@@ -1174,11 +1178,10 @@ async def button_func(call: types.CallbackQuery):
                 reply_markup=kb_admin
             )
 
-        elif call.data == 'maintenance':
+        elif call.data == 'maintenance_toggle':
             toggle_maintenance()
             count = users.count_documents({})
             maintenance_state = '🟢 Включены' if settings.find_one({})['maintenance'] else '🔴 Выключены'
-            text = f'<u>Список пользователей бота (всего {count}):</u>\n\n'
             await bot.edit_message_text(
                 text=f'Добро пожаловать в админ-панель, {call.from_user.first_name}.\n'
                 f'<b>Количество пользователей: <u>{count}</u></b>\n'
