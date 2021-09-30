@@ -232,13 +232,12 @@ async def admin_menu(m: types.Message):
     if m.from_user.id in ADMINS:
         count = users.count_documents({})
         maintenance_state = '🟢 Включены' if settings.find_one({})['maintenance'] else '🔴 Выключены'
-        await bot.edit_message_text(
+        await m.answer(
             text=f'Добро пожаловать в админ-панель, {m.from_user.first_name}.\n'
             f'<b>Количество пользователей: <u>{count}</u></b>\n'
             f'<b>Состояние тех.работ: <u>{maintenance_state}</u></b>\n'
             'Выберите пункт в меню для дальнейших действий:', 
             chat_id=m.from_user.id,
-            message_id=m.message_id,
             parse_mode='HTML',
             reply_markup=kb_admin
         )
@@ -564,7 +563,7 @@ async def anymess(m: types.Message):
             else:
                 await bot.send_message(m.chat.id, 'Вы ввели некорректное время. Повторите попытку или отмените действие:', reply_markup=kb_cancel_building, parse_mode='HTML')
     else:
-        m.reply('⚡ Бот находится на тех.работах. Возвращайтесь позже.')
+        await m.reply('⚡ Бот находится на тех.работах. Возвращайтесь позже.')
 
 # Хэндлер обработки действий кнопок
 @dp.callback_query_handler()
@@ -1193,7 +1192,7 @@ async def button_func(call: types.CallbackQuery):
                 reply_markup=kb_admin
             )
     else:
-        call.answer(
+        await call.answer(
             text='⚡ Бот находится на тех.работах. Возвращайтесь позже.',
             show_alert=True
         )

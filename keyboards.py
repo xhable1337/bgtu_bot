@@ -212,7 +212,7 @@ def days_keyboard(buttons):
 
 # Админ-меню
 kb_admin = types.InlineKeyboardMarkup()
-kb_admin.row(
+kb_admin.add(
     types.InlineKeyboardButton(
         text='✉ Рассылка',
         callback_data='mailing'
