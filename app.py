@@ -237,7 +237,6 @@ async def admin_menu(m: types.Message):
             f'<b>Количество пользователей: <u>{count}</u></b>\n'
             f'<b>Состояние тех.работ: <u>{maintenance_state}</u></b>\n'
             'Выберите пункт в меню для дальнейших действий:', 
-            chat_id=m.from_user.id,
             parse_mode='HTML',
             reply_markup=kb_admin
         )
@@ -1166,13 +1165,11 @@ async def button_func(call: types.CallbackQuery):
         elif str(call.data) == 'toadmin':
             count = users.count_documents({})
             maintenance_state = '🟢 Включены' if settings.find_one({})['maintenance'] else '🔴 Выключены'
-            await bot.edit_message_text(
+            await call.message.edit_text(
                 text=f'Добро пожаловать в админ-панель, {call.from_user.first_name}.\n'
                 f'<b>Количество пользователей: <u>{count}</u></b>\n'
                 f'<b>Состояние тех.работ: <u>{maintenance_state}</u></b>\n'
                 'Выберите пункт в меню для дальнейших действий:', 
-                chat_id=call.from_user.id,
-                message_id=call.message.message_id,
                 parse_mode='HTML',
                 reply_markup=kb_admin
             )
@@ -1181,13 +1178,11 @@ async def button_func(call: types.CallbackQuery):
             toggle_maintenance()
             count = users.count_documents({})
             maintenance_state = '🟢 Включены' if settings.find_one({})['maintenance'] else '🔴 Выключены'
-            await bot.edit_message_text(
+            await call.message.edit_text(
                 text=f'Добро пожаловать в админ-панель, {call.from_user.first_name}.\n'
                 f'<b>Количество пользователей: <u>{count}</u></b>\n'
                 f'<b>Состояние тех.работ: <u>{maintenance_state}</u></b>\n'
                 'Выберите пункт в меню для дальнейших действий:', 
-                chat_id=call.from_user.id,
-                message_id=call.message.message_id,
                 parse_mode='HTML',
                 reply_markup=kb_admin
             )
