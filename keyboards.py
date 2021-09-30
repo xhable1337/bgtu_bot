@@ -220,6 +220,10 @@ kb_admin.row(
     types.InlineKeyboardButton(
         text='👥 Список пользователей',
         callback_data='user_list'
+    ),
+    types.InlineKeyboardButton(
+        text='⚡ Тех.работы',
+        callback_data='maintenance_toggle'
     )
     
 )
