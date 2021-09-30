@@ -115,7 +115,7 @@ def get_weekname():
         weekname = 'чётная'
     return weekname
 
-def get_schedule(group, weekday, weeknum):
+def get_schedule(group, weekday, weeknum, force_update=False):
     """Функция получения расписания от API."""
     if schedule_db.find_one({'group': group}) is None or time.time() - schedule_db.find_one({'group': group})['last_updated'] > UPDATE_TIME:
         if schedule_db.find_one({'group': group}) is None:
@@ -131,7 +131,13 @@ def get_schedule(group, weekday, weeknum):
             else:
                 schedule_db.find_one({'group': group})[weekday][f'{weeknum}']
     else:
-        return schedule_db.find_one({'group': group})[weekday][f'{weeknum}']
+        if force_update == True:
+            schedule = api_get_schedule(group)
+            if schedule != None:
+                schedule_db.update_one({'group': group}, {'$set': schedule})
+                return schedule[weekday][f'{weeknum}']
+        else:
+            return schedule_db.find_one({'group': group})[weekday][f'{weeknum}']
 
 def get_groups(faculty='Факультет информационных технологий', year='20', force_update=False):
     """Функция получения расписания от API."""
@@ -1071,7 +1077,7 @@ async def button_func(call: types.CallbackQuery):
                         text += f'{faculty} (20{year} год): \n'
                         groups = get_groups(faculty=faculty, year=str(year), force_update=True)
                         for group in groups:
-                            get_schedule(group, 'monday', '1')
+                            get_schedule(group, 'monday', '1', True)
                             text += f'✔ {group}\n'
                             await bot.edit_message_text(
                                 chat_id=call.message.chat.id,
