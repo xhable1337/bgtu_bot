@@ -204,11 +204,7 @@ async def force_update_schedule(m):
         
         faculties = get_faculties()
 
-        dt = datetime.datetime.now()
-        year = int(dt.strftime('%y'))
-
-
-        for _ in range(4):
+        for year in get_years():
             for faculty in faculties:
                 groups_text += f'{faculty} (20{year} год): \n'
                 groups = get_groups(faculty=faculty, year=str(year), force_update=True)
