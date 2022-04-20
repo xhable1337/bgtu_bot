@@ -3,7 +3,7 @@
 # Now you must put your bot's token into config vars. (they're getting here by os.environ())
 
 #from site_parser import get_state, set_state, get_group, set_group
-from site_parser import api_get_groups, api_get_schedule
+from site_parser import api_get_groups, api_get_schedule, api_get_schedule_v2
 from keyboards import kbm, kbb, kbbb, kb_cancel_building, kb_notifications, kb_notifications_days, days_keyboard, kb_admin, kb_admin_back
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.utils.executor import start_webhook
@@ -30,9 +30,10 @@ import time
 password = os.environ.get('password')
 API_URL = os.environ.get('PARSER_URL')
 MONGODB_URI = os.environ['MONGODB_URI']
-client = MongoClient(host=MONGODB_URI, retryWrites=False) 
+client = MongoClient(host=MONGODB_URI, retryWrites=False)
 db = client.heroku_38n7vrr9
 schedule_db = db.schedule
+schedule2_db = db.schedule2
 groups_db = db.groups
 users = db.users
 settings = db.settings
@@ -66,7 +67,8 @@ server = Flask(__name__)
 no = '-'
 index = [i for i in range(1, 8)]
 
-rings_list = ['8:00-9:35', '9:45-11:20', '11:30-13:05', '13:20-14:55', '15:05-16:40', '16:50-18:25', '18:40-20:15']
+rings_list = ['8:00-9:35', '9:45-11:20', '11:30-13:05',
+              '13:20-14:55', '15:05-16:40', '16:50-18:25', '18:40-20:15']
 
 ADMINS = [124361528, 436335947, 465503110]
 
@@ -78,34 +80,42 @@ table_r = PrettyTable()
 
 last_msgid = 0
 
+
 def get_state(user_id):
     """Позволяет просмотреть state по user_id."""
     return users.find_one({'user_id': user_id})['state']
+
 
 def set_state(user_id, state):
     """Позволяет изменить state по user_id."""
     users.update_one({'user_id': user_id}, {'$set': {'state': state}})
 
+
 def get_group(user_id):
     """Позволяет просмотреть номер группы по user_id."""
     return users.find_one({'user_id': user_id})['group']
 
+
 def set_group(user_id, group):
     """Позволяет изменить номер группы по user_id."""
     users.update_one({'user_id': user_id}, {'$set': {'group': group}})
+
 
 def toggle_maintenance():
     """Меняет состояние технических работ в боте."""
     new_state = False if settings.find_one({})['maintenance'] else True
     settings.update_one({}, {'$set': {'maintenance': new_state}})
 
+
 def ru_en(text):
-    """Функция транслитерации с русского на английский."""            
+    """Функция транслитерации с русского на английский."""
     return translit(text, 'ru', reversed=True)
+
 
 def en_ru(text):
     """Функция транслитерации с английского на русский."""
     return translit(text, 'ru', reversed=False)
+
 
 def get_weekname():
     """Функция получения чётности/нечётности недели."""
@@ -115,8 +125,12 @@ def get_weekname():
         weekname = 'чётная'
     return weekname
 
+
 def get_schedule(group, weekday, weeknum, force_update=False):
-    """Функция получения расписания от API."""
+    """Функция получения расписания от API.
+
+    DEPRECATED - переход на новую структуру хранения и получения расписания.
+    """
     if schedule_db.find_one({'group': group}) is None or time.time() - schedule_db.find_one({'group': group})['last_updated'] > UPDATE_TIME:
         if schedule_db.find_one({'group': group}) is None:
             schedule = api_get_schedule(group)
@@ -139,27 +153,57 @@ def get_schedule(group, weekday, weeknum, force_update=False):
         else:
             return schedule_db.find_one({'group': group})[weekday][f'{weeknum}']
 
+
+def get_schedule_v2(group, weekday, weeknum, force_update=False):
+    """Функция получения расписания от API.
+    """
+    weeknum = 'odd' if weeknum == 1 else 'even'
+    if schedule2_db.find_one({'group': group}) is None or time.time() - schedule2_db.find_one({'group': group})['last_updated'] > UPDATE_TIME:
+        if schedule2_db.find_one({'group': group}) is None:
+            schedule = api_get_schedule_v2(group)
+            schedule2_db.insert_one(schedule)
+            return schedule[weekday][weeknum]
+
+        elif time.time() - schedule2_db.find_one({'group': group})['last_updated'] > UPDATE_TIME:
+            schedule = api_get_schedule_v2(group)
+            if schedule != None:
+                schedule2_db.update_one({'group': group}, {'$set': schedule})
+                return schedule[weekday][weeknum]
+            else:
+                schedule2_db.find_one({'group': group})[weekday][weeknum]
+    else:
+        if force_update == True:
+            schedule = api_get_schedule_v2(group)
+            if schedule != None:
+                schedule2_db.update_one({'group': group}, {'$set': schedule})
+                return schedule[weekday][weeknum]
+        else:
+            return schedule2_db.find_one({'group': group})[weekday][weeknum]
+
+
 def get_groups(faculty='Факультет информационных технологий', year='20', force_update=False):
     """Функция получения расписания от API."""
     if groups_db.find_one({"faculty": faculty, "year": year}) is None:
         group_list = api_get_groups(faculty, year)
-        print(group_list)
-        groups_db.insert_one({'faculty': faculty, 'year': year, 'groups': group_list, 'last_updated': time.time()})
+        groups_db.insert_one({'faculty': faculty, 'year': year,
+                             'groups': group_list, 'last_updated': time.time()})
         return group_list
     else:
         if force_update == True:
             group_list = api_get_groups(faculty, year)
             if group_list != None:
-                groups_db.update_one({'faculty': faculty, 'year': year}, {'$set': {'groups': group_list, 'last_updated': time.time()}})
+                groups_db.update_one({'faculty': faculty, 'year': year}, {
+                                     '$set': {'groups': group_list, 'last_updated': time.time()}})
                 return group_list
             else:
                 return groups_db.find_one({'faculty': faculty, 'year': year})['groups']
         else:
             return groups_db.find_one({'faculty': faculty, 'year': year})['groups']
-    #if schedule_db.find_one({'group': group}) is None or time.time() - schedule_db.find_one({'group': group})['last_updated'] > UPDATE_TIME:
+    # if schedule_db.find_one({'group': group}) is None or time.time() - schedule_db.find_one({'group': group})['last_updated'] > UPDATE_TIME:
     #    schedule = api_get_groups(faculty, year, force_update)
-    #else:
+    # else:
     #    return schedule_db.find_one({'group': group})[weekday][f'{weeknum}']
+
 
 def get_years():
     years = []
@@ -180,6 +224,7 @@ def get_years():
 
     return years
 
+
 def get_faculties():
     """Возвращает список факультетов из БД."""
     faculties = [
@@ -194,20 +239,22 @@ def get_faculties():
     # for item in groups_db.find({}):
     #     faculties.append(item['faculty'])
 
-    return faculties    
+    return faculties
+
 
 @dp.message_handler(commands=['force_update'])
 async def force_update_schedule(m):
     if m.from_user.id in ADMINS:
         groups_text = ''
         await bot.send_message(m.chat.id, text='⚙ Запущено обновление групп...\n\nПожалуйста, ожидайте завершения. Это занимает некоторое время (обычно 1-2 минуты).', parse_mode='HTML')
-        
+
         faculties = get_faculties()
 
         for year in get_years():
             for faculty in faculties:
                 groups_text += f'{faculty} (20{year} год): \n'
-                groups = get_groups(faculty=faculty, year=str(year), force_update=True)
+                groups = get_groups(
+                    faculty=faculty, year=str(year), force_update=True)
                 for group in groups:
                     groups_text += f'{group}\n'
                 groups_text += '\n'
@@ -218,11 +265,16 @@ async def force_update_schedule(m):
         prompt_text = 'Хотите ли вы обновить расписание всех групп? (может занять много времени)'
         keyboard = types.InlineKeyboardMarkup()
         keyboard.row(
-            types.InlineKeyboardButton(text='✔ Да', callback_data='force-update-yes'),
-            types.InlineKeyboardButton(text='❌ Нет', callback_data='force-update-no')
+            types.InlineKeyboardButton(
+                text='✔ Да', callback_data='force-update-yes'),
+            types.InlineKeyboardButton(
+                text='✔ Да (v2)', callback_data='force-update-yes-v2'),
+            types.InlineKeyboardButton(
+                text='❌ Нет', callback_data='force-update-no')
         )
-        
+
         await bot.send_message(m.chat.id, text=prompt_text, reply_markup=keyboard, parse_mode='HTML')
+
 
 @dp.message_handler(commands=['force_update_groups'])
 async def force_update_groups(m: types.Message):
@@ -233,15 +285,17 @@ async def force_update_groups(m: types.Message):
 async def admin_menu(m: types.Message):
     if m.from_user.id in ADMINS:
         count = users.count_documents({})
-        maintenance_state = '🟢 Включены' if settings.find_one({})['maintenance'] else '🔴 Выключены'
+        maintenance_state = '🟢 Включены' if settings.find_one(
+            {})['maintenance'] else '🔴 Выключены'
         await m.answer(
             text=f'Добро пожаловать в админ-панель, {m.from_user.first_name}.\n'
             f'<b>Количество пользователей: <u>{count}</u></b>\n'
             f'<b>Состояние тех.работ: <u>{maintenance_state}</u></b>\n'
-            'Выберите пункт в меню для дальнейших действий:', 
+            'Выберите пункт в меню для дальнейших действий:',
             parse_mode='HTML',
             reply_markup=kb_admin
         )
+
 
 @dp.message_handler(commands=["start"])
 async def start_handler(m: types.Message):
@@ -258,19 +312,20 @@ async def start_handler(m: types.Message):
         faculty_list = get_faculties()
         kb_faculty = types.InlineKeyboardMarkup()
         for faculty in faculty_list:
-            kb_faculty.row(types.InlineKeyboardButton(text=faculty, callback_data=ru_en('f_' + faculty)))
+            kb_faculty.row(types.InlineKeyboardButton(
+                text=faculty, callback_data=ru_en('f_' + faculty)))
 
         await bot.send_message(
-            m.chat.id, 
+            m.chat.id,
             f'Привет, {m.from_user.first_name}!\n'
             '<b>Для начала работы с ботом выбери свою группу (впоследствии выбор можно изменить):</b>',
-            reply_markup=kb_faculty, 
+            reply_markup=kb_faculty,
             parse_mode='HTML')
     else:
         user = users.find_one({'user_id': m.from_user.id})
         if user.get('favorite_groups') == None:
             users.update_one(
-                {'user_id': m.from_user.id}, 
+                {'user_id': m.from_user.id},
                 {'$set': {'favorite_groups': []}})
         elif user.get('first_name') != m.from_user.first_name:
             users.update_one(
@@ -282,18 +337,19 @@ async def start_handler(m: types.Message):
                 {'$set': {'last_name': m.from_user.last_name}})
         elif user.get('username') != m.from_user.username:
             users.update_one(
-                {'user_id': m.from_user.id}, 
+                {'user_id': m.from_user.id},
                 {'$set': {'username': m.from_user.username}})
         group = get_group(m.from_user.id)
         await bot.send_message(
-            m.chat.id, 
+            m.chat.id,
             f'Привет, {m.from_user.first_name}!\n'
             f'<b>Твоя группа: {group}.</b>\n'
             f'<b>Сейчас идёт {get_weekname()} неделя.</b>\n'
-            'Вот главное меню:', 
-            reply_markup=kbm, 
+            'Вот главное меню:',
+            reply_markup=kbm,
             parse_mode='HTML')
         set_state(m.from_user.id, 'default')
+
 
 @dp.message_handler(commands=['whatis'])
 async def whatis(m: types.Message):
@@ -306,6 +362,7 @@ async def whatis(m: types.Message):
         except KeyError:
             await bot.send_message(m.chat.id, f'Переменная <code>{key}</code> не найдена!', parse_mode='HTML')
 
+
 @dp.message_handler(commands=['users_reset'])
 async def users_reset(m: types.Message):
     if m.chat.id in ADMINS:
@@ -316,9 +373,10 @@ async def users_reset(m: types.Message):
             set_state(user_id, state)
             set_group(user_id, group)
         await bot.send_message(
-            m.chat.id, 
+            m.chat.id,
             f'Параметры пользователей сброшены!\n\n'
             'Состояние = {state}\nГруппа = {group}')
+
 
 @dp.message_handler(commands=['users'])
 async def users_handler(m: types.Message):
@@ -339,12 +397,13 @@ async def users_handler(m: types.Message):
 
         count = users.count_documents({})
         text = f"Всего пользователей: {count}\n\n" + text
-        
+
         if len(text) > 4096:
             for x in range(0, len(text), 4096):
                 await bot.send_message(m.chat.id, text[x:x+4096], parse_mode='Markdown')
         else:
             await bot.send_message(m.chat.id, text, parse_mode='Markdown')
+
 
 @dp.message_handler(commands=['broadcast'])
 async def broadcast(m: types.Message):
@@ -365,7 +424,7 @@ async def broadcast(m: types.Message):
                         i += 1
                     except:
                         pass
-                    #except bot.apihelper.ApiTelegramException:
+                    # except bot.apihelper.ApiTelegramException:
                     #    pass
             elif group == 'test':
                 text = f'🔔 *Тестовое сообщение!*\n' + text
@@ -381,10 +440,11 @@ async def broadcast(m: types.Message):
                         i += 1
                     except:
                         pass
-                    #except Exceptions.TelegramAPIError:
+                    # except Exceptions.TelegramAPIError:
                     #    pass
         elif m.text == '/broadcast':
             pass
+
 
 @dp.message_handler(commands=['exec'])
 async def execute(m: types.Message):
@@ -407,98 +467,98 @@ async def anymess(m: types.Message):
         elif users.find_one({'user_id': m.from_user.id}) != None and get_state(m.from_user.id) == 'default':
             group = get_group(m.from_user.id)
             await bot.send_message(
-                m.chat.id, 
+                m.chat.id,
                 text=f'Привет, {m.from_user.first_name}!\n'
                 f'<b>Твоя группа: {group}.</b>\n'
                 f'<b>Сейчас идёт {get_weekname()} неделя.</b>\n'
-                'Вот главное меню:', 
+                'Вот главное меню:',
                 reply_markup=kbm,
                 parse_mode='HTML')
         elif get_state(m.from_user.id) == 'find_class':
             if re.match(r'(\b[1-9][1-9]\b|\b[1-9]\b)', m.text):
                 await bot.send_photo(
-                    m.chat.id, 
-                    photo=building_1, 
-                    caption=f'Аудитория {m.text} находится в корпусе №1 <i>(Институтская, 16)</i>.', 
+                    m.chat.id,
+                    photo=building_1,
+                    caption=f'Аудитория {m.text} находится в корпусе №1 <i>(Институтская, 16)</i>.',
                     parse_mode='HTML')
                 await bot.send_location(
-                    m.chat.id, 
-                    latitude=53.305077, 
+                    m.chat.id,
+                    latitude=53.305077,
                     longitude=34.305080)
                 set_state(m.chat.id, 'default')
                 group = get_group(m.from_user.id)
                 await bot.send_message(
-                    m.chat.id, 
+                    m.chat.id,
                     f'Привет, {m.from_user.first_name}!\n'
                     f'<b>Твоя группа: {group}.</b>\n'
                     f'<b>Сейчас идёт {get_weekname()} неделя.</b>\n'
-                    'Вот главное меню:', 
-                    reply_markup=kbm, 
+                    'Вот главное меню:',
+                    reply_markup=kbm,
                     parse_mode='HTML')
             elif re.match(r'\b[1-9][0-9][0-9]\b', m.text):
                 await bot.send_photo(
-                    m.chat.id, 
-                    photo=building_2, 
-                    caption=f'Аудитория {m.text} находится в корпусе №2 <i>(бульвар 50 лет Октября, 7)</i>.', 
+                    m.chat.id,
+                    photo=building_2,
+                    caption=f'Аудитория {m.text} находится в корпусе №2 <i>(бульвар 50 лет Октября, 7)</i>.',
                     parse_mode='HTML')
                 await bot.send_location(
-                    m.chat.id, 
-                    latitude=53.304442, 
+                    m.chat.id,
+                    latitude=53.304442,
                     longitude=34.303849)
                 set_state(m.chat.id, 'default')
                 group = get_group(m.from_user.id)
                 await bot.send_message(
-                    m.chat.id, 
+                    m.chat.id,
                     f'Привет, {m.from_user.first_name}!\n'
                     f'<b>Твоя группа: {group}.</b>\n'
                     f'<b>Сейчас идёт {get_weekname()} неделя.</b>\n'
-                    'Вот главное меню:', 
-                    reply_markup=kbm, 
+                    'Вот главное меню:',
+                    reply_markup=kbm,
                     parse_mode='HTML')
             elif re.match(r'(\bА\d{3}\b|\b[Аа]\b|\b[Бб]\b|\b[Вв]\b|\b[Гг]\b|\b[Дд]\b)', m.text):
                 await bot.send_photo(
-                    m.chat.id, 
-                    photo=building_3, 
-                    caption=f'Аудитория {m.text} находится в корпусе №3 <i>(Харьковская, 8)</i>.', 
+                    m.chat.id,
+                    photo=building_3,
+                    caption=f'Аудитория {m.text} находится в корпусе №3 <i>(Харьковская, 8)</i>.',
                     parse_mode='HTML')
                 await bot.send_location(
-                    m.chat.id, 
-                    latitude=53.304991, 
+                    m.chat.id,
+                    latitude=53.304991,
                     longitude=34.306688)
                 set_state(m.chat.id, 'default')
                 group = get_group(m.from_user.id)
                 await bot.send_message(
-                    m.chat.id, 
+                    m.chat.id,
                     f'Привет, {m.from_user.first_name}!\n'
                     f'<b>Твоя группа: {group}.</b>\n'
                     f'<b>Сейчас идёт {get_weekname()} неделя.</b>\n'
-                    f'Вот главное меню:', 
-                    reply_markup=kbm, 
+                    f'Вот главное меню:',
+                    reply_markup=kbm,
                     parse_mode='HTML')
             elif re.match(r'\bБ\d{3}\b', m.text):
                 await bot.send_photo(
-                    m.chat.id, 
-                    photo=building_4, 
-                    caption=f'Аудитория {m.text} находится в корпусе №4 <i>(Харьковская, 10Б)</i>.', 
+                    m.chat.id,
+                    photo=building_4,
+                    caption=f'Аудитория {m.text} находится в корпусе №4 <i>(Харьковская, 10Б)</i>.',
                     parse_mode='HTML')
                 await bot.send_location(
-                    m.chat.id, 
-                    latitude=53.303513, 
+                    m.chat.id,
+                    latitude=53.303513,
                     longitude=34.305085)
                 set_state(m.chat.id, 'default')
                 group = get_group(m.from_user.id)
                 await bot.send_message(
-                    m.chat.id, 
+                    m.chat.id,
                     f'Привет, {m.from_user.first_name}!\n'
                     f'<b>Твоя группа: {group}.</b>\n'
                     f'<b>Сейчас идёт {get_weekname()} неделя.</b>\n'
-                    'Вот главное меню:', 
-                    reply_markup=kbm, 
+                    'Вот главное меню:',
+                    reply_markup=kbm,
                     parse_mode='HTML')
             else:
                 await bot.send_message(
-                    m.chat.id, 
-                    'Данный номер аудитории некорректен. Повторите попытку или отмените действие:', 
+                    m.chat.id,
+                    'Данный номер аудитории некорректен. Повторите попытку или отмените действие:',
                     reply_markup=kb_cancel_building,
                     parse_mode='HTML')
         elif get_state(m.from_user.id).startswith('add_notification_'):
@@ -509,8 +569,9 @@ async def anymess(m: types.Message):
                     notification_time = str(m.text)
 
                 weekday = get_state(m.from_user.id).split('_')[2]
-                
-                user_time_dict = users.find_one({'user_id': m.from_user.id}).get('notification_time')
+
+                user_time_dict = users.find_one(
+                    {'user_id': m.from_user.id}).get('notification_time')
                 if user_time_dict is None or user_time_dict == {}:
                     user_time_dict = {
                         "monday": "",
@@ -521,43 +582,52 @@ async def anymess(m: types.Message):
                         "saturday": "",
                         "sunday": ""
                     }
-                
+
                 # Удаляем прошлое напоминание на этот день (edit notification)
                 # БЕРЕТ ТОЛЬКО ОЛД НОТИФИКЕЙШН
                 try:
-                    old_notification_time = users.find_one({"user_id": m.from_user.id}).get('notification_time')[weekday]
+                    old_notification_time = users.find_one(
+                        {"user_id": m.from_user.id}).get('notification_time')[weekday]
                     scheduled_ = scheduled_msg.find_one({"id": 1})[weekday]
-                    user_list = list(scheduled_msg.find_one({"id": 1})[weekday][old_notification_time])
+                    user_list = list(scheduled_msg.find_one({"id": 1})[
+                                     weekday][old_notification_time])
                     user_list.pop(user_list.index(m.from_user.id))
                     scheduled_[old_notification_time] = user_list
                     print(f'!! scheduled_ == {scheduled_}')
                     scheduled_msg_dict = {weekday: scheduled_}
                     #scheduled_msg_dict = {weekday: {old_notification_time: user_list}}
-                    scheduled_msg.update_one({'id': 1}, {"$set": scheduled_msg_dict})
+                    scheduled_msg.update_one(
+                        {'id': 1}, {"$set": scheduled_msg_dict})
                     user_time_dict[weekday] = ''
-                    users.update_one({'user_id': m.from_user.id}, {"$set": {"notification_time": user_time_dict}})
-                    user_time_dict = users.find_one({'user_id': m.from_user.id})['notification_time']
+                    users.update_one({'user_id': m.from_user.id}, {
+                                     "$set": {"notification_time": user_time_dict}})
+                    user_time_dict = users.find_one({'user_id': m.from_user.id})[
+                        'notification_time']
                 except:
                     pass
-                
-                user_time_dict[weekday] = notification_time
-                users.update_one({'user_id': m.from_user.id}, {"$set": {"notification_time": user_time_dict}})
 
-                notification_list = scheduled_msg.find_one({'id': 1})[weekday].get(notification_time)
+                user_time_dict[weekday] = notification_time
+                users.update_one({'user_id': m.from_user.id}, {
+                                 "$set": {"notification_time": user_time_dict}})
+
+                notification_list = scheduled_msg.find_one(
+                    {'id': 1})[weekday].get(notification_time)
                 if notification_list == None:
                     scheduled_ = scheduled_msg.find_one({"id": 1})[weekday]
                     user_list = []
                     user_list.append(m.from_user.id)
                     scheduled_[notification_time] = user_list
                     scheduled_msg_dict = {weekday: scheduled_}
-                    scheduled_msg.update_one({'id': 1}, {"$set": scheduled_msg_dict})
+                    scheduled_msg.update_one(
+                        {'id': 1}, {"$set": scheduled_msg_dict})
                 else:
                     scheduled_ = scheduled_msg.find_one({"id": 1})[weekday]
                     user_list = list(scheduled_[notification_time])
                     user_list.append(m.from_user.id)
                     scheduled_[notification_time] = user_list
                     scheduled_msg_dict = {weekday: scheduled_}
-                    scheduled_msg.update_one({'id': 1}, {"$set": scheduled_msg_dict})
+                    scheduled_msg.update_one(
+                        {'id': 1}, {"$set": scheduled_msg_dict})
 
                 await bot.send_message(m.chat.id, f'Уведомление на {m.text} установлено!', reply_markup=kbbb, parse_mode='HTML')
                 set_state(m.chat.id, 'default')
@@ -567,6 +637,8 @@ async def anymess(m: types.Message):
         await m.reply('⚡ Бот находится на тех.работах. Возвращайтесь позже.')
 
 # Хэндлер обработки действий кнопок
+
+
 @dp.callback_query_handler()
 async def button_func(call: types.CallbackQuery):
     if not settings.find_one({})['maintenance'] or call.from_user.id in ADMINS:
@@ -588,16 +660,14 @@ async def button_func(call: types.CallbackQuery):
                 reply_markup=kb_dn,
                 parse_mode='HTML'
             )
-        
+
         elif call.data[:5] == 'wday_':
             await bot.answer_callback_query(call.id)
-            table = PrettyTable(border=False)
-            table.field_names = ['№', 'Пара', 'Кабинет']
             group = get_group(call.from_user.id)
             isoweekday = datetime.datetime.today().isoweekday()
             weeknum = str(call.data)[-1]
             weekday = call.data[5:-2]
-            
+
             schedule = get_schedule(group, weekday, weeknum)
 
             if weeknum == '1':
@@ -619,16 +689,16 @@ async def button_func(call: types.CallbackQuery):
                         f'<code>{lesson[1].split(" ", maxsplit=1)[0]}</code> <b>{lesson[1].split(" ", maxsplit=1)[1]}</b>\n'
                         f'<b>Аудитория:</b> <code>{lesson[2]}</code>\n'
                         f'{teacher_text}\n\n')
-            
+
             text = (
-                    f'<b><u>Выбрана группа {group}</u></b>\n'
-                    f'<b>Расписание:</b> {wdays.translate(weekday)}\n'
-                    f'<b>Неделя:</b> {weekname}\n\n'
-                    f'{schedule_txt}\n'
-                    '<code>[Л]</code> - <b>лекция</b>\n'
-                    '<code>[ПЗ]</code> - <b>практическое занятие</b>\n'
-                    '<code>[ЛАБ]</code> - <b>лабораторное занятие</b>'
-                )
+                f'<b><u>Выбрана группа {group}</u></b>\n'
+                f'<b>Расписание:</b> {wdays.translate(weekday)}\n'
+                f'<b>Неделя:</b> {weekname}\n\n'
+                f'{schedule_txt}\n'
+                '<code>[Л]</code> - <b>лекция</b>\n'
+                '<code>[ПЗ]</code> - <b>практическое занятие</b>\n'
+                '<code>[ЛАБ]</code> - <b>лабораторное занятие</b>'
+            )
 
             await call.message.edit_text(
                 text=text,
@@ -636,7 +706,6 @@ async def button_func(call: types.CallbackQuery):
                 parse_mode='HTML'
             )
 
-        
         elif call.data == 'today':
             await bot.answer_callback_query(call.id)
             group = get_group(call.from_user.id)
@@ -657,8 +726,6 @@ async def button_func(call: types.CallbackQuery):
 
                 schedule = get_schedule(group, weekday, weeknum)
                 schedule_txt = ''
-                
-                
 
                 for lesson in schedule:
                     if lesson[1] != '-':
@@ -672,7 +739,7 @@ async def button_func(call: types.CallbackQuery):
                             f'<code>{lesson[1].split(" ", maxsplit=1)[0]}</code> <b>{lesson[1].split(" ", maxsplit=1)[1]}</b>\n'
                             f'<b>Аудитория:</b> <code>{lesson[2]}</code>\n'
                             f'{teacher_text}\n\n')
-                
+
                 text = (
                     f'<b><u>Выбрана группа {group}</u></b>\n'
                     f'<b>Сегодня:</b> {wdays.names(isoweekday)[0]}\n'
@@ -684,9 +751,9 @@ async def button_func(call: types.CallbackQuery):
                 )
 
             await bot.edit_message_text(chat_id=call.message.chat.id,
-            message_id=call.message.message_id,
-            text=text, reply_markup=kbbb, parse_mode='HTML')
-        
+                                        message_id=call.message.message_id,
+                                        text=text, reply_markup=kbbb, parse_mode='HTML')
+
         elif call.data == 'rings':
             await bot.answer_callback_query(call.id)
             table_r.clear()
@@ -694,8 +761,8 @@ async def button_func(call: types.CallbackQuery):
             table_r.add_column(fieldname="Время", column=rings_list)
             text = f'Расписание пар\n\n<code>{table_r}</code>'
             await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=text,
-            reply_markup=kbbb, parse_mode='HTML')
-        
+                                        reply_markup=kbbb, parse_mode='HTML')
+
         elif call.data == 'tomorrow':
             await bot.answer_callback_query(call.id)
             group = get_group(call.from_user.id)
@@ -705,7 +772,7 @@ async def button_func(call: types.CallbackQuery):
             elif isoweekday == 8:
                 weekday = wdays.names(isoweekday)[1]
 
-                # Если завтра понедельник, то неделя должна меняться 
+                # Если завтра понедельник, то неделя должна меняться
                 if datetime.datetime.today().isocalendar()[1] % 2 == 0:
                     weeknum = '1'
                     weekname = 'нечётная'
@@ -765,8 +832,8 @@ async def button_func(call: types.CallbackQuery):
                             f'<u>Пара №{lesson[0]} <i>({rings_list[lesson[0]-1]})</i></u>\n'
                             f'<code>{lesson[1].split(" ", maxsplit=1)[0]}</code> <b>{lesson[1].split(" ", maxsplit=1)[1]}</b>\n'
                             f'<b>Аудитория:</b> <code>{lesson[2]}</code>\n'
-                            f'{teacher_text}\n\n')     
-                
+                            f'{teacher_text}\n\n')
+
                 text = (
                     f'<b><u>Выбрана группа {group}</u></b>\n'
                     f'<b>Завтра:</b> {wdays.names(isoweekday)[0]}\n'
@@ -776,7 +843,7 @@ async def button_func(call: types.CallbackQuery):
                     '<code>[ПЗ]</code> - <b>практическое занятие</b>\n'
                     '<code>[ЛАБ]</code> - <b>лабораторное занятие</b>'
                 )
-            
+
             await call.message.edit_text(
                 text=text,
                 reply_markup=kbbb,
@@ -786,13 +853,13 @@ async def button_func(call: types.CallbackQuery):
         elif call.data == 'tomain':
             await bot.answer_callback_query(call.id, text='Возврат в главное меню...')
             await bot.edit_message_text(
-                chat_id=call.message.chat.id, 
+                chat_id=call.message.chat.id,
                 message_id=call.message.message_id,
                 text=f'Привет, {call.from_user.first_name}!\n'
                 f'<b>Твоя группа: {get_group(call.from_user.id)}.</b>\n'
                 f'<b>Сейчас идёт {get_weekname()} неделя.</b>\n'
                 'Вот главное меню:',
-                reply_markup=kbm, 
+                reply_markup=kbm,
                 parse_mode='HTML'
             )
 
@@ -800,10 +867,10 @@ async def button_func(call: types.CallbackQuery):
             await bot.answer_callback_query(call.id)
             set_state(call.from_user.id, 'find_class')
             await bot.edit_message_text(
-                chat_id=call.message.chat.id, 
-                message_id=call.message.message_id, 
-                text='Отправьте номер аудитории:', 
-                reply_markup=kb_cancel_building, 
+                chat_id=call.message.chat.id,
+                message_id=call.message.message_id,
+                text='Отправьте номер аудитории:',
+                reply_markup=kb_cancel_building,
                 parse_mode='HTML'
             )
 
@@ -817,7 +884,7 @@ async def button_func(call: types.CallbackQuery):
                 f'<b>Твоя группа: {get_group(call.from_user.id)}.</b>\n'
                 f'<b>Сейчас идёт {get_weekname()} неделя.</b>\n'
                 'Вот главное меню:',
-                reply_markup=kbm, 
+                reply_markup=kbm,
                 parse_mode='HTML'
             )
 
@@ -829,14 +896,16 @@ async def button_func(call: types.CallbackQuery):
 
             for faculty in faculty_list:
                 callback_faculty = str('f_' + faculty).replace(' ', '_')
-                kb_faculty.row(types.InlineKeyboardButton(text=faculty, callback_data=ru_en(callback_faculty)))
+                kb_faculty.row(types.InlineKeyboardButton(
+                    text=faculty, callback_data=ru_en(callback_faculty)))
 
-            kb_faculty.row(types.InlineKeyboardButton(text='🚫 Отмена', callback_data='cancel_find_class'))
+            kb_faculty.row(types.InlineKeyboardButton(
+                text='🚫 Отмена', callback_data='cancel_find_class'))
             await bot.edit_message_text(
                 chat_id=call.message.chat.id,
                 message_id=call.message.message_id,
-                text=f'Выберите факультет:', # Выберите год поступления:
-                reply_markup=kb_faculty, 
+                text=f'Выберите факультет:',  # Выберите год поступления:
+                reply_markup=kb_faculty,
                 parse_mode='HTML'
             )
 
@@ -851,14 +920,16 @@ async def button_func(call: types.CallbackQuery):
 
             for year in years_list:
                 callback_year = f'y_{year}_{faculty}'
-                kb_years.row(types.InlineKeyboardButton(text='20' + str(year), callback_data=callback_year))
+                kb_years.row(types.InlineKeyboardButton(
+                    text='20' + str(year), callback_data=callback_year))
 
-            kb_years.row(types.InlineKeyboardButton(text='🚫 Отмена', callback_data='cancel_find_class'))
+            kb_years.row(types.InlineKeyboardButton(
+                text='🚫 Отмена', callback_data='cancel_find_class'))
             await bot.edit_message_text(
                 chat_id=call.message.chat.id,
                 message_id=call.message.message_id,
                 text=f'Выберите год поступления:',
-                reply_markup=kb_years, 
+                reply_markup=kb_years,
                 parse_mode='HTML'
             )
 
@@ -870,21 +941,22 @@ async def button_func(call: types.CallbackQuery):
             cb_faculty = str(call.data[5:])
             cb_faculty = en_ru(cb_faculty).capitalize()
             faculty = cb_faculty.replace('_', ' ')
-            
+
             if 'економики' in faculty:
                 faculty = 'Факультет отраслевой и цифровой экономики'
             elif 'електроники' in faculty:
                 faculty = 'Факультет энергетики и электроники'
-                
+
             group_list = get_groups(faculty=faculty, year=year)
             kb_group = types.InlineKeyboardMarkup()
 
             for group in group_list:
-                kb_group.row(types.InlineKeyboardButton(text=group, callback_data=f"g_{group}"))
+                kb_group.row(types.InlineKeyboardButton(
+                    text=group, callback_data=f"g_{group}"))
 
             kb_group.row(
                 types.InlineKeyboardButton(
-                    text='🚫 Отмена', 
+                    text='🚫 Отмена',
                     callback_data='cancel_find_class'
                 )
             )
@@ -902,14 +974,16 @@ async def button_func(call: types.CallbackQuery):
             kb_group = types.InlineKeyboardMarkup()
 
             for group in group_list:
-                kb_group.row(types.InlineKeyboardButton(text=group, callback_data=group))
+                kb_group.row(types.InlineKeyboardButton(
+                    text=group, callback_data=group))
 
-            kb_group.row(types.InlineKeyboardButton(text='🚫 Отмена', callback_data='cancel_find_class'))
+            kb_group.row(types.InlineKeyboardButton(
+                text='🚫 Отмена', callback_data='cancel_find_class'))
             await bot.edit_message_text(
                 chat_id=call.message.chat.id,
                 message_id=call.message.message_id,
                 text=f'Выберите группу:',
-                reply_markup=kb_group, 
+                reply_markup=kb_group,
                 parse_mode='HTML'
             )
 
@@ -921,26 +995,30 @@ async def button_func(call: types.CallbackQuery):
             if user.get('favorite_groups') is not None:
                 for group in user.get('favorite_groups'):
                     kb_favorite.row(
-                        types.InlineKeyboardButton(text=group, callback_data=f'g_{group}'),
+                        types.InlineKeyboardButton(
+                            text=group, callback_data=f'g_{group}'),
                         types.InlineKeyboardButton(text='❌', callback_data=f'g_{group}__del'))
                     i += 1
                 space_left = 5 - i
                 for i in range(space_left):
-                    kb_favorite.row(types.InlineKeyboardButton(text='➕ Добавить', callback_data='add_favorite'))
+                    kb_favorite.row(types.InlineKeyboardButton(
+                        text='➕ Добавить', callback_data='add_favorite'))
             else:
                 users.update_one(
-                    {"user_id": call.from_user.id}, 
+                    {"user_id": call.from_user.id},
                     {"$set": {"favorite_groups": []}})
                 for i in range(5):
-                    kb_favorite.row(types.InlineKeyboardButton(text='➕ Добавить', callback_data='add_favorite'))
-            kb_favorite.row(types.InlineKeyboardButton(text='🔄 В главное меню', callback_data='tomain'))
+                    kb_favorite.row(types.InlineKeyboardButton(
+                        text='➕ Добавить', callback_data='add_favorite'))
+            kb_favorite.row(types.InlineKeyboardButton(
+                text='🔄 В главное меню', callback_data='tomain'))
             await bot.edit_message_text(
                 chat_id=call.message.chat.id,
                 message_id=call.message.message_id,
                 text='Твой список избранных групп:',
                 reply_markup=kb_favorite
             )
-            
+
         elif str(call.data).startswith('g_'):
             await bot.answer_callback_query(call.id)
             if str(call.data).endswith('__del'):
@@ -949,9 +1027,9 @@ async def button_func(call: types.CallbackQuery):
                 group = str(call.data).split('g_')[1].split('__')[0]
                 favorite_groups.pop(favorite_groups.index(group))
                 users.update_one(
-                    {'user_id': call.from_user.id}, 
+                    {'user_id': call.from_user.id},
                     {'$set': {'favorite_groups': favorite_groups}})
-                
+
                 await bot.edit_message_text(
                     chat_id=call.message.chat.id,
                     message_id=call.message.message_id,
@@ -975,12 +1053,13 @@ async def button_func(call: types.CallbackQuery):
                         f'<b>Сейчас идёт {get_weekname()} неделя.</b>\n'
                         'Вот главное меню:',
                         reply_markup=kbm, parse_mode='HTML')
-                    
+
                 elif get_state(call.from_user.id) == 'add_favorite':
                     user = users.find_one({'user_id': call.from_user.id})
                     favorite_groups = user.get('favorite_groups')
                     favorite_groups.append(call.data.split('g_')[1])
-                    users.update_one({'user_id': call.from_user.id}, {'$set': {'favorite_groups': favorite_groups}})
+                    users.update_one({'user_id': call.from_user.id}, {
+                                     '$set': {'favorite_groups': favorite_groups}})
                     await bot.edit_message_text(
                         chat_id=call.message.chat.id,
                         message_id=call.message.message_id,
@@ -990,7 +1069,7 @@ async def button_func(call: types.CallbackQuery):
                         'Вот главное меню:',
                         reply_markup=kbm, parse_mode='HTML')
                     set_state(call.from_user.id, 'default')
-        
+
         elif call.data == 'add_favorite':
             await bot.answer_callback_query(call.id)
             set_state(call.from_user.id, 'add_favorite')
@@ -999,18 +1078,20 @@ async def button_func(call: types.CallbackQuery):
 
             for faculty in faculty_list:
                 callback_faculty = str('f_' + faculty).replace(' ', '_')
-                kb_faculty.row(types.InlineKeyboardButton(text=faculty, callback_data=ru_en(callback_faculty)))
+                kb_faculty.row(types.InlineKeyboardButton(
+                    text=faculty, callback_data=ru_en(callback_faculty)))
 
-            kb_faculty.row(types.InlineKeyboardButton(text='🚫 Отмена', 
-                                                    callback_data='cancel_find_class'))
+            kb_faculty.row(types.InlineKeyboardButton(text='🚫 Отмена',
+                                                      callback_data='cancel_find_class'))
             await bot.edit_message_text(chat_id=call.message.chat.id,
                                         message_id=call.message.message_id,
                                         text=f'Выберите факультет:',
                                         reply_markup=kb_faculty, parse_mode='HTML')
-            
+
         elif call.data == 'notifications':
             await bot.answer_callback_query(call.id)
-            notification_time = users.find_one({"user_id": call.from_user.id}).get('notification_time')
+            notification_time = users.find_one(
+                {"user_id": call.from_user.id}).get('notification_time')
             print(f"not. time ({call.from_user.id}) == {notification_time}")
             if notification_time is None or notification_time == {}:
                 await bot.edit_message_text(chat_id=call.message.chat.id,
@@ -1020,7 +1101,8 @@ async def button_func(call: types.CallbackQuery):
                                             reply_markup=kb_notifications_days, parse_mode='HTML')
             else:
                 text = 'Дни недели, по которым вы получаете уведомления с расписанием: \n\n'
-                notification_time = users.find_one({"user_id": call.from_user.id}).get('notification_time')
+                notification_time = users.find_one(
+                    {"user_id": call.from_user.id}).get('notification_time')
                 for day in notification_time:
                     if notification_time[day] != "":
                         day_ru = wdays.translate(day)
@@ -1033,7 +1115,8 @@ async def button_func(call: types.CallbackQuery):
 
         elif str(call.data).startswith('notify_'):
             weekday = str(call.data).split('_')[1]
-            notification_time = users.find_one({"user_id": call.from_user.id}).get('notification_time')
+            notification_time = users.find_one(
+                {"user_id": call.from_user.id}).get('notification_time')
 
             if notification_time is None or notification_time == {} or notification_time.get(weekday) is None or notification_time.get(weekday) == "":
                 set_state(call.from_user.id, f'add_notification_{weekday}')
@@ -1046,31 +1129,38 @@ async def button_func(call: types.CallbackQuery):
             else:
                 text = f'Изменение напоминания ({wdays.translate(weekday)}):'
                 kb_notifications = types.InlineKeyboardMarkup()
-                kb_notifications.row(types.InlineKeyboardButton(text='❌ Удалить', callback_data=f'del_notification_{weekday}'))
-                kb_notifications.row(types.InlineKeyboardButton(text='✍ Изменить', callback_data=f'edit_notification_{weekday}'))
-                kb_notifications.row(types.InlineKeyboardButton(text='🔄 В главное меню', callback_data='tomain'))
+                kb_notifications.row(types.InlineKeyboardButton(
+                    text='❌ Удалить', callback_data=f'del_notification_{weekday}'))
+                kb_notifications.row(types.InlineKeyboardButton(
+                    text='✍ Изменить', callback_data=f'edit_notification_{weekday}'))
+                kb_notifications.row(types.InlineKeyboardButton(
+                    text='🔄 В главное меню', callback_data='tomain'))
                 reply_markup = kb_notifications
 
             await bot.edit_message_text(chat_id=call.message.chat.id,
-            message_id=call.message.message_id,
-            text=text,
-            reply_markup=reply_markup,
-            parse_mode="HTML")
+                                        message_id=call.message.message_id,
+                                        text=text,
+                                        reply_markup=reply_markup,
+                                        parse_mode="HTML")
 
         elif str(call.data).startswith('del_notification_'):
             await bot.answer_callback_query(call.id)
             weekday = str(call.data).split('_')[2]
-            notification_time = users.find_one({"user_id": call.from_user.id}).get('notification_time')[weekday]
+            notification_time = users.find_one(
+                {"user_id": call.from_user.id}).get('notification_time')[weekday]
 
-            user_list = list(scheduled_msg.find_one({"id": 1})[weekday][notification_time])
+            user_list = list(scheduled_msg.find_one(
+                {"id": 1})[weekday][notification_time])
             user_list.pop(user_list.index(call.from_user.id))
             scheduled_msg_dict = {weekday: {notification_time: user_list}}
             print(f'user_list == {user_list}')
             scheduled_msg.update_one({'id': 1}, {"$set": scheduled_msg_dict})
 
-            user_time_dict = dict(users.find_one({"user_id": call.from_user.id})['notification_time'])
+            user_time_dict = dict(users.find_one(
+                {"user_id": call.from_user.id})['notification_time'])
             user_time_dict[weekday] = ''
-            users.update_one({'user_id': call.from_user.id}, {"$set": {"notification_time": user_time_dict}})
+            users.update_one({'user_id': call.from_user.id}, {
+                             "$set": {"notification_time": user_time_dict}})
 
             await bot.edit_message_text(chat_id=call.message.chat.id,
                                         message_id=call.message.message_id,
@@ -1081,8 +1171,9 @@ async def button_func(call: types.CallbackQuery):
         elif str(call.data).startswith('edit_notification_'):
             await bot.answer_callback_query(call.id)
             weekday = str(call.data).split('_')[2]
-            notification_time = users.find_one({"user_id": call.from_user.id}).get('notification_time')[weekday]
-            
+            notification_time = users.find_one(
+                {"user_id": call.from_user.id}).get('notification_time')[weekday]
+
             text = (f'Сейчас вы получаете расписание ({wdays.translate(weekday)}) в {notification_time}.\n'
                     'Введите время, в которое вы хотите получать расписание:\n'
                     '————————————————————\n'
@@ -1091,10 +1182,10 @@ async def button_func(call: types.CallbackQuery):
 
             set_state(call.from_user.id, f'add_notification_{weekday}')
             await bot.edit_message_text(chat_id=call.message.chat.id,
-                message_id=call.message.message_id,
-                text=text,
-                reply_markup=kb_cancel_building, parse_mode='HTML')
-        
+                                        message_id=call.message.message_id,
+                                        text=text,
+                                        reply_markup=kb_cancel_building, parse_mode='HTML')
+
         elif str(call.data).startswith('force-update-'):
             await call.answer()
             choice = str(call.data).split('-')[2]
@@ -1104,7 +1195,6 @@ async def button_func(call: types.CallbackQuery):
                                             message_id=call.message.message_id,
                                             text='Хорошо, не обновляем расписание.')
             else:
-                ######################################
                 faculties = get_faculties()
                 text = '⚙ Запущено обновление расписания...\n\n'
                 msg = await bot.send_message(call.message.chat.id, text=text, parse_mode='HTML')
@@ -1113,9 +1203,10 @@ async def button_func(call: types.CallbackQuery):
                 for year in get_years():
                     for faculty in faculties:
                         text += f'{faculty} (20{year} год): \n'
-                        groups = get_groups(faculty=faculty, year=str(year), force_update=True)
+                        groups = get_groups(
+                            faculty=faculty, year=str(year), force_update=True)
                         for group in groups:
-                            get_schedule(group, 'monday', '1', True)
+                            get_schedule_v2(group, 'monday', '1', True)
                             text += f'✔ {group}\n'
                             await bot.edit_message_text(
                                 chat_id=call.message.chat.id,
@@ -1124,33 +1215,14 @@ async def button_func(call: types.CallbackQuery):
                                 parse_mode='HTML'
                             )
                         text += '\n'
-                    
+
                     text = '⚙ Продолжаем обновлять расписание...\n\n'
                     msg = await bot.send_message(call.message.chat.id, text=text, parse_mode='HTML')
                     msgid = msg.message_id
                     year -= 1
-                
-                await msg.edit_text('✅ Расписание успешно обновлено!')
-                ######################################
 
-                # text = '⚙ Запущено обновление расписания...\n\n'
-                # faculties = get_faculties()
-                # for faculty in faculties:
-                #     text += f'{faculty}: \n'
-                #     groups = get_groups(faculty)
-                #     for group in groups:
-                #         get_schedule(group, 'monday', '1')
-                #         text += f'✔ {group}\n'
-                #         await bot.edit_message_text(chat_id=call.message.chat.id,
-                #                             message_id=call.message.message_id,
-                #                             text=text,
-                #                             parse_mode='HTML')
-                # text += '\nРасписание обновлено успешно!'
-                # await bot.edit_message_text(chat_id=call.message.chat.id,
-                #                             message_id=call.message.message_id,
-                #                             text=text,
-                #                             parse_mode='HTML')
-        
+                await msg.edit_text('✅ Расписание успешно обновлено!')
+
         elif str(call.data) == 'user_list':
             count = users.count_documents({})
             text = f'<u>Список пользователей бота (всего {count}):</u>\n\n'
@@ -1182,7 +1254,7 @@ async def button_func(call: types.CallbackQuery):
                     else:
                         if block_count == 0:
                             await bot.edit_message_text(
-                                text=text, 
+                                text=text,
                                 chat_id=call.message.chat.id,
                                 message_id=call.message.message_id,
                                 parse_mode='HTML'
@@ -1191,10 +1263,10 @@ async def button_func(call: types.CallbackQuery):
                             last_msg = await bot.send_message(call.message.chat.id, text, parse_mode='HTML')
                             globals()['last_msgid'] = last_msg.message_id
                             text = f'<a href="tg://user?id={user_id}">{first_name}</a> ◼ <b>Группа {group}</b>\n'
-                
+
                 block_count += 1
             print("last_msgid: ", globals()['last_msgid'])
-            
+
             if block_count == 0:
                 await bot.edit_message_reply_markup(
                     chat_id=call.message.chat.id,
@@ -1210,12 +1282,13 @@ async def button_func(call: types.CallbackQuery):
 
         elif str(call.data) == 'toadmin':
             count = users.count_documents({})
-            maintenance_state = '🟢 Включены' if settings.find_one({})['maintenance'] else '🔴 Выключены'
+            maintenance_state = '🟢 Включены' if settings.find_one(
+                {})['maintenance'] else '🔴 Выключены'
             await call.message.edit_text(
                 text=f'Добро пожаловать в админ-панель, {call.from_user.first_name}.\n'
                 f'<b>Количество пользователей: <u>{count}</u></b>\n'
                 f'<b>Состояние тех.работ: <u>{maintenance_state}</u></b>\n'
-                'Выберите пункт в меню для дальнейших действий:', 
+                'Выберите пункт в меню для дальнейших действий:',
                 parse_mode='HTML',
                 reply_markup=kb_admin
             )
@@ -1223,12 +1296,13 @@ async def button_func(call: types.CallbackQuery):
         elif call.data == 'maintenance_toggle':
             toggle_maintenance()
             count = users.count_documents({})
-            maintenance_state = '🟢 Включены' if settings.find_one({})['maintenance'] else '🔴 Выключены'
+            maintenance_state = '🟢 Включены' if settings.find_one(
+                {})['maintenance'] else '🔴 Выключены'
             await call.message.edit_text(
                 text=f'Добро пожаловать в админ-панель, {call.from_user.first_name}.\n'
                 f'<b>Количество пользователей: <u>{count}</u></b>\n'
                 f'<b>Состояние тех.работ: <u>{maintenance_state}</u></b>\n'
-                'Выберите пункт в меню для дальнейших действий:', 
+                'Выберите пункт в меню для дальнейших действий:',
                 parse_mode='HTML',
                 reply_markup=kb_admin
             )
@@ -1237,6 +1311,7 @@ async def button_func(call: types.CallbackQuery):
             text='⚡ Бот находится на тех.работах. Возвращайтесь позже.',
             show_alert=True
         )
+
 
 async def time_trigger():
     while True:
@@ -1253,7 +1328,7 @@ async def time_trigger():
         else:
             day = 'today'
             ru_day = 'Сегодня'
-        
+
         timetable = scheduled_msg.find_one({"id": 1})[weekday_name]
 
         if fulltime in timetable:
@@ -1292,7 +1367,7 @@ async def time_trigger():
                                 f'<code>{lesson[1].split(" ", maxsplit=1)[0]}</code> <b>{lesson[1].split(" ", maxsplit=1)[1]}</b>\n'
                                 f'<b>Аудитория:</b> <code>{lesson[2]}</code>\n'
                                 f'{teacher_text}\n\n')
-                    
+
                     text = (
                         f'[🔔 Ежедневное уведомление в {fulltime}]\n'
                         f'<b><u>Выбрана группа {group}</u></b>\n'
@@ -1345,20 +1420,23 @@ async def time_trigger():
 
                     await bot.send_message(user_id, text, reply_markup=kbbb, parse_mode='HTML')
                 await asyncio.sleep(1)
-        
+
         await asyncio.sleep(60)
+
 
 def startbot():
     while True:
         executor.start_polling(dp, skip_updates=True)
         break
 
+
 if __name__ == "__main__":
     executor_ = ProcessPoolExecutor(4)
     loop = asyncio.get_event_loop()
-    
+
     time_trigger_ = asyncio.ensure_future(time_trigger())
     print('time_trigger(): initialized')
 
-    startbot_ = asyncio.ensure_future(loop.run_in_executor(executor_, startbot))
+    startbot_ = asyncio.ensure_future(
+        loop.run_in_executor(executor_, startbot))
     print('startbot(): initialized')

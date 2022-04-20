@@ -20,9 +20,25 @@ def api_get_schedule(group):
     else:
         return None
 
+
+def api_get_schedule_v2(group):
+    """Функция получения расписания от API."""
+    url = API_URL + password + '/api/v2/schedule'
+    params = {
+        'group': group
+    }
+    response = requests.get(url, params=params)
+    if response.status_code == 200:
+        response = response.text
+        schedule = ast.literal_eval(response)
+        return schedule
+    else:
+        return None
+
+
 def api_get_groups(faculty='Факультет информационных технологий', year='20'):
     """Функция получения расписания от API."""
-    url = API_URL + password + '/get_groups/'
+    url = API_URL + password + '/api/v2/groups'
     params = {
         'faculty': faculty,
         'year': year
