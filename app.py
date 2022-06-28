@@ -2,12 +2,14 @@
 # v6, added a parser for university schedule (BSTU)
 # Now you must put your bot's token into config vars. (they're getting here by os.environ())
 
-#from site_parser import get_state, set_state, get_group, set_group
-from site_parser import api_get_groups, api_get_schedule, api_get_schedule_v2
-from keyboards import kbm, kbb, kbbb, kb_cancel_building, kb_notifications, kb_notifications_days, days_keyboard, kb_admin, kb_admin_back
+# from site_parser import get_state, set_state, get_group, set_group
+from aiogram.dispatcher.filters import Text
+from site_parser import api_get_groups, api_get_schedule, api_get_schedule_v2, api_get_teacher, api_get_teacher_list, api_get_teacher_schedule
+from keyboards import kbm, kbb, kbbb, kb_cancel_building, kb_notifications, kb_notifications_days, days_keyboard, kb_admin, kb_admin_back, kb_update_teachers
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.utils.executor import start_webhook
 from aiogram.dispatcher.webhook import get_new_configured_app
+from aiogram.types import MenuButtonWebApp
 from prettytable import PrettyTable
 from flask import Flask, request
 from pymongo import MongoClient
@@ -27,36 +29,24 @@ import ast
 import time
 
 
-password = os.environ.get('password')
-API_URL = os.environ.get('PARSER_URL')
-MONGODB_URI = os.environ['MONGODB_URI']
-client = MongoClient(host=MONGODB_URI, retryWrites=False)
+API_URL = os.environ.get('PARSER_URL') or 'https://parser.zgursky.tk'
+MONGODB_URI = 'mongodb://heroku_38n7vrr9:8pojct20ovk5sgvthiugo3kmpa@dnevnikcluster-shard-00-00.7tatu.mongodb.net:27017,dnevnikcluster-shard-00-01.7tatu.mongodb.net:27017,dnevnikcluster-shard-00-02.7tatu.mongodb.net:27017/heroku_38n7vrr9?ssl=true&replicaSet=atlas-106r53-shard-0&authSource=admin&retryWrites=true&w=majority'
+client = MongoClient(MONGODB_URI)
 db = client.heroku_38n7vrr9
 schedule_db = db.schedule
 schedule2_db = db.schedule2
+teachers = db.teachers
 groups_db = db.groups
 users = db.users
 settings = db.settings
 scheduled_msg = db.scheduled_messages
 
 # aiogram init
-token = os.environ['token']
+token = '1147506878:AAGi4Uo6IIGm55TNgG9IIcYIfRZak-HFxN4'
 bot = Bot(token=token, parse_mode='HTML')
 dp = Dispatcher(bot)
 
-# webhook settings
-WEBHOOK_HOST = 'https://dnevnikxhb.herokuapp.com'
-WEBHOOK_PATH = f"/{token}"
-WEBHOOK_URL = f"{WEBHOOK_HOST}{WEBHOOK_PATH}"
-
-# webserver settings
-WEBAPP_HOST = 'localhost'  # or ip
-WEBAPP_PORT = os.getenv('PORT')
-
-
-#bot = telebot.TeleBot(token, 'Markdown')
-
-UPDATE_TIME = int(os.environ.get('UPDATE_TIME'))
+UPDATE_TIME = os.environ.get('UPDATE_TIME') or 99999999999999999
 
 building_1 = 'https://telegra.ph/file/49ec8634ab340fa384787.png'
 building_2 = 'https://telegra.ph/file/7d04458ac4230fd12f064.png'
@@ -84,6 +74,15 @@ last_msgid = 0
 def get_state(user_id):
     """Позволяет просмотреть state по user_id."""
     return users.find_one({'user_id': user_id})['state']
+
+
+def update_teachers(document: dict):
+    """Позволяет просмотреть state по user_id."""
+    name = document.get('name')
+    if teachers.find_one({'name': name}):
+        return teachers.replace_one({'name': name}, document)
+    else:
+        return teachers.insert_one(document)
 
 
 def set_state(user_id, state):
@@ -158,7 +157,8 @@ def get_schedule_v2(group, weekday, weeknum, force_update=False):
     """Функция получения расписания от API.
     """
     weeknum = 'odd' if weeknum == 1 else 'even'
-    if schedule2_db.find_one({'group': group}) is None or time.time() - schedule2_db.find_one({'group': group})['last_updated'] > UPDATE_TIME:
+    # if schedule2_db.find_one({'group': group}) is None or time.time() - schedule2_db.find_one({'group': group})['last_updated'] > UPDATE_TIME:
+    if schedule2_db.find_one({'group': group}) is None:
         if schedule2_db.find_one({'group': group}) is None:
             schedule = api_get_schedule_v2(group)
             schedule2_db.insert_one(schedule)
@@ -242,6 +242,62 @@ def get_faculties():
     return faculties
 
 
+@dp.message_handler(commands=['update_teacher'])
+async def cmd_update_teacher(m: types.Message):
+    if m.from_user.id in ADMINS:
+        teacher_name = m.get_args()
+        teacher = api_get_teacher(teacher_name)
+
+        if teacher:
+            update_teachers(teacher)
+
+            return await m.answer(f'✅ Преподаватель {teacher_name} обновлён!')
+
+        return await m.answer(f'❌ Преподаватель {teacher_name} не обновлён!')
+
+
+@dp.message_handler(commands=['update_teachers'])
+async def cmd_update_teachers(m: types.Message):
+    if m.from_user.id in ADMINS:
+        teacher_list = api_get_teacher_list()
+        processed_count = 0
+        succeeded_count = 0
+
+        text = (
+            f'⚙ <b>Найдено преподавателей:</b> {len(teacher_list)}\n\n'
+            f'♻️ <b>Обработано:</b> {processed_count}/{len(teacher_list)}\n'
+            f'✅ <b>Без ошибок:</b> {succeeded_count}\n'
+            f'❌ <b>С ошибкой:</b> {processed_count - succeeded_count}'
+        )
+
+        message = await m.answer(
+            text,
+            reply_markup=kb_update_teachers
+        )
+
+        for teacher_name in teacher_list:
+            teacher = api_get_teacher(teacher_name)
+
+            if teacher:
+                update_teachers(teacher)
+                succeeded_count += 1
+
+            processed_count += 1
+
+            text = (
+                f'⚙ <b>Найдено преподавателей:</b> {len(teacher_list)}\n\n'
+                f'♻️ <b>Обработано:</b> {processed_count}/{len(teacher_list)}\n'
+                f'✅ <b>Без ошибок:</b> {succeeded_count}\n'
+                f'❌ <b>С ошибкой:</b> {processed_count - succeeded_count}'
+            )
+
+            await message.edit_text(text)
+
+            # if schedule.get()
+
+# @dp.callback_query_handler(Text('update_teachers_yes'))
+
+
 @dp.message_handler(commands=['force_update'])
 async def force_update_schedule(m):
     if m.from_user.id in ADMINS:
@@ -322,6 +378,12 @@ async def start_handler(m: types.Message):
             reply_markup=kb_faculty,
             parse_mode='HTML')
     else:
+        btn = MenuButtonWebApp(
+            'Открыть',
+            types.WebAppInfo(
+                url='https://tgweb.zgursky.tk')
+        )
+        await bot.set_chat_menu_button(m.chat.id, btn)
         user = users.find_one({'user_id': m.from_user.id})
         if user.get('favorite_groups') == None:
             users.update_one(
@@ -456,6 +518,20 @@ async def execute(m: types.Message):
             await bot.send_message(m.chat.id, f'{cmd} - успешно выполнено!')
         except Exception as e:
             await bot.send_message(m.chat.id, f'Произошла ошибка!\n\n`{e}`')
+
+
+@dp.message_handler(commands=['update_groups'])
+async def execute(m: types.Message):
+    if m.chat.id in ADMINS:
+        groups = m.get_args().lstrip()
+        text = '⚙ Запущено обновление расписания для указанных групп...\n\n'
+        main_message = await m.answer(text)
+        for group in groups.splitlines():
+            get_schedule_v2(group, 'monday', '1', True)
+            text += f'✔ {group}\n'
+            await main_message.edit_text(text)
+
+        await main_message.edit_text(text + '\n✅ Расписание успешно обновлено!')
 
 
 # Хэндлер для текста
@@ -595,7 +671,7 @@ async def anymess(m: types.Message):
                     scheduled_[old_notification_time] = user_list
                     print(f'!! scheduled_ == {scheduled_}')
                     scheduled_msg_dict = {weekday: scheduled_}
-                    #scheduled_msg_dict = {weekday: {old_notification_time: user_list}}
+                    # scheduled_msg_dict = {weekday: {old_notification_time: user_list}}
                     scheduled_msg.update_one(
                         {'id': 1}, {"$set": scheduled_msg_dict})
                     user_time_dict[weekday] = ''
@@ -820,7 +896,7 @@ async def button_func(call: types.CallbackQuery):
                 schedule = get_schedule(group, weekday, weeknum)
 
                 schedule_txt = ''
-                #print(f'369. schedule = {schedule}')
+                # print(f'369. schedule = {schedule}')
                 for lesson in schedule:
                     if lesson[1] != '-':
                         teacher_text = ''
@@ -1318,7 +1394,7 @@ async def time_trigger():
         print(f'time_trigger(): {time.strftime("%H:%M:%S")}')
 
         hour = time.strftime("%H")
-        #minute = time.strftime("%M")
+        # minute = time.strftime("%M")
         fulltime = time.strftime("%H:%M")
         weekday_name = time.strftime('%A').lower()
 

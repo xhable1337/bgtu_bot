@@ -6,45 +6,45 @@ kbm = types.InlineKeyboardMarkup()
 kbm.row(types.InlineKeyboardButton(
     text='📅 Расписание по дням',
     callback_data='days'
-    )
+)
 )
 kbm.row(
     types.InlineKeyboardButton(
-        text='⚡️ Сегодня', 
+        text='⚡️ Сегодня',
         callback_data='today'
     ),
     types.InlineKeyboardButton(
-        text='⚡️ Завтра', 
+        text='⚡️ Завтра',
         callback_data='tomorrow'
     )
 )
 kbm.row(
     types.InlineKeyboardButton(
-        text='🕔 Расписание пар', 
+        text='🕔 Расписание пар',
         callback_data='rings'
     )
 )
 kbm.row(
     types.InlineKeyboardButton(
-        text='🏠 Найти корпус по аудитории', 
+        text='🏠 Найти корпус по аудитории',
         callback_data='building'
     )
 )
 kbm.row(
     types.InlineKeyboardButton(
-        text='🔂 Сменить факультет/группу', 
+        text='🔂 Сменить факультет/группу',
         callback_data='change_faculty'
     )
 )
 kbm.row(
     types.InlineKeyboardButton(
-        text='🔔 Ежедневные уведомления', 
+        text='🔔 Ежедневные уведомления',
         callback_data='notifications'
     )
 )
 kbm.row(
     types.InlineKeyboardButton(
-        text='⭐ Избранные группы', 
+        text='⭐ Избранные группы',
         callback_data='favorite_groups'
     )
 )
@@ -54,7 +54,7 @@ kbm.row(
 kbb = types.InlineKeyboardMarkup()
 kbb.row(
     types.InlineKeyboardButton(
-        text='↩️ Назад', 
+        text='↩️ Назад',
         callback_data='days'
     )
 )
@@ -63,7 +63,7 @@ kbb.row(
 kbbb = types.InlineKeyboardMarkup()
 kbbb.row(
     types.InlineKeyboardButton(
-        text='🔄 В главное меню', 
+        text='🔄 В главное меню',
         callback_data='tomain'
     )
 )
@@ -72,7 +72,7 @@ kbbb.row(
 kb_cancel_building = types.InlineKeyboardMarkup()
 kb_cancel_building.row(
     types.InlineKeyboardButton(
-        text='🚫 Отмена', 
+        text='🚫 Отмена',
         callback_data='cancel_find_class'
     )
 )
@@ -81,19 +81,19 @@ kb_cancel_building.row(
 kb_notifications = types.InlineKeyboardMarkup()
 kb_notifications.row(
     types.InlineKeyboardButton(
-        text='❌ Удалить', 
+        text='❌ Удалить',
         callback_data='del_notification'
     )
 )
 kb_notifications.row(
     types.InlineKeyboardButton(
-        text='✍ Изменить', 
+        text='✍ Изменить',
         callback_data='edit_notification'
     )
 )
 kb_notifications.row(
     types.InlineKeyboardButton(
-        text='🔄 В главное меню', 
+        text='🔄 В главное меню',
         callback_data='tomain'
     )
 )
@@ -103,56 +103,57 @@ kb_notifications.row(
 kb_notifications_days = types.InlineKeyboardMarkup()
 kb_notifications_days.row(
     types.InlineKeyboardButton(
-        text='Пн', 
+        text='Пн',
         callback_data='notify_monday'
     ),
     types.InlineKeyboardButton(
-        text='Вт', 
+        text='Вт',
         callback_data='notify_tuesday'
     ),
     types.InlineKeyboardButton(
-        text='Ср', 
+        text='Ср',
         callback_data='notify_wednesday'
     ),
     types.InlineKeyboardButton(
-        text='Чт', 
+        text='Чт',
         callback_data='notify_thursday'
     ),
     types.InlineKeyboardButton(
-        text='Пт', 
+        text='Пт',
         callback_data='notify_friday'
     ),
     types.InlineKeyboardButton(
-        text='Сб', 
+        text='Сб',
         callback_data='notify_saturday'
     ),
     types.InlineKeyboardButton(
-        text='Вс', 
+        text='Вс',
         callback_data='notify_sunday'
     )
 )
 
 kb_notifications_days.row(
     types.InlineKeyboardButton(
-        text='🔄 В главное меню', 
+        text='🔄 В главное меню',
         callback_data='tomain'
     )
 )
+
 
 def days_keyboard(buttons):
     """Функция создания клавиатуры, исходя из кнопок чётной и нечётной недели."""
     kb_dn = types.InlineKeyboardMarkup()
     kb_dn.row(
         types.InlineKeyboardButton(
-            text=buttons[0], 
+            text=buttons[0],
             callback_data='week_1'
         ),
         types.InlineKeyboardButton(
-            text='Пн', 
+            text='Пн',
             callback_data='wday_monday_1'
         ),
         types.InlineKeyboardButton(
-            text='Вт', 
+            text='Вт',
             callback_data='wday_tuesday_1'
         ),
         types.InlineKeyboardButton(
@@ -160,55 +161,56 @@ def days_keyboard(buttons):
             callback_data='wday_wednesday_1'
         ),
         types.InlineKeyboardButton(
-            text='Чт', 
+            text='Чт',
             callback_data='wday_thursday_1'
         ),
         types.InlineKeyboardButton(
-            text='Пт', 
+            text='Пт',
             callback_data='wday_friday_1'
         ),
         types.InlineKeyboardButton(
-            text='Сб', 
+            text='Сб',
             callback_data='wday_saturday_1'
         )
     )
     kb_dn.row(
         types.InlineKeyboardButton(
-            text=buttons[1], 
+            text=buttons[1],
             callback_data='week_2'
         ),
         types.InlineKeyboardButton(
-            text='Пн', 
+            text='Пн',
             callback_data='wday_monday_2'
         ),
         types.InlineKeyboardButton(
-            text='Вт', 
+            text='Вт',
             callback_data='wday_tuesday_2'
         ),
         types.InlineKeyboardButton(
-            text='Ср', 
+            text='Ср',
             callback_data='wday_wednesday_2'
         ),
         types.InlineKeyboardButton(
-            text='Чт', 
+            text='Чт',
             callback_data='wday_thursday_2'
         ),
         types.InlineKeyboardButton(
-            text='Пт', 
+            text='Пт',
             callback_data='wday_friday_2'
         ),
         types.InlineKeyboardButton(
-            text='Сб', 
+            text='Сб',
             callback_data='wday_saturday_2'
         )
     )
     kb_dn.row(
         types.InlineKeyboardButton(
-            text='🔄 В главное меню', 
+            text='🔄 В главное меню',
             callback_data='tomain'
         )
     )
     return kb_dn
+
 
 # Админ-меню
 kb_admin = types.InlineKeyboardMarkup()
@@ -225,14 +227,23 @@ kb_admin.add(
         text='⚡ Тех.работы',
         callback_data='maintenance_toggle'
     )
-    
+
 )
 
 # Кнопка возврата в админ-меню
 kb_admin_back = types.InlineKeyboardMarkup()
 kb_admin_back.row(
     types.InlineKeyboardButton(
-        text='🔄 В админ-меню', 
+        text='🔄 В админ-меню',
         callback_data='toadmin'
+    )
+)
+
+
+kb_update_teachers = types.InlineKeyboardMarkup()
+kb_update_teachers.row(
+    types.InlineKeyboardButton(
+        text='✅ Да',
+        callback_data='update_teachers_yes'
     )
 )
