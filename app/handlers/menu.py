@@ -10,7 +10,7 @@ from aiogram.utils.exceptions import MessageCantBeDeleted, MessageNotModified
 from app.keyboards import *
 from app.utils.db_worker import DBWorker
 # TODO: Избавиться от wd_name и wd_numbers, переместив в другую точку
-from app.utils.text_generator import schedule_text, wd_name, wd_numbers
+from app.utils.text_generator import rings_table, schedule_text, wd_name, wd_numbers
 
 db = DBWorker()
 
@@ -33,6 +33,13 @@ async def cb_days(call: types.CallbackQuery):
         reply_markup=kb_dn
     )
 
+    await call.answer()
+
+
+async def cb_rings(call: types.CallbackQuery):
+    """### [`Callback`] Кнопка «Расписание пар».
+    """
+    await call.message.edit_text(text=rings_table(), reply_markup=kbbb)
     await call.answer()
 
 
@@ -125,3 +132,7 @@ async def cb_wday(call: types.CallbackQuery):
 
 def register_handlers_menu(dp: Dispatcher):
     dp.register_callback_query_handler(cb_days, Text('days'))
+    dp.register_callback_query_handler(cb_today, Text('today'))
+    dp.register_callback_query_handler(cb_tomorrow, Text('tomorrow'))
+    dp.register_callback_query_handler(cb_wday, Text(startswith='wday_'))
+    dp.register_callback_query_handler(cb_rings, Text('rings'))

@@ -1,5 +1,6 @@
 from app.models import Schedule, Lesson
 from typing import List
+from prettytable import PrettyTable
 
 wd_numbers = {
     'monday': 1,
@@ -32,6 +33,10 @@ wd_name = {
     8: ('понедельник', 'monday')
 }
 
+# Список звонков
+rings_list = ['8:00-9:35', '9:45-11:20', '11:30-13:05',
+              '13:20-14:55', '15:05-16:40', '16:50-18:25', '18:40-20:15']
+
 
 def schedule_text(
         schedule_type: str, isoweekday: int, group: str,
@@ -63,10 +68,6 @@ def schedule_text(
             f'<b>{schedule_type}:</b> воскресенье\n\n'
             f'Удачных выходных!'
         )
-
-    # Список звонков
-    rings_list = ['8:00-9:35', '9:45-11:20', '11:30-13:05',
-                  '13:20-14:55', '15:05-16:40', '16:50-18:25', '18:40-20:15']
 
     # Текст расписания
     schedule_txt = ''
@@ -107,4 +108,17 @@ def schedule_text(
         '<code>[ЛАБ]</code> - <b>лабораторное занятие</b>'
     )
 
+    return text
+
+
+def rings_table() -> str:
+    """Функция генерации текста расписания звонков.
+
+    Возвращает:
+        str: таблица с расписанием звонков
+    """
+    table = PrettyTable()
+    table.add_column(fieldname="№", column=[i for i in range(1, 8)])
+    table.add_column(fieldname="Время", column=rings_list)
+    text = f'Расписание пар\n\n<code>{table}</code>'
     return text
