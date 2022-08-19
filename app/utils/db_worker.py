@@ -3,8 +3,9 @@ from time import time
 from typing import Union, List
 
 from pymongo import MongoClient
+from loguru import logger
 
-from app.models import Schedule, User
+from app.models import Lesson, Schedule, User
 from app.properties import MONGODB_URI
 
 
@@ -24,7 +25,7 @@ class DBInterface:
 
         # Подключение к коллекциям БД
         self._users = database.users
-        self._schedule = database.schedule2
+        self._schedule = database.schedule_latest
         self._groups = database.groups
         self._settings = database.settings
         self._scheduled_msg = database.scheduled_messages
@@ -50,6 +51,19 @@ class DBUser(DBInterface):
         self._favorite_groups: Union[List[str], None] = (
             self._db_obj['favorite_groups']
         )
+    
+    
+    def obj(self) -> User:
+        return User(**{
+            'first_name': self.first_name,
+            'last_name': self.last_name,
+            'user_id': self.user_id,
+            'username': self.username,
+            'state': self.state,
+            'group': self.group,
+            'notification_time': self.notification_time,
+            'favorite_groups': self.favorite_groups
+        })
 
     @property
     def full_name(self):
@@ -147,9 +161,9 @@ class DBWorker(DBInterface):
         db_user = self.user(user.user_id)
         if db_user:
             if replace:
-                return self._users.replace_one({'user_id': user.user_id}, user.json())
+                return self._users.replace_one({'user_id': user.user_id}, user.dict())
         else:
-            return self._users.insert_one(user.json())
+            return self._users.insert_one(user.dict())
         
 
     def schedule(
@@ -173,7 +187,8 @@ class DBWorker(DBInterface):
             return None
 
         if weekday and weektype:
-            return db_schedule[weekday][weektype]
+            lessons_list = db_schedule[weekday][weektype]
+            return [Lesson(**lessons_list[i]) for i in range(len(lessons_list))]
 
         return Schedule(**db_schedule)
     
@@ -187,9 +202,9 @@ class DBWorker(DBInterface):
         """
         if self._schedule.find_one({'group': schedule.group}):
             if replace:
-                return self._schedule.replace_one({'group': schedule.group}, schedule.json())
+                return self._schedule.replace_one({'group': schedule.group}, schedule.dict())
         else:
-            return self._schedule.insert_one(schedule.json())
+            return self._schedule.insert_one(schedule.dict())
 
 
     def groups(self, faculty: str, year: str) -> list[str]:
@@ -263,11 +278,11 @@ class DBWorker(DBInterface):
         """
         # REVIEW: не работает с базой данных
         years = []
-        dt = datetime.datetime.now()
+        dt = datetime.now()
         month = int(dt.strftime('%m'))
         year = int(dt.strftime('%Y'))
 
-        if month <= 5:
+        if month <= 8:
             # Учебный год ЕЩЁ не кончился
             for _ in range(4):
                 year -= 1
@@ -281,8 +296,11 @@ class DBWorker(DBInterface):
         return years
 
     @staticmethod
-    def faculties() -> list[str]:
+    def faculties(short: bool = False, both: bool = False) -> list[dict[str, str]]:
         """Функция получения факультетов.
+        
+        Аргументы:
+            short (bool): возвращать короткое название факультета
         
         Возвращает:
             list[int]: список факультетов
@@ -296,5 +314,41 @@ class DBWorker(DBInterface):
             'Механико-технологический факультет',
             'Учебно-научный институт транспорта'
         ]
+        
+        faculties_short = [
+            'ФИТ',
+            'ФЭЭ',
+            'ФОЦЭ',
+            'УНТИ',
+            'МТФ',
+            'УНИТ'
+        ]
+        
+        faculties_objects = [
+            {
+                'full': 'Факультет информационных технологий',
+                'short': 'ФИТ'
+            },
+            {
+                'full': 'Факультет энергетики и электроники',
+                'short': 'ФЭЭ'
+            },
+            {
+                'full': 'Факультет отраслевой и цифровой экономики',
+                'short': 'ФОЦЭ'
+            },
+            {
+                'full': 'Учебно-научный технологический институт',
+                'short': 'УНТИ'
+            },
+            {
+                'full': 'Механико-технологический факультет',
+                'short': 'МТФ'
+            },
+            {
+                'full': 'Учебно-научный институт транспорта',
+                'short': 'УНИТ'
+            },
+        ]
 
-        return faculties
+        return faculties_objects

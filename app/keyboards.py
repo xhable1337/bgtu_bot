@@ -74,7 +74,7 @@ kb_cancel = types.InlineKeyboardMarkup()
 kb_cancel.row(
     types.InlineKeyboardButton(
         text='🚫 Отмена',
-        callback_data='to_main'
+        callback_data='tomain'
     )
 )
 

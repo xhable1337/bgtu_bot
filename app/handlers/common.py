@@ -8,13 +8,13 @@ from aiogram.utils.exceptions import BotBlocked
 from loguru import logger
 from requests import get
 from app.models import User
-from app.properties import week_is_odd
+from app.properties import week_is_odd, MONGODB_URI
 
 from app.utils.db_worker import DBWorker
 # TODO: избавиться от wildcard import
 from app.keyboards import *
 
-db = DBWorker()
+db = DBWorker(MONGODB_URI)
 
 
 async def cmd_start(message: types.Message):
@@ -40,8 +40,8 @@ async def cmd_start(message: types.Message):
         for faculty in db.faculties():
             kb_faculty.row(
                 types.InlineKeyboardButton(
-                    text=faculty, 
-                    callback_data=f'f_{faculty}'
+                    text=faculty["full"], 
+                    callback_data=f'f_{faculty["short"]}'
                 )
             )
         
@@ -55,7 +55,7 @@ async def cmd_start(message: types.Message):
         
         logger.info(f"New user! ID: {user.user_id}")
     else:
-        db.add_user(user, replace=True)
+        db.add_user(user.obj(), replace=True)
         user.state = 'default'
         
         btn = types.MenuButtonWebApp(
@@ -78,9 +78,10 @@ async def cmd_start(message: types.Message):
 
 async def msg_any(message: types.Message, state: FSMContext):
     user = db.user(message.from_user.id)
+    settings = db._settings.find_one({})
     
     # TODO: вынести settings в отдельный метод DBWorker
-    if db._settings.find_one({})['maintenance']:
+    if settings['maintenance'] and user.user_id not in settings['admins']:
         return await message.reply('⚡ Бот находится на тех.работах. Возвращайтесь позже.')
     
     #! Юзера нет в базе, пусть прожмёт /start
@@ -89,7 +90,7 @@ async def msg_any(message: types.Message, state: FSMContext):
     
     #? Обычное состояние, юзер хочет получить меню
     if user.state == 'default':
-        cmd_start(message)
+        await cmd_start(message)
     
     #? Поиск аудитории
     elif user.state == 'find_class':
@@ -117,7 +118,7 @@ async def msg_any(message: types.Message, state: FSMContext):
                 longitude=34.305080
             )
             
-            cmd_start(message)
+            await cmd_start(message)
         elif re.match(regex_2, message.text):
             #! Найдена аудитория в корпусе №2
             await message.answer_photo(
@@ -130,7 +131,7 @@ async def msg_any(message: types.Message, state: FSMContext):
                 longitude=34.303849
             )
             
-            cmd_start(message)
+            await cmd_start(message)
         elif re.match(regex_3, message.text):
             await message.answer_photo(
                 photo=building_3,
@@ -142,7 +143,7 @@ async def msg_any(message: types.Message, state: FSMContext):
                 longitude=34.306688
             )
             
-            cmd_start(message)
+            await cmd_start(message)
         elif re.match(regex_4, message.text):
             await message.answer_photo(
                 photo=building_4,
@@ -154,7 +155,7 @@ async def msg_any(message: types.Message, state: FSMContext):
                 longitude=34.305085
             )
             
-            cmd_start(message)
+            await cmd_start(message)
         else:
             await message.answer(
                 'Данный номер аудитории некорректен. Повторите попытку или отмените действие:',

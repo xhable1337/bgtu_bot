@@ -1,6 +1,7 @@
 import requests
 from typing import Union
 from app.models import Schedule
+from loguru import logger
 
 
 class APIWorker:
@@ -12,9 +13,15 @@ class APIWorker:
         self, path: str, params: dict = {}
     ) -> Union[dict, list]:
         with self.session as session:
-            response = session.get(self.base_url + path)
+            response = session.get(self.base_url + path, params=params)
+            status = response.status_code
+            logger.debug(f"Request '{path}' finished with status {status}")
             if response.status_code == 200:
                 return response.json()
+            else:
+                logger.error(f"Request '{path}' failed with status {status}")
+                logger.error(f"Request params: {params}")
+                logger.error(f"Response text: {response.text}")
 
     def schedule(self, group: str) -> Schedule:
         path = '/schedule'

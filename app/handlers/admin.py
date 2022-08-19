@@ -4,6 +4,7 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher.filters import Text
 import datetime
 from asyncio import sleep
+from loguru import logger
 # from aiogram.dispatcher.storage import FSMContext
 from aiogram.utils.exceptions import MessageCantBeDeleted, MessageNotModified
 
@@ -11,8 +12,9 @@ from aiogram.utils.exceptions import MessageCantBeDeleted, MessageNotModified
 from app.keyboards import *
 from app.utils.db_worker import DBWorker
 from app.utils.api_worker import APIWorker
+from app.properties import MONGODB_URI
 
-db = DBWorker()
+db = DBWorker(MONGODB_URI)
 api = APIWorker()
 
 async def cmd_broadcast(message: types.Message):
@@ -24,7 +26,7 @@ async def cmd_broadcast(message: types.Message):
         if message.text == '/broadcast':
             return await message.answer(
                 "📨 /broadcast: Рассылка пользователям.\n"
-                "<b>Использование:</b> <code>/broadcast <group|all> <message></code>"
+                "<b>Использование:</b> <code>/broadcast &lt;group|all&gt; &lt;message&gt;</code>"
             )
         
         group, text = message.text.split(' ', maxsplit=2)[1:3]
@@ -83,7 +85,7 @@ async def cmd_update_groups(message: types.Message):
         if message.text == "/update_groups":
             return await message.answer(
                 "🆙 /update_groups: Обновление расписания заданных групп.\n"
-                "<b>Использование:</b> <code>/update_groups <groups></code>"
+                "<b>Использование:</b> <code>/update_groups &lt;groups&gt;</code>"
             )
         
         groups = message.get_args().lstrip()
@@ -111,9 +113,10 @@ async def cmd_force_update(message: types.Message):
 
         for year in db.years():
             for faculty in db.faculties():
-                groups_text += f'{faculty} ({year} год): \n'
-                groups = api.groups(faculty, year)
-                db.add_groups(faculty, str(year), groups, replace=True)
+                groups_text += f'{faculty["full"]} ({year} год): \n'
+                # TODO: переделать API для работы с 4-х значными годами
+                groups = api.groups(faculty["full"], str(year)[2:4])
+                db.add_groups(faculty["full"], str(year), groups, replace=True)
                 
                 for group in groups:
                     groups_text += f'{group}\n'

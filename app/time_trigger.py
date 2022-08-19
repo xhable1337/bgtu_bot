@@ -7,13 +7,13 @@ from aiogram.utils.exceptions import BotBlocked, ChatNotFound, UserDeactivated
 from loguru import logger
 from app.models import User
 
-from app.properties import week_is_odd
+from app.properties import week_is_odd, MONGODB_URI
 # TODO: Избавиться от wildcard import
 from app.keyboards import *
 from app.utils.db_worker import DBWorker
 from app.utils.text_generator import schedule_text, wd_name
 
-db = DBWorker()
+db = DBWorker(MONGODB_URI)
 
 
 async def scheduled_send(bot: Bot, user: User, day: str):
@@ -35,7 +35,7 @@ async def scheduled_send(bot: Bot, user: User, day: str):
         weektype = 'even'
 
     # Расписание на день из БД
-    schedule = db.schedule(user.group, wd_name[isoweekday], weektype)
+    schedule = db.schedule(user.group, wd_name[isoweekday][1], weektype)
 
     # Сгенерированный текст
     text = schedule_text(day, isoweekday,
@@ -59,11 +59,12 @@ async def time_trigger(bot: Bot):
         else:
             day = 'today'
 
-        timetable = db._scheduled_msg.find_one({"id": 1})[weekday_name]
+        if weekday_name != 'saturday':
+            timetable = db._scheduled_msg.find_one({"id": 1})[weekday_name]
 
-        if current_time in timetable:
-            for user_id in timetable[current_time]:
-                await scheduled_send(bot, db.user(user_id), day)
-                await sleep(1)
+            if current_time in timetable:
+                for user_id in timetable[current_time]:
+                    await scheduled_send(bot, db.user(user_id), day)
+                    await sleep(1)
 
         await sleep(60)

@@ -11,10 +11,10 @@ from app.keyboards import *
 from app.utils.db_worker import DBWorker
 # TODO: Избавиться от wd_name и wd_numbers, переместив в другую точку
 from app.utils.text_generator import rings_table, schedule_text, wd_name, wd_numbers
-from app.properties import week_is_odd
+from app.properties import week_is_odd, MONGODB_URI
 from app.utils import wdays
 
-db = DBWorker()
+db = DBWorker(MONGODB_URI)
 
 
 class Maintenance(Filter):
@@ -70,7 +70,10 @@ async def cb_today(call: types.CallbackQuery):
         weektype = 'even'
 
     # Расписание на день из БД
-    schedule = db.schedule(user.group, wd_name[isoweekday], weektype)
+    if isoweekday != 7:
+        schedule = db.schedule(user.group, wd_name[isoweekday][1], weektype)
+    else:
+        schedule = None
 
     # Сгенерированный текст
     text = schedule_text('today', isoweekday, user.group, weektype, schedule)
@@ -100,7 +103,10 @@ async def cb_tomorrow(call: types.CallbackQuery):
         weektype = 'even'
 
     # Расписание на день из БД
-    schedule = db.schedule(user.group, wd_name[isoweekday], weektype)
+    if isoweekday != 7:
+        schedule = db.schedule(user.group, wd_name[isoweekday][1], weektype)
+    else:
+        schedule = None
 
     # Сгенерированный текст
     text = schedule_text('tomorrow', isoweekday,
@@ -115,17 +121,17 @@ async def cb_wday(call: types.CallbackQuery):
     """
     user = db.user(call.from_user.id)
 
-    # Тип недели (odd - нечет, even - чёт)
-    weektype = call.data.split('_')[1]
-
     # День недели
-    weekday = call.data.split('_')[2]
+    weekday = call.data.split('_')[1]
+
+    # Тип недели (odd - нечет, even - чёт)
+    weektype = call.data.split('_')[2]
 
     # Номер дня недели
     isoweekday = wd_numbers[weekday]
 
     # Расписание на день из БД
-    schedule = db.schedule(user.group, wd_name[isoweekday], weektype)
+    schedule = db.schedule(user.group, wd_name[isoweekday][1], weektype)
 
     # Сгенерированный текст
     text = schedule_text('other', isoweekday,
@@ -186,11 +192,10 @@ async def cb_change_faculty(call: types.CallbackQuery):
     kb_faculty = types.InlineKeyboardMarkup()
 
     for faculty in db.faculties():
-        callback_faculty = str('f_' + faculty)
         kb_faculty.row(
             types.InlineKeyboardButton(
-                text=faculty, 
-                callback_data=callback_faculty
+                text=faculty["full"], 
+                callback_data=f'f_{faculty["short"]}'
             )
         )
 
@@ -286,20 +291,20 @@ async def cb_g(call: types.CallbackQuery):
         favorite_groups.pop(favorite_groups.index(group))
         user.favorite_groups = favorite_groups
         
-        cb_tomain(call)
+        await cb_tomain(call)
         
         call.answer(f'❌ Группа {group} удалена из избранных!', show_alert=True)
     else:
         if user.state == 'default':
             user.group = group
-            cb_tomain(call)
+            await cb_tomain(call)
 
         elif user.state == 'add_favorite':
             #! Группа добавляется в избранные
             favorite_groups = user.favorite_groups
             favorite_groups.append(call.data.split('g_')[1])
             user.favorite_groups = favorite_groups
-            cb_tomain(call)
+            await cb_tomain(call)
 
 
 async def cb_add_favorite(call: types.CallbackQuery):
@@ -312,8 +317,8 @@ async def cb_add_favorite(call: types.CallbackQuery):
     for faculty in db.faculties():
         kb_faculty.row(
             types.InlineKeyboardButton(
-                text=faculty, 
-                callback_data=f'f_{faculty}'
+                text=faculty["full"], 
+                callback_data=f'f_{faculty["short"]}'
             )
         )
 
@@ -485,6 +490,65 @@ async def dummycb_maintenance(call: types.CallbackQuery):
         show_alert=True
     )
 
+async def cb_favorite_groups(call: types.CallbackQuery):
+    """### [`Callback`] Кнопка "Избранные группы".
+    """
+    kb_favorite = types.InlineKeyboardMarkup()
+    
+    user = db.user(call.from_user.id)
+    fav_count = 0
+    
+    if user.favorite_groups is not None:
+        #! Пользователь уже заходил в раздел избранных групп
+        for group in user.favorite_groups:
+            kb_favorite.row(
+                types.InlineKeyboardButton(
+                    text=group, 
+                    callback_data=f'g_{group}'
+                ),
+                types.InlineKeyboardButton(
+                    text='❌', 
+                    callback_data=f'g_{group}__del'
+                )
+            )
+            fav_count += 1
+        
+        # Оставшиеся слоты для избранных групп
+        space_left = 5 - fav_count
+        
+        for _ in range(space_left):
+            kb_favorite.row(
+                types.InlineKeyboardButton(
+                    text='➕ Добавить', 
+                    callback_data='add_favorite'
+                )
+            )
+    else:
+        #! Пользователь первый раз зашёл в раздел избранных групп
+        user.favorite_groups = []
+        
+        for _ in range(5):
+            kb_favorite.row(
+                types.InlineKeyboardButton(
+                    text='➕ Добавить',
+                    callback_data='add_favorite'
+                )
+            )
+            
+    kb_favorite.row(
+        types.InlineKeyboardButton(
+            text='🔄 В главное меню', 
+            callback_data='tomain'
+        )
+    )
+    
+    await call.message.edit_text(
+        text='Твой список избранных групп:',
+        reply_markup=kb_favorite
+    )
+    
+    await call.answer()
+
 
 def register_handlers_menu(dp: Dispatcher):
     dp.bind_filter(Maintenance)
@@ -500,8 +564,10 @@ def register_handlers_menu(dp: Dispatcher):
     dp.register_callback_query_handler(cb_change_faculty, Text('change_faculty'))
     dp.register_callback_query_handler(cb_f, Text(startswith='f_'))
     dp.register_callback_query_handler(cb_g, Text(startswith='g_'))
+    dp.register_callback_query_handler(cb_y, Text(startswith='y_'))
     dp.register_callback_query_handler(cb_add_favorite, Text('add_favorite'))
     dp.register_callback_query_handler(cb_notifications, Text('notifications'))
     dp.register_callback_query_handler(cb_notify, Text(startswith='notify_'))
     dp.register_callback_query_handler(cb_del_notification, Text(startswith='del_notification_'))
     dp.register_callback_query_handler(cb_edit_notification, Text(startswith='edit_notification_'))
+    dp.register_callback_query_handler(cb_favorite_groups, Text(startswith='favorite_groups'))

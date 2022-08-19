@@ -57,6 +57,7 @@ async def main():
 
     # Регистрация хэндлеров
     register_handlers_admin_menu(dp)
+    register_handlers_admin(dp)
     register_handlers_menu(dp)
     register_handlers_common(dp)
 

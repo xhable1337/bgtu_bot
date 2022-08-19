@@ -82,21 +82,23 @@ def schedule_text(
     # Заполнение текста списком пар
     for lesson in schedule:
         if lesson.subject != '-':
-            teacher_text = f'<b>Преподавател*:</b> {lesson.teacher}'
+            teacher_text = f'<b>Преподаватели:</b> {lesson.teacher}'
 
             if ',' in lesson.teacher:
-                teacher_text = f'<b>Преподаватели:</b> {lesson[3]}'
+                teacher_text = f'<b>Преподаватели:</b> {lesson.teacher}'
             else:
-                teacher_text = f'<b>Преподаватель:</b> {lesson[3]}'
+                teacher_text = f'<b>Преподаватель:</b> {lesson.teacher}'
 
             time = rings_list[lesson.number-1]
-            lesson_type, lesson_subject = lesson.subject.split(" ", maxsplit=2)
+            lesson_type = lesson.subject.split(" ")[0] 
+            lesson_subject = lesson.subject.split(" ", maxsplit=1)[1] 
 
             schedule_txt += (
                 f'<u>Пара №{lesson.number} <i>({time})</i></u>\n'
                 f'<code>{lesson_type}</code> <b>{lesson_subject}</b>\n'
                 f'<b>Аудитория:</b> <code>{lesson.room}</code>\n'
-                f'{teacher_text}\n\n')
+                f'{teacher_text}\n\n'
+            )
 
     text = (
         f'<b><u>Выбрана группа {group}</u></b>\n'

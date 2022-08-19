@@ -10,8 +10,9 @@ from aiogram.utils.exceptions import MessageCantBeDeleted, MessageNotModified
 from app.keyboards import *
 from app.utils.db_worker import DBWorker
 from app.utils.api_worker import APIWorker
+from app.properties import MONGODB_URI
 
-db = DBWorker()
+db = DBWorker(MONGODB_URI)
 api = APIWorker()
 
 async def cb_force_update(call: types.CallbackQuery):
@@ -30,23 +31,24 @@ async def cb_force_update(call: types.CallbackQuery):
 
         for year in db.years():
             for faculty in db.faculties():
-                text += f'{faculty} ({year} год): \n'
+                text += f'{faculty["full"]} ({year} год): \n'
                 groups = db.groups(
-                    faculty=faculty, 
-                    year=str(year), 
-                    force_update=True
+                    faculty=faculty["full"], 
+                    year=str(year)
                 )
                 for group in groups:
                     schedule = api.schedule(group)
                     db.add_schedule(schedule)
                     text += f'✔ {group}\n'
-                    await call.bot.edit_message_text(
-                        chat_id=call.message.chat.id,
-                        message_id=msgid,
-                        text=text,
-                        parse_mode='HTML'
-                    )
+                    
                 text += '\n'
+            
+                await call.bot.edit_message_text(
+                    chat_id=call.message.chat.id,
+                    message_id=msgid,
+                    text=text,
+                    parse_mode='HTML'
+                )
 
             text = '⚙ Продолжаем обновлять расписание...\n\n'
             msg = await call.bot.send_message(call.message.chat.id, text=text, parse_mode='HTML')
@@ -129,7 +131,7 @@ async def cb_toggle_maintenance(call: types.CallbackQuery):
     # TODO: вынести settings как отдельный метод DBWorker
     new_state = False if db._settings.find_one({})['maintenance'] else True
     db._settings.update_one({}, {'$set': {'maintenance': new_state}})
-    cb_toadmin(call)
+    await cb_toadmin(call)
 
 
 def register_handlers_admin_menu(dp: Dispatcher):
