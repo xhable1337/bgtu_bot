@@ -1,12 +1,11 @@
 from datetime import datetime
+from time import time
 from typing import Union, List
 
 from pymongo import MongoClient
 
-from app.models import Schedule
-
-# ANCHOR: переместить URI БД к настройкам
-MONGODB_URI = 'mongodb://heroku_38n7vrr9:8pojct20ovk5sgvthiugo3kmpa@dnevnikcluster-shard-00-00.7tatu.mongodb.net:27017,dnevnikcluster-shard-00-01.7tatu.mongodb.net:27017,dnevnikcluster-shard-00-02.7tatu.mongodb.net:27017/heroku_38n7vrr9?ssl=true&replicaSet=atlas-106r53-shard-0&authSource=admin&retryWrites=true&w=majority'
+from app.models import Schedule, User
+from app.properties import MONGODB_URI
 
 
 class DBInterface:
@@ -29,12 +28,13 @@ class DBInterface:
         self._groups = database.groups
         self._settings = database.settings
         self._scheduled_msg = database.scheduled_messages
+        self._teachers = database.teachers
 
 
 class DBUser(DBInterface):
     def __init__(self, user_id: int):
         super().__init__()
-        self._db_obj = self._users.find_one(
+        self._db_obj: dict = self._users.find_one(
             {'user_id': user_id}, {'_id': False})
 
         if not self._db_obj:
@@ -46,6 +46,7 @@ class DBUser(DBInterface):
         self.username: Union[str, None] = self._db_obj['username']
         self._state: str = self._db_obj['state']
         self._group: str = self._db_obj['group']
+        self._notification_time: dict = self._db_obj.get('notification_time')
         self._favorite_groups: Union[List[str], None] = (
             self._db_obj['favorite_groups']
         )
@@ -102,6 +103,18 @@ class DBUser(DBInterface):
             {'user_id': self.user_id},
             {'$set': {'favorite_groups': new_fav}}
         )
+    
+    @property
+    def notification_time(self) -> dict[str, str]:
+        return self._notification_time
+
+    @notification_time.setter
+    def notification_time(self, new_notification_time: dict[str, str]):
+        self._favorite_groups = new_notification_time
+        self._users.update_one(
+            {'user_id': self.user_id},
+            {'$set': {'notification_time': new_notification_time}}
+        )
 
 
 class DBWorker(DBInterface):
@@ -123,6 +136,21 @@ class DBWorker(DBInterface):
             return DBUser(user_id)
         except ValueError:
             return None
+    
+    def add_user(self, user: User, replace: bool = True):
+        """Функция добавления пользователя в базу данных.
+
+        Аргументы:
+            user (User): объект пользователя
+            replace (bool): заменять ли имеющийся объект пользователя
+        """
+        db_user = self.user(user.user_id)
+        if db_user:
+            if replace:
+                return self._users.replace_one({'user_id': user.user_id}, user.json())
+        else:
+            return self._users.insert_one(user.json())
+        
 
     def schedule(
             self, group: str, weekday: str = None,
@@ -148,6 +176,21 @@ class DBWorker(DBInterface):
             return db_schedule[weekday][weektype]
 
         return Schedule(**db_schedule)
+    
+    
+    def add_schedule(self, schedule: Schedule, replace: bool = True):
+        """Функция добавления расписания в базу данных.
+
+        Аргументы:
+            schedule (Schedule): объект расписания
+            replace (bool): заменять ли имеющееся расписание
+        """
+        if self._schedule.find_one({'group': schedule.group}):
+            if replace:
+                return self._schedule.replace_one({'group': schedule.group}, schedule.json())
+        else:
+            return self._schedule.insert_one(schedule.json())
+
 
     def groups(self, faculty: str, year: str) -> list[str]:
         """Функция получения списка групп по факультету и году поступления.
@@ -159,11 +202,57 @@ class DBWorker(DBInterface):
         Возвращает:
             list[str]: список групп
         """
+        # REVIEW - нужно полностью перейти на четырёхзначные года
+        if len(year) == 2:
+            year = datetime.today().strftime("%Y")[:2] + year
+            
         groups = self._groups.find_one(
             {'faculty': faculty, 'year': year}
         )
 
         return groups['groups']
+
+    def add_groups(self, faculty: str, year: str, groups: list[str], replace: bool = True):
+        """Функция добавления групп в базу данных.
+
+        Аргументы:
+            faculty (str): факультет списка групп
+            year (str): год поступления списка групп
+            groups (list[str]): список групп
+            replace (bool): заменять ли имеющиеся группы
+        """
+        # TODO: Переделать под модель из pydantic
+        last_updated = time()
+        
+        document = {
+            'last_updated': last_updated,
+            'faculty': faculty,
+            'year': year,
+            'groups': groups
+        }
+        
+        if self._groups.find_one({'faculty': faculty, 'year': year}):
+            if replace:
+                return self._groups.replace_one({'faculty': faculty, 'year': year}, document)
+        else:
+            return self._groups.insert_one(document)
+    
+    
+    def add_teacher(self, teacher: dict, replace: bool = True):
+        """Функция добавления преподавателя в базу данных.
+
+        Аргументы:
+            teacher (dict): документ (object-like) преподавателя
+            replace (bool): заменять ли имеющиеся объекты преподавателей
+
+        TODO: Переделать под модели pydantic
+        """
+        name = teacher.get('name')
+        if self._teachers.find_one({'name': name}):
+            return self._teachers.replace_one({'name': name}, teacher)
+        else:
+            return self._teachers.insert_one(teacher)
+
 
     @staticmethod
     def years() -> list[int]:
@@ -176,7 +265,7 @@ class DBWorker(DBInterface):
         years = []
         dt = datetime.datetime.now()
         month = int(dt.strftime('%m'))
-        year = int(dt.strftime('%y'))
+        year = int(dt.strftime('%Y'))
 
         if month <= 5:
             # Учебный год ЕЩЁ не кончился
@@ -190,3 +279,22 @@ class DBWorker(DBInterface):
                 year -= 1
 
         return years
+
+    @staticmethod
+    def faculties() -> list[str]:
+        """Функция получения факультетов.
+        
+        Возвращает:
+            list[int]: список факультетов
+        """
+        # REVIEW: не работает с базой данных
+        faculties = [
+            'Факультет информационных технологий',
+            'Факультет энергетики и электроники',
+            'Факультет отраслевой и цифровой экономики',
+            'Учебно-научный технологический институт',
+            'Механико-технологический факультет',
+            'Учебно-научный институт транспорта'
+        ]
+
+        return faculties

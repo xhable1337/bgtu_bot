@@ -35,3 +35,11 @@ class APIWorker:
         response = self._handle_request(path)
 
         return response
+    
+    def teacher(self, name: str):
+        """Функция получения информации о преподавателе от API."""
+        path = '/teacher'
+        params = {'name': name}
+        response = self._handle_request(path, params)
+
+        return response
