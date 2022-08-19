@@ -1,8 +1,10 @@
-pytelegrambotapi
+# pytelegrambotapi
 aiogram
 aiohttp
 asyncio
 flask
+loguru
 prettytable
 pymongo
+pydantic
 transliterate
