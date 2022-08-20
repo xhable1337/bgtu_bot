@@ -202,7 +202,7 @@ async def cb_change_faculty(call: types.CallbackQuery):
     kb_faculty.row(
         types.InlineKeyboardButton(
             text='🚫 Отмена', 
-            callback_data='cancel'
+            callback_data='tomain'
         )
     )
     
@@ -234,7 +234,7 @@ async def cb_f(call: types.CallbackQuery):
     kb_years.row(
         types.InlineKeyboardButton(
             text='🚫 Отмена', 
-            callback_data='cancel'
+            callback_data='tomain'
         )
     )
     
@@ -253,6 +253,9 @@ async def cb_y(call: types.CallbackQuery):
     faculty = call.data.split('_')[2]
 
     kb_group = types.InlineKeyboardMarkup()
+    for _faculty in db.faculties():
+        if _faculty['short'] == faculty:
+            faculty = _faculty['full']
 
     for group in db.groups(faculty, year):
         kb_group.row(
@@ -265,7 +268,7 @@ async def cb_y(call: types.CallbackQuery):
     kb_group.row(
         types.InlineKeyboardButton(
             text='🚫 Отмена',
-            callback_data='cancel_find_class'
+            callback_data='tomain'
         )
     )
 
@@ -274,7 +277,7 @@ async def cb_y(call: types.CallbackQuery):
         reply_markup=kb_group
     )
     
-    call.answer()
+    await call.answer()
 
 
 async def cb_g(call: types.CallbackQuery):
@@ -293,7 +296,7 @@ async def cb_g(call: types.CallbackQuery):
         
         await cb_tomain(call)
         
-        call.answer(f'❌ Группа {group} удалена из избранных!', show_alert=True)
+        await call.answer(f'❌ Группа {group} удалена из избранных!', show_alert=True)
     else:
         if user.state == 'default':
             user.group = group
@@ -325,7 +328,7 @@ async def cb_add_favorite(call: types.CallbackQuery):
     kb_faculty.row(
         types.InlineKeyboardButton(
             text='🚫 Отмена',
-            callback_data='cancel_find_class'
+            callback_data='tomain'
         )
     )
     

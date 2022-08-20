@@ -164,7 +164,6 @@ class DBWorker(DBInterface):
                 return self._users.replace_one({'user_id': user.user_id}, user.dict())
         else:
             return self._users.insert_one(user.dict())
-        
 
     def schedule(
             self, group: str, weekday: str = None,
@@ -192,7 +191,6 @@ class DBWorker(DBInterface):
 
         return Schedule(**db_schedule)
     
-    
     def add_schedule(self, schedule: Schedule, replace: bool = True):
         """Функция добавления расписания в базу данных.
 
@@ -205,7 +203,6 @@ class DBWorker(DBInterface):
                 return self._schedule.replace_one({'group': schedule.group}, schedule.dict())
         else:
             return self._schedule.insert_one(schedule.dict())
-
 
     def groups(self, faculty: str, year: str) -> list[str]:
         """Функция получения списка групп по факультету и году поступления.
@@ -252,7 +249,6 @@ class DBWorker(DBInterface):
         else:
             return self._groups.insert_one(document)
     
-    
     def add_teacher(self, teacher: dict, replace: bool = True):
         """Функция добавления преподавателя в базу данных.
 
@@ -267,7 +263,6 @@ class DBWorker(DBInterface):
             return self._teachers.replace_one({'name': name}, teacher)
         else:
             return self._teachers.insert_one(teacher)
-
 
     @staticmethod
     def years() -> list[int]:
@@ -296,16 +291,14 @@ class DBWorker(DBInterface):
         return years
 
     @staticmethod
-    def faculties(short: bool = False, both: bool = False) -> list[dict[str, str]]:
+    def faculties() -> list[dict[str, str]]:
         """Функция получения факультетов.
-        
-        Аргументы:
-            short (bool): возвращать короткое название факультета
         
         Возвращает:
             list[int]: список факультетов
         """
         # REVIEW: не работает с базой данных
+        # REVIEW: убрать в дальнейших релизах, пересмотреть структуру возврата
         faculties = [
             'Факультет информационных технологий',
             'Факультет энергетики и электроники',
