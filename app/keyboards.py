@@ -3,10 +3,11 @@ from aiogram import types
 
 # Главное меню
 kbm = types.InlineKeyboardMarkup()
-kbm.row(types.InlineKeyboardButton(
-    text='📅 Расписание по дням',
-    callback_data='days'
-)
+kbm.row(
+    types.InlineKeyboardButton(
+        text='📅 Расписание по дням',
+        callback_data='days'
+    )
 )
 kbm.row(
     types.InlineKeyboardButton(
@@ -69,11 +70,11 @@ kbbb.row(
 )
 
 # Кнопка отмены действия
-kb_cancel_building = types.InlineKeyboardMarkup()
-kb_cancel_building.row(
+kb_cancel = types.InlineKeyboardMarkup()
+kb_cancel.row(
     types.InlineKeyboardButton(
         text='🚫 Отмена',
-        callback_data='cancel_find_class'
+        callback_data='tomain'
     )
 )
 
@@ -146,61 +147,61 @@ def days_keyboard(buttons):
     kb_dn.row(
         types.InlineKeyboardButton(
             text=buttons[0],
-            callback_data='week_1'
+            callback_data='week_odd'
         ),
         types.InlineKeyboardButton(
             text='Пн',
-            callback_data='wday_monday_1'
+            callback_data='wday_monday_odd'
         ),
         types.InlineKeyboardButton(
             text='Вт',
-            callback_data='wday_tuesday_1'
+            callback_data='wday_tuesday_odd'
         ),
         types.InlineKeyboardButton(
             text='Ср',
-            callback_data='wday_wednesday_1'
+            callback_data='wday_wednesday_odd'
         ),
         types.InlineKeyboardButton(
             text='Чт',
-            callback_data='wday_thursday_1'
+            callback_data='wday_thursday_odd'
         ),
         types.InlineKeyboardButton(
             text='Пт',
-            callback_data='wday_friday_1'
+            callback_data='wday_friday_odd'
         ),
         types.InlineKeyboardButton(
             text='Сб',
-            callback_data='wday_saturday_1'
+            callback_data='wday_saturday_odd'
         )
     )
     kb_dn.row(
         types.InlineKeyboardButton(
             text=buttons[1],
-            callback_data='week_2'
+            callback_data='week_even'
         ),
         types.InlineKeyboardButton(
             text='Пн',
-            callback_data='wday_monday_2'
+            callback_data='wday_monday_even'
         ),
         types.InlineKeyboardButton(
             text='Вт',
-            callback_data='wday_tuesday_2'
+            callback_data='wday_tuesday_even'
         ),
         types.InlineKeyboardButton(
             text='Ср',
-            callback_data='wday_wednesday_2'
+            callback_data='wday_wednesday_even'
         ),
         types.InlineKeyboardButton(
             text='Чт',
-            callback_data='wday_thursday_2'
+            callback_data='wday_thursday_even'
         ),
         types.InlineKeyboardButton(
             text='Пт',
-            callback_data='wday_friday_2'
+            callback_data='wday_friday_even'
         ),
         types.InlineKeyboardButton(
             text='Сб',
-            callback_data='wday_saturday_2'
+            callback_data='wday_saturday_even'
         )
     )
     kb_dn.row(
