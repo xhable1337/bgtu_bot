@@ -211,6 +211,9 @@ async def msg_any(message: types.Message, state: FSMContext):
         else:
             scheduled_msg[weekday][notification_time].append(user.user_id)
         
+        #! Применение апдейтов к базе
+        user.notification_time = user_time_dict
+        db._scheduled_msg.update_one({'id': 1}, {'$set': scheduled_msg})
         
         await message.answer(
             f'⏰ Уведомление на {message.text} установлено!', 
@@ -218,7 +221,6 @@ async def msg_any(message: types.Message, state: FSMContext):
         )
         
         user.state = 'default'
-
 
 
 async def cmd_cancel(message: types.Message):

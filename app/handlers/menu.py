@@ -342,7 +342,13 @@ async def cb_notifications(call: types.CallbackQuery):
     """
     user = db.user(call.from_user.id)
     notification_time = user.notification_time
-    if notification_time is None or notification_time == {}:
+    
+    notification_is_empty = (
+        notification_time is None
+        or notification_time == {}
+    )
+    
+    if notification_is_empty:
         await call.message.edit_text(
             text=f'Уведомления с расписанием отсутствуют.\n'
             'Выберите день недели для установки времени автоматической отправки расписания:',
@@ -435,6 +441,16 @@ async def cb_del_notification(call: types.CallbackQuery):
     }
     """
     
+    sample_notification_time = {
+        'monday': '',
+        'tuesday': '',
+        'wednesday': '',
+        'thursday': '',
+        'friday': '',
+        'saturday': '',
+        'sunday': ''
+    }
+    
     #* Удаляем из общего списка рассылки сообщения для текущего юзера и дня недели
     schedule_list: dict = db._scheduled_msg.find_one({"id": 1})
     if len(schedule_list[weekday][user_time]) == 1:
@@ -449,6 +465,11 @@ async def cb_del_notification(call: types.CallbackQuery):
     # TODO: заменить обнуление на удаление поля (сейвим место в БД)
     notification_time = user.notification_time
     notification_time[weekday] = ''
+    
+    # REVIEW - частичный фикс, замена на пустой объект
+    if notification_time == sample_notification_time:
+        notification_time = {}
+    
     user.notification_time = notification_time
     
     await call.message.edit_text(
@@ -489,6 +510,7 @@ async def dummycb_maintenance(call: types.CallbackQuery):
         text='⚡ Бот находится на тех.работах. Возвращайтесь позже.',
         show_alert=True
     )
+
 
 async def cb_favorite_groups(call: types.CallbackQuery):
     """### [`Callback`] Кнопка "Избранные группы".
