@@ -109,9 +109,6 @@ async def cb_tomorrow(call: types.CallbackQuery):
     else:
         schedule = None
 
-    logger.debug(f'TOMORROW SCHEDULE FOR GROUP {user.group}')
-    logger.debug(f'{schedule}')
-
     # Сгенерированный текст
     text = schedule_text('tomorrow', isoweekday,
                          user.group, weektype, schedule)
