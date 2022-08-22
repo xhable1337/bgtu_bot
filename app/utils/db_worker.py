@@ -48,7 +48,7 @@ class DBInterface:
 
         # Подключение к коллекциям БД
         self._users = database.users
-        self._schedule = database.schedule_latest
+        self._schedule = database.schedule
         self._groups = database.groups
         self._settings = database.settings
         self._scheduled_msg = database.scheduled_messages
