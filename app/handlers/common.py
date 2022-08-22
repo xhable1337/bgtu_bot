@@ -256,12 +256,13 @@ async def cmd_dev(message: types.Message):
     await message.answer(
         '👨‍💻 <b>Разработчик бота:</b> @xhable.\n'
         '💻 <b>Использованные технологии:</b>:\n'
-        '- 🤖 <b>Бот:</b> '
+        '└ 🤖 <b>Бот:</b> '
         '<a href="https://www.python.org">Python 3</a> + '
         '<a href="https://github.com/aiogram/aiogram">aiogram</a>\n'
-        '- 🌐 <b>Веб-приложение:</b> '
+        '└ 🌐 <b>Веб-приложение:</b> '
         '<a href="https://nodejs.org/en/">Node.js</a> + '
-        '<a href="https://reactjs.org">React</a>'
+        '<a href="https://reactjs.org">React</a>',
+        disable_web_page_preview=True
     )
 
 
