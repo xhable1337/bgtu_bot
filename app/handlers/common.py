@@ -241,6 +241,30 @@ async def cmd_cancel(message: types.Message):
     )
 
 
+async def cmd_support(message: types.Message):
+    """### [`Command`] Команда /support.
+    """
+    await message.answer(
+        "💁‍♂️ По всем вопросам, предложениям, пожеланиям и проблемам "
+        "обращаться сюда: <b>@BGTU_Feedback_bot</b>."
+    )
+
+
+async def cmd_dev(message: types.Message):
+    """### [`Command`] Команда /dev.
+    """
+    await message.answer(
+        '👨‍💻 <b>Разработчик бота:</b> @xhable.\n'
+        '💻 <b>Использованные технологии:</b>:\n'
+        '- 🤖 <b>Бот:</b> '
+        '<a href="https://www.python.org">Python 3</a> + '
+        '<a href="https://github.com/aiogram/aiogram">aiogram</a>\n'
+        '- 🌐 <b>Веб-приложение:</b> '
+        '<a href="https://nodejs.org/en/">Node.js</a> + '
+        '<a href="https://reactjs.org">React</a>'
+    )
+
+
 def register_handlers_common(dp: Dispatcher):
     """Регистрирует хэндлеры сообщений и команд обычных пользователей.
 
@@ -251,6 +275,8 @@ def register_handlers_common(dp: Dispatcher):
     # dp - рекомендованное короткое имя для диспетчера
 
     dp.register_message_handler(cmd_start, commands="start", state="*")
+    dp.register_message_handler(cmd_support, commands="support", state="*")
+    dp.register_message_handler(cmd_dev, commands="dev", state="*")
     dp.register_message_handler(cmd_cancel, commands="cancel", state="*")
     dp.register_message_handler(cmd_cancel, Text(
         equals="отмена", ignore_case=True), state="*")
