@@ -261,7 +261,9 @@ async def cmd_dev(message: types.Message):
         '<a href="https://github.com/aiogram/aiogram">aiogram</a>\n'
         '└ 🌐 <b>Веб-приложение:</b> '
         '<a href="https://nodejs.org/en/">Node.js</a> + '
-        '<a href="https://reactjs.org">React</a>',
+        '<a href="https://reactjs.org">React</a>\n'
+        '🔡 <b>Исходный код:</b> '
+        'coming soon...',
         disable_web_page_preview=True
     )
 
