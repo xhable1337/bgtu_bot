@@ -54,6 +54,14 @@ kbm.row(
         callback_data='favorite_groups'
     )
 )
+kbm.row(
+    types.InlineKeyboardButton(
+        text='📱 Веб-приложение',
+        web_app=types.WebAppInfo(
+            url='https://tgweb.zgursky.tk'
+        )
+    )
+)
 
 
 # Кнопка возврата от сообщения с расписанием
