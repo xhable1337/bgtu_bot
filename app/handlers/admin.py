@@ -1,15 +1,13 @@
-from contextlib import suppress
+"""app/handlers/admin.py
+
+    Хэндлеры сообщений и команд админов.
+"""
+from asyncio import sleep
 
 from aiogram import Dispatcher, types
-from aiogram.dispatcher.filters import Text
-import datetime
-from asyncio import sleep
 from loguru import logger
-# from aiogram.dispatcher.storage import FSMContext
-from aiogram.utils.exceptions import MessageCantBeDeleted, MessageNotModified
 
-# TODO: Избавиться от wildcard import
-from app.keyboards import *
+from app.keyboards import kb_admin, kb_update_teachers
 from app.utils.db_worker import DBWorker
 from app.utils.api_worker import APIWorker
 from app.properties import MONGODB_URI
@@ -17,23 +15,23 @@ from app.properties import MONGODB_URI
 db = DBWorker(MONGODB_URI)
 api = APIWorker()
 
+
 async def cmd_broadcast(message: types.Message):
     """### [`Command`] Команда /broadcast.
     """
-    # TODO: Вынести settings в отдельный метод DBWorker
-    settings = db._settings.find_one({})
-    if message.chat.id in settings['admins']:
+    settings = db.settings()
+    if message.chat.id in settings.admins:
         if message.text == '/broadcast':
             return await message.answer(
                 "📨 /broadcast: Рассылка пользователям.\n"
                 "<b>Использование:</b> <code>/broadcast &lt;group|all&gt; &lt;message&gt;</code>"
             )
-        
+
         group, text = message.text.split(' ', maxsplit=2)[1:3]
-        
+
         i = 1
         if group == 'all':
-            text = f'🔔 <b>Сообщение для всех групп!</b>\n' + text
+            text = '🔔 <b>Сообщение для всех групп!</b>\n' + text
             for user in db._users.find():
                 if i % 25 == 0:
                     sleep(1)
@@ -41,10 +39,12 @@ async def cmd_broadcast(message: types.Message):
                 try:
                     await message.bot.send_message(user_id, text)
                     i += 1
-                except:
-                    pass
+                except Exception as exc:
+                    logger.error(
+                        f"Exception caught while broadcasting to all: {exc}"
+                    )
         elif group == 'test':
-            text = f'🔔 <b>Тестовое сообщение!</b>\n' + text
+            text = '🔔 <b>Тестовое сообщение!</b>\n' + text
             await message.answer(text)
         else:
             text = f'🔔 <b>Сообщение для группы {group}!</b>\n' + text
@@ -56,8 +56,10 @@ async def cmd_broadcast(message: types.Message):
                 try:
                     await message.bot.send_message(user_id, text)
                     i += 1
-                except:
-                    pass
+                except Exception as exc:
+                    logger.error(
+                        f"Exception caught while broadcasting to group {group}: {exc}"
+                    )
 
 
 async def cmd_admin(message: types.Message):
@@ -80,14 +82,14 @@ async def cmd_admin(message: types.Message):
 async def cmd_update_groups(message: types.Message):
     """### [`Command`] Команда /update_groups.
     """
-    settings = db._settings.find_one({})
-    if message.chat.id in settings['admins']:
+    settings = db.settings()
+    if message.chat.id in settings.admins:
         if message.text == "/update_groups":
             return await message.answer(
                 "🆙 /update_groups: Обновление расписания заданных групп.\n"
                 "<b>Использование:</b> <code>/update_groups &lt;groups&gt;</code>"
             )
-        
+
         groups = message.get_args().lstrip()
         text = '⚙ Запущено обновление расписания для указанных групп...\n\n'
         main_message = await message.answer(text)
@@ -103,8 +105,8 @@ async def cmd_update_groups(message: types.Message):
 async def cmd_force_update(message: types.Message):
     """### [`Command`] Команда /force_update.
     """
-    settings = db._settings.find_one({})
-    if message.chat.id in settings['admins']:
+    settings = db.settings()
+    if message.chat.id in settings.admins:
         groups_text = ''
         await message.answer(
             text='⚙ Запущено обновление групп...\n\n'
@@ -117,10 +119,10 @@ async def cmd_force_update(message: types.Message):
                 # TODO: переделать API для работы с 4-х значными годами
                 groups = api.groups(faculty["full"], str(year)[2:4])
                 db.add_groups(faculty["full"], str(year), groups, replace=True)
-                
+
                 for group in groups:
                     groups_text += f'{group}\n'
-                
+
                 groups_text += '\n'
             await message.answer(text=groups_text)
             groups_text = ''
@@ -145,8 +147,8 @@ async def cmd_force_update(message: types.Message):
 async def cmd_update_teachers(message: types.Message):
     """### [`Command`] Команда /update_teachers.
     """
-    settings = db._settings.find_one({})
-    if message.chat.id in settings['admins']:
+    settings = db.settings()
+    if message.chat.id in settings.admins:
         teacher_list = api.teacher_list()
         processed_count = 0
         succeeded_count = 0
@@ -183,9 +185,16 @@ async def cmd_update_teachers(message: types.Message):
 
 
 def register_handlers_admin(dp: Dispatcher):
+    """Регистрирует хэндлеры команд и сообщений админов.
+
+    Аргументы:
+        dp (aiogram.types.Dispatcher): диспетчер aiogram
+    """
+    # pylint: disable=invalid-name
+    # dp - рекомендованное короткое имя для диспетчера
     dp.register_message_handler(cmd_broadcast, commands="broadcast")
     dp.register_message_handler(cmd_admin, commands="admin")
     dp.register_message_handler(cmd_update_groups, commands="update_groups")
     dp.register_message_handler(cmd_force_update, commands="force_update")
-    dp.register_message_handler(cmd_update_teachers, commands="update_teachers")
-    
+    dp.register_message_handler(
+        cmd_update_teachers, commands="update_teachers")

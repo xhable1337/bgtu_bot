@@ -1,24 +1,26 @@
+"""time_trigger.py
+
+    Этот модуль представляет собой шедулер для запуска
+    отложенных задач или задач по расписанию.
+"""
+
 from asyncio import sleep
 from datetime import datetime
 
 from aiogram import Bot
-from aiogram.types.chat import Chat
-from aiogram.utils.exceptions import BotBlocked, ChatNotFound, UserDeactivated
 from loguru import logger
-from app.models import User
 
+from app.models import User
 from app.properties import week_is_odd, MONGODB_URI
-# TODO: Избавиться от wildcard import
-from app.keyboards import *
 from app.utils.db_worker import DBWorker
 from app.utils.text_generator import schedule_text, wd_name
 
 db = DBWorker(MONGODB_URI)
 
 
-async def scheduled_send(bot: Bot, user: User, day: str):
+async def _scheduled_send(bot: Bot, user: User, day: str):
     isoweekday = datetime.datetime.today().isoweekday()
-    
+
     if day == 'tomorrow':
         isoweekday += 1
 
@@ -44,10 +46,14 @@ async def scheduled_send(bot: Bot, user: User, day: str):
     await bot.send_message(user.id, text)
 
 
-
 async def time_trigger(bot: Bot):
+    """Шедулер для запуска отложенных задач.
+
+    Аргументы:
+        bot (aiogram.types.Bot): инстанс aiogram бота
+    """
     logger.info('Successfully started.')
-    
+
     while True:
         current_time = datetime.now().strftime("%H:%M")
         hour = datetime.now().strftime("%H")
@@ -64,7 +70,7 @@ async def time_trigger(bot: Bot):
 
             if current_time in timetable:
                 for user_id in timetable[current_time]:
-                    await scheduled_send(bot, db.user(user_id), day)
+                    await _scheduled_send(bot, db.user(user_id), day)
                     await sleep(1)
 
         await sleep(60)

@@ -1,4 +1,21 @@
-def numbers(name):
+"""app/utils/wdays.py
+
+    Этот модуль занимается работой с днями недель:
+    перевод, получение isoweekday, получение названия
+    по isoweekday.
+
+"""
+
+
+def numbers(name: str) -> int:
+    """Находит isoweekday для заданного дня недели.
+
+    Аргументы:
+        name (str): английское имя дня недели
+
+    Возвращает:
+        int: isoweekday этого дня недели
+    """
     if name == 'monday':
         num = 1
     elif name == 'tuesday':
@@ -15,7 +32,16 @@ def numbers(name):
         num = 7
     return num
 
-def translate(name):
+
+def translate(name: str) -> str:
+    """Переводит день недели с английского на русский язык.
+
+    Аргументы:
+        name (str): день недели на английском языке
+
+    Возвращает:
+        str: день недели на русском языке
+    """
     if name == 'monday':
         newname = 'понедельник'
     elif name == 'tuesday':
@@ -33,29 +59,37 @@ def translate(name):
     return newname
 
 
-def names(wd):
-    if wd == 1:
+def names(isoweekday: int) -> tuple[str, str]:
+    """Находит русское и английское названия дня недели по isoweekday.
+
+    Аргументы:
+        isoweekday (int): номер дня недели (1-7, 8)
+
+    Возвращает:
+        tuple[str, str]: кортеж вида ('понедельник', 'monday')
+    """
+    if isoweekday == 1:
         wdr = 'понедельник'
-        wde = 'monday'       
-    elif wd == 2:
+        wde = 'monday'
+    elif isoweekday == 2:
         wdr = 'вторник'
-        wde = 'tuesday'        
-    elif wd == 3:
+        wde = 'tuesday'
+    elif isoweekday == 3:
         wdr = 'среда'
-        wde = 'wednesday'        
-    elif wd == 4:
+        wde = 'wednesday'
+    elif isoweekday == 4:
         wdr = 'четверг'
-        wde = 'thursday'        
-    elif wd == 5:
+        wde = 'thursday'
+    elif isoweekday == 5:
         wdr = 'пятница'
         wde = 'friday'
-    elif wd == 6:
+    elif isoweekday == 6:
         wdr = 'суббота'
         wde = 'saturday'
-    elif wd == 7:
+    elif isoweekday == 7:
         wdr = 'воскресенье'
         wde = 'sunday'
-    elif wd == 8:
+    elif isoweekday == 8:
         wdr = 'понедельник'
         wde = 'monday'
     return wdr, wde
