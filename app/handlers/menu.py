@@ -6,6 +6,7 @@ import datetime
 
 from aiogram import Dispatcher, types
 from aiogram.dispatcher.filters import Text, Filter
+from loguru import logger
 
 from app.keyboards import kbbb, kbm, kb_cancel, days_keyboard, kb_notifications_days
 from app.properties import week_is_odd, MONGODB_URI
@@ -107,6 +108,9 @@ async def cb_tomorrow(call: types.CallbackQuery):
         schedule = db.schedule(user.group, wd_name[isoweekday][1], weektype)
     else:
         schedule = None
+
+    logger.debug(f'TOMORROW SCHEDULE FOR GROUP {user.group}')
+    logger.debug(f'{schedule}')
 
     # Сгенерированный текст
     text = schedule_text('tomorrow', isoweekday,
