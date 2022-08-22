@@ -1,3 +1,18 @@
+"""db_worker.py
+
+    Этот модуль осуществляет всю работу, связанную с базой данных MongoDB.
+    Поля класса DBUser написаны на property и имеют удобный синтаксис получения
+    и изменения значений.
+
+    Для работы с модулем, нужно его импортировать и создать инстанс класса DBWorker:
+
+    ```
+    from db_worker import DBWorker
+
+    db = DBWorker('my_host')
+    ```
+"""
+
 from datetime import datetime
 from time import time
 from typing import Union, List
@@ -5,20 +20,28 @@ from typing import Union, List
 from pymongo import MongoClient
 from loguru import logger
 
-from app.models import Lesson, Schedule, User
+from app.models import Lesson, Schedule, User, Settings
 from app.properties import MONGODB_URI
 
 
 class DBInterface:
+    """Интерфейс для работы с базой данных.
+    """
+
+    # pylint: disable=too-few-public-methods
+    # Это класс-интерфейс, он не требует дополнительных методов.
+
     def __new__(cls, host: str = MONGODB_URI):
         if not hasattr(cls, 'instance'):
-            print('Interface created')
+            logger.debug('DBInterface created')
+            cls._db_uri = host
             cls.instance = super(DBInterface, cls).__new__(cls)
         return cls.instance
 
     def __init__(self, host: str = MONGODB_URI, db_name: str = 'heroku_38n7vrr9'):
         # Подключение к СУБД
-        client = MongoClient(host)
+        self._db_uri = host
+        client = MongoClient(self._db_uri)
 
         # Подключение к БД
         database = client.get_database(db_name)
@@ -33,6 +56,12 @@ class DBInterface:
 
 
 class DBUser(DBInterface):
+    """Класс для работы с пользователем в базе данных.
+    """
+
+    # pylint: disable=too-many-instance-attributes
+    # При инициализации объявляются все необходимые поля.
+
     def __init__(self, user_id: int):
         super().__init__()
         self._db_obj: dict = self._users.find_one(
@@ -51,9 +80,9 @@ class DBUser(DBInterface):
         self._favorite_groups: Union[List[str], None] = (
             self._db_obj['favorite_groups']
         )
-    
-    
+
     def obj(self) -> User:
+        """Объект модели User."""
         return User(**{
             'first_name': self.first_name,
             'last_name': self.last_name,
@@ -67,10 +96,11 @@ class DBUser(DBInterface):
 
     @property
     def full_name(self):
+        """Полное имя пользователя (fn+ln при наличии ln, либо только fn)."""
         if self.last_name:
             return f"{self.first_name} {self.last_name}"
-        else:
-            return self.first_name
+
+        return self.first_name
 
     def __str__(self):
         if self.username:
@@ -83,7 +113,8 @@ class DBUser(DBInterface):
         return f"{self.full_name} {details} - {group}"
 
     @property
-    def state(self):
+    def state(self) -> str:
+        """Текущее состояние пользователя."""
         return self._state
 
     @state.setter
@@ -96,6 +127,7 @@ class DBUser(DBInterface):
 
     @property
     def group(self) -> str:
+        """Текущая группа пользователя."""
         return self._group
 
     @group.setter
@@ -108,6 +140,7 @@ class DBUser(DBInterface):
 
     @property
     def favorite_groups(self) -> list[str]:
+        """Список избранных групп пользователя."""
         return self._favorite_groups
 
     @favorite_groups.setter
@@ -117,9 +150,10 @@ class DBUser(DBInterface):
             {'user_id': self.user_id},
             {'$set': {'favorite_groups': new_fav}}
         )
-    
+
     @property
     def notification_time(self) -> dict[str, str]:
+        """Словарь ежедневных уведомлений пользователя"""
         return self._notification_time
 
     @notification_time.setter
@@ -131,9 +165,63 @@ class DBUser(DBInterface):
         )
 
 
+class DBSettings(DBInterface):
+    """Класс для работы с настройками бота в базе данных.
+    """
+
+    # pylint: disable=too-many-instance-attributes
+    # При инициализации объявляются все необходимые поля.
+
+    def __init__(self):
+        super().__init__()
+        self._db_obj: dict = self._settings.find_one({}, {'_id': False})
+
+        if not self._db_obj:
+            raise ValueError('Settings are not found.')
+
+        self._maintenance: bool = self._db_obj['maintenance']
+        self._admins: list[int] = self._db_obj['admins']
+
+    def obj(self) -> Settings:
+        """Объект модели User."""
+        return Settings(**{
+            'maintenance': self._maintenance,
+            'admins': self._admins
+        })
+
+    @property
+    def maintenance(self) -> bool:
+        """Состояние техработ."""
+        return self._maintenance
+
+    @maintenance.setter
+    def maintenance(self, new_maintenance_state: bool):
+        self._maintenance = new_maintenance_state
+        self._settings.update_one(
+            {},
+            {'$set': {'maintenance': new_maintenance_state}}
+        )
+
+    @property
+    def admins(self) -> list[int]:
+        """Список админов бота."""
+        return self._admins
+
+    @admins.setter
+    def admins(self, new_admins_list: list[int]):
+        self._admins = new_admins_list
+        self._settings.update_one(
+            {},
+            {'$set': {'admins': new_admins_list}}
+        )
+
+
 class DBWorker(DBInterface):
+    """Класс-синглтон для работы с базой данных.
+    """
     def __new__(cls, host: str, db_name: str = 'heroku_38n7vrr9'):
         if not hasattr(cls, 'instance'):
+            cls._db_name = db_name
             cls.instance = super(DBWorker, cls).__new__(cls)
         return cls.instance
 
@@ -150,7 +238,7 @@ class DBWorker(DBInterface):
             return DBUser(user_id)
         except ValueError:
             return None
-    
+
     def add_user(self, user: User, replace: bool = True):
         """Функция добавления пользователя в базу данных.
 
@@ -161,9 +249,9 @@ class DBWorker(DBInterface):
         db_user = self.user(user.user_id)
         if db_user:
             if replace:
-                return self._users.replace_one({'user_id': user.user_id}, user.dict())
+                self._users.replace_one({'user_id': user.user_id}, user.dict())
         else:
-            return self._users.insert_one(user.dict())
+            self._users.insert_one(user.dict())
 
     def schedule(
             self, group: str, weekday: str = None,
@@ -190,7 +278,7 @@ class DBWorker(DBInterface):
             return [Lesson(**lessons_list[i]) for i in range(len(lessons_list))]
 
         return Schedule(**db_schedule)
-    
+
     def add_schedule(self, schedule: Schedule, replace: bool = True):
         """Функция добавления расписания в базу данных.
 
@@ -200,9 +288,10 @@ class DBWorker(DBInterface):
         """
         if self._schedule.find_one({'group': schedule.group}):
             if replace:
-                return self._schedule.replace_one({'group': schedule.group}, schedule.dict())
+                self._schedule.replace_one(
+                    {'group': schedule.group}, schedule.dict())
         else:
-            return self._schedule.insert_one(schedule.dict())
+            self._schedule.insert_one(schedule.dict())
 
     def groups(self, faculty: str, year: str) -> list[str]:
         """Функция получения списка групп по факультету и году поступления.
@@ -217,7 +306,7 @@ class DBWorker(DBInterface):
         # REVIEW - нужно полностью перейти на четырёхзначные года
         if len(year) == 2:
             year = datetime.today().strftime("%Y")[:2] + year
-            
+
         groups = self._groups.find_one(
             {'faculty': faculty, 'year': year}
         )
@@ -235,20 +324,21 @@ class DBWorker(DBInterface):
         """
         # TODO: Переделать под модель из pydantic
         last_updated = time()
-        
+
         document = {
             'last_updated': last_updated,
             'faculty': faculty,
             'year': year,
             'groups': groups
         }
-        
+
         if self._groups.find_one({'faculty': faculty, 'year': year}):
             if replace:
-                return self._groups.replace_one({'faculty': faculty, 'year': year}, document)
+                self._groups.replace_one(
+                    {'faculty': faculty, 'year': year}, document)
         else:
-            return self._groups.insert_one(document)
-    
+            self._groups.insert_one(document)
+
     def add_teacher(self, teacher: dict, replace: bool = True):
         """Функция добавления преподавателя в базу данных.
 
@@ -260,9 +350,10 @@ class DBWorker(DBInterface):
         """
         name = teacher.get('name')
         if self._teachers.find_one({'name': name}):
-            return self._teachers.replace_one({'name': name}, teacher)
+            if replace:
+                self._teachers.replace_one({'name': name}, teacher)
         else:
-            return self._teachers.insert_one(teacher)
+            self._teachers.insert_one(teacher)
 
     @staticmethod
     def years() -> list[int]:
@@ -273,9 +364,9 @@ class DBWorker(DBInterface):
         """
         # REVIEW: не работает с базой данных
         years = []
-        dt = datetime.now()
-        month = int(dt.strftime('%m'))
-        year = int(dt.strftime('%Y'))
+        now = datetime.now()
+        month = int(now.strftime('%m'))
+        year = int(now.strftime('%Y'))
 
         if month <= 8:
             # Учебный год ЕЩЁ не кончился
@@ -293,30 +384,12 @@ class DBWorker(DBInterface):
     @staticmethod
     def faculties() -> list[dict[str, str]]:
         """Функция получения факультетов.
-        
+
         Возвращает:
             list[int]: список факультетов
         """
         # REVIEW: не работает с базой данных
-        # REVIEW: убрать в дальнейших релизах, пересмотреть структуру возврата
-        faculties = [
-            'Факультет информационных технологий',
-            'Факультет энергетики и электроники',
-            'Факультет отраслевой и цифровой экономики',
-            'Учебно-научный технологический институт',
-            'Механико-технологический факультет',
-            'Учебно-научный институт транспорта'
-        ]
-        
-        faculties_short = [
-            'ФИТ',
-            'ФЭЭ',
-            'ФОЦЭ',
-            'УНТИ',
-            'МТФ',
-            'УНИТ'
-        ]
-        
+
         faculties_objects = [
             {
                 'full': 'Факультет информационных технологий',
@@ -345,3 +418,14 @@ class DBWorker(DBInterface):
         ]
 
         return faculties_objects
+
+    def settings(self) -> DBSettings:
+        """Функция получения настроек бота.
+
+        Возвращает:
+            DBSettings: объект настроек бота
+        """
+        try:
+            return DBSettings()
+        except ValueError:
+            return None

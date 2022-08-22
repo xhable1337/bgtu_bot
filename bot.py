@@ -1,12 +1,17 @@
+"""bot.py
+
+    Основной файл бота, точка входа программы.
+
+    Для запуска: `python3 bot.py`
+"""
+
 # Standard library imports
 import logging
-from asyncio import get_event_loop
+from asyncio import get_event_loop, ensure_future
 
 # Related third party imports
 from aiogram import Bot, Dispatcher
 from aiogram.types import BotCommand
-from aiogram.contrib.fsm_storage.mongo import MongoStorage
-from asyncio import ensure_future
 from loguru import logger
 
 # Local application/library specific imports
@@ -18,12 +23,12 @@ from app import properties
 from app.time_trigger import time_trigger
 # ---------------------------------------------------------------
 
-bot = Bot(token=properties.bot_token, parse_mode='HTML')
+bot = Bot(token=properties.BOT_TOKEN, parse_mode='HTML')
 # dp = Dispatcher(bot, storage=MongoStorage(db_name=props.database_name))
 dp = Dispatcher(bot)
 
 
-class InterceptHandler(logging.Handler):
+class _InterceptHandler(logging.Handler):
     def emit(self, record):
         # Get corresponding Loguru level if it exists
         try:
@@ -37,23 +42,36 @@ class InterceptHandler(logging.Handler):
             frame = frame.f_back
             depth += 1
 
-        logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
+        logger.opt(
+            depth=depth,
+            exception=record.exc_info
+        ).log(
+            level,
+            record.getMessage()
+        )
 
 
-async def set_commands(bot: Bot):
+async def set_commands(_bot: Bot):
+    """Установка команд для меню бота.
+
+    Args:
+        _bot (aiogram.types.Bot): инстанс aiogram бота
+    """
     commands = [
         BotCommand(command="/start", description="Вернуться в начало"),
         BotCommand(command="/cancel", description="Отменить текущее действие")
     ]
-    await bot.set_my_commands(commands)
-
+    await _bot.set_my_commands(commands)
 
 
 async def main():
+    """Точка входа бота.
+    """
     # Запуск логирования
-    logging.basicConfig(handlers=[InterceptHandler()], level=logging.INFO)
-    
-    logger.warning(f"Starting bot...")
+    logging.basicConfig(handlers=[_InterceptHandler()], level=logging.INFO)
+
+    _bot = await bot.get_me()
+    logger.warning(f"Starting bot {_bot.full_name} [{_bot.username}]...")
 
     # Регистрация хэндлеров
     register_handlers_admin_menu(dp)

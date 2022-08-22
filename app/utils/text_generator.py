@@ -1,6 +1,12 @@
-from app.models import Schedule, Lesson
+"""text_generator.py
+
+    Этот модуль генерирует текст расписания пар и звонков.
+"""
 from typing import List
+
 from prettytable import PrettyTable
+
+from app.models import Lesson
 
 wd_numbers = {
     'monday': 1,
@@ -90,8 +96,8 @@ def schedule_text(
                 teacher_text = f'<b>Преподаватель:</b> {lesson.teacher}'
 
             time = rings_list[lesson.number-1]
-            lesson_type = lesson.subject.split(" ")[0] 
-            lesson_subject = lesson.subject.split(" ", maxsplit=1)[1] 
+            lesson_type = lesson.subject.split(" ")[0]
+            lesson_subject = lesson.subject.split(" ", maxsplit=1)[1]
 
             schedule_txt += (
                 f'<u>Пара №{lesson.number} <i>({time})</i></u>\n'
