@@ -1,4 +1,3 @@
-# pytelegrambotapi
 aiogram
 aiohttp
 asyncio
