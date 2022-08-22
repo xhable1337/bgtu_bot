@@ -8,6 +8,9 @@ from typing import Union, List
 
 from pydantic import BaseModel
 
+# pylint: disable=too-few-public-methods
+# В моделях не нужны методы
+
 
 class User(BaseModel):
     """Модель пользователя бота.
