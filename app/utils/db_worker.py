@@ -38,7 +38,7 @@ class DBInterface:
             cls.instance = super(DBInterface, cls).__new__(cls)
         return cls.instance
 
-    def __init__(self, host: str = MONGODB_URI, db_name: str = 'heroku_38n7vrr9'):
+    def __init__(self, host: str = MONGODB_URI, db_name: str = 'bgtu_bot'):
         # Подключение к СУБД
         self._db_uri = host
         client = MongoClient(self._db_uri)
@@ -219,7 +219,7 @@ class DBSettings(DBInterface):
 class DBWorker(DBInterface):
     """Класс-синглтон для работы с базой данных.
     """
-    def __new__(cls, host: str, db_name: str = 'heroku_38n7vrr9'):
+    def __new__(cls, host: str, db_name: str = 'bgtu_bot'):
         if not hasattr(cls, 'instance'):
             cls._db_name = db_name
             cls.instance = super(DBWorker, cls).__new__(cls)

@@ -15,7 +15,7 @@ ODD_WEEK_CALENDAR = True
 # ANCHOR: переместить URI БД к настройкам
 # URI для подключения к базе данных MongoDB
 # pylint: disable=line-too-long
-MONGODB_URI = 'mongodb://heroku_38n7vrr9:8pojct20ovk5sgvthiugo3kmpa@dnevnikcluster-shard-00-00.7tatu.mongodb.net:27017,dnevnikcluster-shard-00-01.7tatu.mongodb.net:27017,dnevnikcluster-shard-00-02.7tatu.mongodb.net:27017/heroku_38n7vrr9?ssl=true&replicaSet=atlas-106r53-shard-0&authSource=admin&retryWrites=true&w=majority'
+MONGODB_URI = 'mongodb://localhost:27017'
 
 # Токен бота в Telegram
 # bot_token = '1147506878:AAGi4Uo6IIGm55TNgG9IIcYIfRZak-HFxN4'
