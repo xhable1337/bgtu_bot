@@ -19,7 +19,7 @@ db = DBWorker(MONGODB_URI)
 
 
 async def _scheduled_send(bot: Bot, user: User, day: str):
-    isoweekday = datetime.datetime.today().isoweekday()
+    isoweekday = datetime.today().isoweekday()
 
     if day == 'tomorrow':
         isoweekday += 1
