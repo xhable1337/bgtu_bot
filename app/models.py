@@ -98,4 +98,4 @@ class Settings(BaseModel):
     - `admins` (list[int]): список ID админов бота
     """
     maintenance: bool
-    admins: list[int]
+    admins: List[int]
