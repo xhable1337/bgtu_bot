@@ -365,19 +365,36 @@ class DBWorker(DBInterface):
         # REVIEW: не работает с базой данных
         years = []
         now = datetime.now()
+        day = int(now.strftime('%d'))
         month = int(now.strftime('%m'))
         year = int(now.strftime('%Y'))
 
-        if month <= 8:
-            # Учебный год ЕЩЁ не кончился
-            for _ in range(4):
-                year -= 1
-                years.append(year)
+        # Добавлять ли следующий год в список
+        next_year = True
+
+        if month < 8:
+            # ? Учебный год ЕЩЁ не кончился (1-7 месяцы)
+            # Добавлять текущий календарный год в список не нужно
+            next_year = False
+        elif month == 8:
+            # ? В конце августа (после ≈27 числа) составляют новое расписание
+            # Нужно добавлять текущий календарный год в список при дне >= 27
+            next_year = day >= 27
         else:
-            # Учебный год УЖЕ кончился или УЖЕ начался
+            # ? Учебный год УЖЕ начался (9-12 месяцы)
+            # Нужно добавлять текущий календарный год в список
+            next_year = True
+
+        if next_year:
+            # Нужно добавить текущий год в список
             for _ in range(4):
                 years.append(year)
                 year -= 1
+        else:
+            # Убираем текущий год из списка
+            for _ in range(4):
+                year -= 1
+                years.append(year)
 
         return years
 
