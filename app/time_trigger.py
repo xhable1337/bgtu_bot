@@ -70,7 +70,11 @@ async def time_trigger(bot: Bot):
 
             if current_time in timetable:
                 for user_id in timetable[current_time]:
-                    await _scheduled_send(bot, db.user(user_id), day)
+                    user = db.user(user_id)
+                    if user:
+                        await _scheduled_send(bot, user, day)
+                    else:
+                        logger.error(f'User with ID {user_id} not found!')
                     await sleep(1)
 
         await sleep(60)
