@@ -131,12 +131,10 @@ async def cmd_force_update(message: types.Message):
 
         prompt_text = 'Хотите ли вы обновить расписание всех групп? (может занять много времени)'
         keyboard = types.InlineKeyboardMarkup()
-        # TODO: Убрать v2
+
         keyboard.row(
             types.InlineKeyboardButton(
                 text='✔ Да', callback_data='force-update-yes'),
-            types.InlineKeyboardButton(
-                text='✔ Да (v2)', callback_data='force-update-yes-v2'),
             types.InlineKeyboardButton(
                 text='❌ Нет', callback_data='force-update-no')
         )
