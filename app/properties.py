@@ -9,7 +9,7 @@ from json import load
 ################################
 # settings.json load
 ################################
-with open('settings.json', 'r', encoding='UTF8') as file:
+with open('app/settings.json', 'r', encoding='UTF8') as file:
     data = load(file)
 
 
