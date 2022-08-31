@@ -4,6 +4,14 @@
 """
 
 from datetime import datetime
+from json import load
+
+################################
+# settings.json load
+################################
+with open('settings.json', 'r', encoding='UTF8') as file:
+    data = load(file)
+
 
 ################################
 # Constants
@@ -15,11 +23,11 @@ ODD_WEEK_CALENDAR = True
 # ANCHOR: переместить URI БД к настройкам
 # URI для подключения к базе данных MongoDB
 # pylint: disable=line-too-long
-MONGODB_URI = 'mongodb://localhost:27017'
+MONGODB_URI = data['mongodb_uri']
 
 # Токен бота в Telegram
 # bot_token = '1147506878:AAGi4Uo6IIGm55TNgG9IIcYIfRZak-HFxN4'
-BOT_TOKEN = '2036333661:AAE9ocZfHf-lkrU9SFi8d0DlnB8ftrx5ioE'
+BOT_TOKEN = data['bot_token']
 
 ################################
 # Functions
