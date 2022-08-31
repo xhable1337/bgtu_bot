@@ -239,7 +239,7 @@ kb_admin.add(
     ),
     types.InlineKeyboardButton(
         text='⚡ Тех.работы',
-        callback_data='maintenance_toggle'
+        callback_data='toggle_maintenance'
     )
 
 )
