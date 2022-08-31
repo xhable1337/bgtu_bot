@@ -71,14 +71,14 @@ class DBUser(DBInterface):
             raise ValueError(f'User {user_id} not found.')
 
         self.first_name: str = self._db_obj['first_name']
-        self.last_name: Union[str, None] = self._db_obj['last_name']
+        self.last_name: Union[str, None] = self._db_obj.get('last_name')
         self.user_id: int = self._db_obj['user_id']
-        self.username: Union[str, None] = self._db_obj['username']
+        self.username: Union[str, None] = self._db_obj.get('username')
         self._state: str = self._db_obj['state']
         self._group: str = self._db_obj['group']
         self._notification_time: dict = self._db_obj.get('notification_time')
         self._favorite_groups: Union[List[str], None] = (
-            self._db_obj['favorite_groups']
+            self._db_obj.get('favorite_groups')
         )
 
     def obj(self) -> User:
