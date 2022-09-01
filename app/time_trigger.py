@@ -43,7 +43,7 @@ async def _scheduled_send(bot: Bot, user: User, day: str):
     text = schedule_text(day, isoweekday,
                          user.group, weektype, schedule)
 
-    await bot.send_message(user.id, text)
+    await bot.send_message(user.user_id, text)
 
 
 async def time_trigger(bot: Bot):
