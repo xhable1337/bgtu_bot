@@ -8,9 +8,10 @@ from aiogram import Dispatcher, types
 from loguru import logger
 
 from app.keyboards import kb_admin, kb_update_teachers
-from app.utils.db_worker import DBWorker
-from app.utils.api_worker import APIWorker
 from app.properties import MONGODB_URI
+from app.utils.api_worker import APIWorker
+from app.utils.db_worker import DBWorker
+from app.utils.schedule_management import update_groups
 
 db = DBWorker(MONGODB_URI)
 api = APIWorker()
@@ -108,26 +109,14 @@ async def cmd_force_update(message: types.Message):
     settings = db.settings()
     if message.chat.id in settings.admins:
         groups_text = ''
-        await message.answer(
+        msg = await message.answer(
             text='⚙ Запущено обновление групп...\n\n'
             'Пожалуйста, ожидайте завершения. Это занимает некоторое время (обычно 1-2 минуты).'
         )
 
-        for year in db.years():
-            for faculty in db.faculties():
-                groups_text += f'{faculty["full"]} ({year} год): \n'
-                # TODO: переделать API для работы с 4-х значными годами
-                groups = api.groups(faculty["full"], str(year)[2:4])
-                db.add_groups(faculty["full"], str(year), groups, replace=True)
-
-                for group in groups:
-                    groups_text += f'{group}\n'
-
-                groups_text += '\n'
-            await message.answer(text=groups_text)
-            groups_text = ''
-            # REVIEW - надо или нет?
-            year -= 1
+        # Обновление списка групп с помощью генератора
+        async for updated_text in update_groups():
+            await msg.edit_text(updated_text)
 
         prompt_text = 'Хотите ли вы обновить расписание всех групп? (может занять много времени)'
         keyboard = types.InlineKeyboardMarkup()

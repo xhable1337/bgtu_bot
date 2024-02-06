@@ -40,8 +40,8 @@ wd_name = {
 }
 
 # Список звонков
-rings_list = ['8:00-9:35', '9:45-11:20', '11:30-13:05',
-              '13:20-14:55', '15:05-16:40', '16:50-18:25', '18:40-20:15', '20:25-22:00']
+rings_list = ('8:00-9:35', '9:45-11:20', '11:30-13:05',
+              '13:20-14:55', '15:05-16:40', '16:50-18:25', '18:40-20:15', '20:25-22:00')
 
 
 def schedule_text(
@@ -88,12 +88,8 @@ def schedule_text(
     # Заполнение текста списком пар
     for lesson in schedule:
         if lesson.subject != '-':
-            teacher_text = f'<b>Преподаватели:</b> {lesson.teacher}'
-
-            if ',' in lesson.teacher:
-                teacher_text = f'<b>Преподаватели:</b> {lesson.teacher}'
-            else:
-                teacher_text = f'<b>Преподаватель:</b> {lesson.teacher}'
+            word_end = 'и' if ',' in lesson.teacher else 'ь'
+            teacher_text = f'<b>Преподавател{word_end}:</b> {lesson.teacher}'
 
             time = rings_list[lesson.number-1]
             lesson_type = lesson.subject.split(" ")[0]

@@ -6,10 +6,11 @@
 from aiogram import Dispatcher, types
 from aiogram.dispatcher.filters import Text
 
-from app.keyboards import kb_admin_back, kb_admin
-from app.utils.db_worker import DBWorker
-from app.utils.api_worker import APIWorker
+from app.keyboards import kb_admin, kb_admin_back
 from app.properties import MONGODB_URI
+from app.utils.api_worker import APIWorker
+from app.utils.db_worker import DBWorker
+from app.utils.schedule_management import update_schedule
 
 db = DBWorker(MONGODB_URI)
 api = APIWorker()
@@ -26,36 +27,14 @@ async def cb_force_update(call: types.CallbackQuery):
         await call.message.edit_text('Хорошо, не обновляем расписание.')
     else:
         text = '⚙ Запущено обновление расписания...\n\n'
+
         msg = await call.bot.send_message(call.message.chat.id, text=text, parse_mode='HTML')
-        msgid = msg.message_id
 
-        for year in db.years():
-            for faculty in db.faculties():
-                text += f'{faculty["full"]} ({year} год): \n'
-                groups = db.groups(
-                    faculty=faculty["full"],
-                    year=str(year)
-                )
-                for group in groups:
-                    schedule = api.schedule(group)
-                    db.add_schedule(schedule)
-                    text += f'✔ {group}\n'
+        # Обновление расписания с помощью генератора
+        async for updated_text in update_schedule():
+            await msg.edit_text(updated_text)
 
-                text += '\n'
-
-                await call.bot.edit_message_text(
-                    chat_id=call.message.chat.id,
-                    message_id=msgid,
-                    text=text,
-                    parse_mode='HTML'
-                )
-
-            text = '⚙ Продолжаем обновлять расписание...\n\n'
-            msg = await call.bot.send_message(call.message.chat.id, text=text, parse_mode='HTML')
-            msgid = msg.message_id
-            # year -= 1
-
-        await msg.edit_text('✅ Расписание успешно обновлено!')
+        await call.message.answer('✅ Расписание успешно обновлено!')
 
 
 async def cb_user_list(call: types.CallbackQuery):

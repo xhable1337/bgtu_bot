@@ -11,7 +11,7 @@ from aiogram import Bot
 from loguru import logger
 
 from app.models import User
-from app.properties import week_is_odd, MONGODB_URI
+from app.properties import MONGODB_URI, week_is_odd
 from app.utils.db_worker import DBWorker
 from app.utils.text_generator import schedule_text, wd_name
 
@@ -61,13 +61,16 @@ async def time_trigger(bot: Bot):
         current_time = datetime.now().strftime("%H:%M")
         hour = datetime.now().strftime("%H")
         weekday_name = datetime.now().strftime('%A').lower()
-        logger.debug(f'time_trigger(): {current_time}')
+
+        need_to_update = weekday_name == 'sunday' and current_time == '04:00'
+        # logger.debug(f'time_trigger(): {current_time}')
 
         if int(hour) < 24 and int(hour) >= 12:
             day = 'tomorrow'
         else:
             day = 'today'
 
+        # Отправка уведомлений о парах
         if weekday_name != 'saturday':
             timetable = db._scheduled_msg.find_one({"id": 1})[weekday_name]
 
@@ -79,5 +82,9 @@ async def time_trigger(bot: Bot):
                     else:
                         logger.error(f'User with ID {user_id} not found!')
                     await sleep(1)
+
+        if need_to_update:
+            # FIXME: update schedule in the DB
+            ...
 
         await sleep(60)
