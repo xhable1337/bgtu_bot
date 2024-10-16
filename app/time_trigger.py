@@ -69,9 +69,14 @@ async def time_trigger(bot: Bot):
             day = 'tomorrow'
         else:
             day = 'today'
+        
+        chosen_sunday = (
+            day == 'today' and weekday_name == 'sunday'
+            or day == 'tomorrow' and weekday_name == 'saturday'
+        )
 
         # Отправка уведомлений о парах
-        if weekday_name != 'saturday':
+        if not chosen_sunday:
             timetable = db._scheduled_msg.find_one({"id": 1})[weekday_name]
 
             if current_time in timetable:
