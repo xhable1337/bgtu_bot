@@ -4,6 +4,7 @@
 """
 
 from asyncio import sleep
+from html import escape
 
 from aiogram import Dispatcher, types
 from loguru import logger
@@ -69,7 +70,7 @@ async def cmd_admin(message: types.Message):
         count = db._users.count_documents({})
         maintenance_state = "🟢 Включены" if settings["maintenance"] else "🔴 Выключены"
         await message.answer(
-            text=f"Добро пожаловать в админ-панель, {user.full_name}.\n"
+            text=f"Добро пожаловать в админ-панель, {escape(user.full_name)}.\n"
             f"<b>Количество пользователей: <u>{count}</u></b>\n"
             f"<b>Состояние тех.работ: <u>{maintenance_state}</u></b>\n"
             "Выберите пункт в меню для дальнейших действий:",

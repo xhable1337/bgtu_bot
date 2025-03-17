@@ -4,6 +4,7 @@
 """
 
 import re
+from html import escape
 
 from aiogram import Dispatcher, types
 from aiogram.dispatcher.filters import Text
@@ -39,14 +40,14 @@ async def cmd_start(message: types.Message):
         for faculty in db.faculties():
             kb_faculty.row(
                 types.InlineKeyboardButton(
-                    text=faculty["full"], callback_data=f'f_{faculty["short"]}'
+                    text=faculty["full"], callback_data=f"f_{faculty['short']}"
                 )
             )
 
         user = db.user(message.from_user.id)
 
         await message.answer(
-            f"Привет, {user.full_name}!\n"
+            f"Привет, {escape(user.full_name)}!\n"
             "<b>Для начала работы с ботом выбери свою группу "
             "(впоследствии выбор можно изменить):</b>",
             reply_markup=kb_faculty,
@@ -64,7 +65,7 @@ async def cmd_start(message: types.Message):
 
         weekname = "нечётная" if week_is_odd() else "чётная"
         await message.answer(
-            f"Привет, {user.full_name}!\n"
+            f"Привет, {escape(user.full_name)}!\n"
             f"<b>Твоя группа: {user.group}.</b>\n"
             f"<b>Сейчас идёт {weekname} неделя.</b>\n"
             "Вот главное меню:",
