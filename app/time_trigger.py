@@ -10,15 +10,14 @@ from datetime import datetime
 from aiogram import Bot
 from loguru import logger
 
-from app.models import User
 from app.properties import MONGODB_URI, week_is_odd
-from app.utils.db_worker import DBWorker
+from app.utils.db_worker import DBUser, DBWorker
 from app.utils.text_generator import schedule_text, wd_name
 
 db = DBWorker(MONGODB_URI)
 
 
-async def _scheduled_send(bot: Bot, user: User, day: str):
+async def _scheduled_send(bot: Bot, user: DBUser, day: str):
     isoweekday = datetime.today().isoweekday()
 
     if day == "tomorrow":
@@ -41,6 +40,9 @@ async def _scheduled_send(bot: Bot, user: User, day: str):
     # Расписание на день из БД
     try:
         schedule = db.schedule(user.group, weekday, weektype)
+        if not schedule:
+            logger.error(f"Schedule for {user.group} on {weekday} not found.")
+            return
     except KeyError:
         logger.error(f"User {user.user_id} set wrong weekday: {weekday}.")
         return
@@ -49,7 +51,7 @@ async def _scheduled_send(bot: Bot, user: User, day: str):
     text = schedule_text(day, isoweekday, user.group, weektype, schedule)
 
     try:
-        await bot.send_message(user.id, text)
+        await bot.send_message(user.user_id, text)
     except Exception as e:
         logger.error(f"Scheduled message was not sent. Exception: {e}")
 
@@ -68,7 +70,6 @@ async def time_trigger(bot: Bot):
         weekday_name = datetime.now().strftime("%A").lower()
 
         need_to_update = weekday_name == "sunday" and current_time == "04:00"
-        # logger.debug(f'time_trigger(): {current_time}')
 
         if int(hour) < 24 and int(hour) >= 12:
             day = "tomorrow"
