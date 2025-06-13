@@ -1,31 +1,35 @@
 """bot.py
 
-    Основной файл бота, точка входа программы.
+Основной файл бота, точка входа программы.
 
-    Для запуска: `python3 bot.py`
+Для запуска: `python3 bot.py`
 """
 
 # Standard library imports
 import logging
-from asyncio import get_event_loop, ensure_future
+from asyncio import ensure_future, get_event_loop
 
 # Related third party imports
 from aiogram import Bot, Dispatcher
+from aiogram.client.default import DefaultBotProperties
+from aiogram.enums import ParseMode
 from aiogram.types import BotCommand
+from aiogram.types.menu_button_web_app import MenuButtonWebApp
+from aiogram.types.web_app_info import WebAppInfo
 from loguru import logger
 
-# Local application/library specific imports
-from app.handlers.common import register_handlers_common
-from app.handlers.admin import register_handlers_admin
-from app.handlers.admin_menu import register_handlers_admin_menu
-from app.handlers.menu import register_handlers_menu
 from app import properties
+
+# Local application/library specific imports
+from app.routers import admin_menu_router, admin_router, common_router, menu_router
 from app.time_trigger import time_trigger
+
 # ---------------------------------------------------------------
 
-bot = Bot(token=properties.BOT_TOKEN, parse_mode='HTML')
-# dp = Dispatcher(bot, storage=MongoStorage(db_name=props.database_name))
-dp = Dispatcher(bot)
+bot = Bot(
+    token=properties.BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML)
+)
+dp = Dispatcher()
 
 
 class _InterceptHandler(logging.Handler):
@@ -42,12 +46,8 @@ class _InterceptHandler(logging.Handler):
             frame = frame.f_back
             depth += 1
 
-        logger.opt(
-            depth=depth,
-            exception=record.exc_info
-        ).log(
-            level,
-            record.getMessage()
+        logger.opt(depth=depth, exception=record.exc_info).log(
+            level, record.getMessage()
         )
 
 
@@ -58,44 +58,50 @@ async def set_commands(_bot: Bot):
         _bot (aiogram.types.Bot): инстанс aiogram бота
     """
     commands = [
-        BotCommand(command="/start", description="Вернуться в начало"),
-        BotCommand(command="/cancel", description="Отменить текущее действие")
+        BotCommand(command="start", description="Вернуться в начало"),
+        BotCommand(command="cancel", description="Отменить текущее действие"),
+        BotCommand(
+            command="support", description="Поддержка (вопросы, проблемы, пожелания)"
+        ),
+        BotCommand(command="dev", description="Информация о разработчике и боте"),
     ]
     await _bot.set_my_commands(commands)
 
+    await _bot.set_chat_menu_button(
+        menu_button=MenuButtonWebApp(
+            text="Бот v2", web_app=WebAppInfo(url="https://tgweb.darx.zip")
+        )
+    )
+
 
 async def main():
-    """Точка входа бота.
-    """
+    """Точка входа бота."""
     # Запуск логирования
     logging.basicConfig(handlers=[_InterceptHandler()], level=logging.INFO)
 
-    _bot = await bot.get_me()
-    logger.warning(f"Starting bot {_bot.full_name} [{_bot.username}]...")
+    _bot_info = await bot.get_me()
+    logger.warning(f"Starting bot {_bot_info.full_name} [{_bot_info.username}]...")
 
-    # Регистрация хэндлеров
-    register_handlers_admin_menu(dp)
-    register_handlers_admin(dp)
-    register_handlers_menu(dp)
-    register_handlers_common(dp)
+    # Регистрация роутеров
+    dp.include_router(admin_menu_router)
+    dp.include_router(admin_router)
+    dp.include_router(menu_router)
+    dp.include_router(common_router)
 
     # Установка команд
     await set_commands(bot)
 
     # Пропуск апдейтов и запуск long-polling
     try:
-        await dp.skip_updates()
-        await dp.start_polling()
-    # После завершения работы бота закрываем соединение с хранилищем FSM
+        await dp.start_polling(bot)
+    # После завершения работы бота закрываем соединение
     finally:
-        logger.error('Terminating bot...')
-        await dp.storage.close()
-        await dp.storage.wait_closed()
+        logger.error("Terminating bot...")
         await bot.session.close()
-        logger.error('Goodbye!')
+        logger.error("Goodbye!")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     loop = get_event_loop()
     task = ensure_future(main())
 

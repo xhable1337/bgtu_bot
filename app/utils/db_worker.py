@@ -38,7 +38,7 @@ class DBInterface:
             cls.instance = super(DBInterface, cls).__new__(cls)
         return cls.instance
 
-    def __init__(self, host: str = MONGODB_URI, db_name: str = 'heroku_38n7vrr9'):
+    def __init__(self, host: str = MONGODB_URI, db_name: str = 'bgtu_bot'):
         # Подключение к СУБД
         self._db_uri = host
         client = MongoClient(self._db_uri)
@@ -48,7 +48,7 @@ class DBInterface:
 
         # Подключение к коллекциям БД
         self._users = database.users
-        self._schedule = database.schedule_latest
+        self._schedule = database.schedule
         self._groups = database.groups
         self._settings = database.settings
         self._scheduled_msg = database.scheduled_messages
@@ -71,14 +71,14 @@ class DBUser(DBInterface):
             raise ValueError(f'User {user_id} not found.')
 
         self.first_name: str = self._db_obj['first_name']
-        self.last_name: Union[str, None] = self._db_obj['last_name']
+        self.last_name: Union[str, None] = self._db_obj.get('last_name')
         self.user_id: int = self._db_obj['user_id']
-        self.username: Union[str, None] = self._db_obj['username']
+        self.username: Union[str, None] = self._db_obj.get('username')
         self._state: str = self._db_obj['state']
         self._group: str = self._db_obj['group']
         self._notification_time: dict = self._db_obj.get('notification_time')
         self._favorite_groups: Union[List[str], None] = (
-            self._db_obj['favorite_groups']
+            self._db_obj.get('favorite_groups')
         )
 
     def obj(self) -> User:
@@ -219,7 +219,7 @@ class DBSettings(DBInterface):
 class DBWorker(DBInterface):
     """Класс-синглтон для работы с базой данных.
     """
-    def __new__(cls, host: str, db_name: str = 'heroku_38n7vrr9'):
+    def __new__(cls, host: str, db_name: str = 'bgtu_bot'):
         if not hasattr(cls, 'instance'):
             cls._db_name = db_name
             cls.instance = super(DBWorker, cls).__new__(cls)
@@ -365,19 +365,36 @@ class DBWorker(DBInterface):
         # REVIEW: не работает с базой данных
         years = []
         now = datetime.now()
+        day = int(now.strftime('%d'))
         month = int(now.strftime('%m'))
         year = int(now.strftime('%Y'))
 
-        if month <= 8:
-            # Учебный год ЕЩЁ не кончился
-            for _ in range(4):
-                year -= 1
-                years.append(year)
+        # Добавлять ли следующий год в список
+        next_year = True
+
+        if month < 8:
+            # ? Учебный год ЕЩЁ не кончился (1-7 месяцы)
+            # Добавлять текущий календарный год в список не нужно
+            next_year = False
+        elif month == 8:
+            # ? В конце августа (после ≈27 числа) составляют новое расписание
+            # Нужно добавлять текущий календарный год в список при дне >= 27
+            next_year = day >= 27
         else:
-            # Учебный год УЖЕ кончился или УЖЕ начался
+            # ? Учебный год УЖЕ начался (9-12 месяцы)
+            # Нужно добавлять текущий календарный год в список
+            next_year = True
+
+        if next_year:
+            # Нужно добавить текущий год в список
             for _ in range(4):
                 years.append(year)
                 year -= 1
+        else:
+            # Убираем текущий год из списка
+            for _ in range(4):
+                year -= 1
+                years.append(year)
 
         return years
 

@@ -1,0 +1,4 @@
+{
+  "bot_token": "1234567890:ABCDEF1234-ghIklxxzyx57W2v1u123ew11",
+  "mongodb_uri": "mongodb://localhost:27017"
+}

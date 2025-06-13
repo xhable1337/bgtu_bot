@@ -1,25 +1,33 @@
 """app/properties.py
 
-    Этот модуль хранит в себе константы и некоторые системные функции.
+Этот модуль хранит в себе константы и некоторые системные функции.
 """
 
 from datetime import datetime
+from json import load
+
+################################
+# settings.json load
+################################
+with open("app/settings.json", "r", encoding="UTF8") as file:
+    data = load(file)
+
 
 ################################
 # Constants
 ################################
 
 # Совпадает ли чет/нечет с календарем
-ODD_WEEK_CALENDAR = True
+ODD_WEEK_CALENDAR = False
 
 # ANCHOR: переместить URI БД к настройкам
 # URI для подключения к базе данных MongoDB
 # pylint: disable=line-too-long
-MONGODB_URI = 'mongodb://heroku_38n7vrr9:8pojct20ovk5sgvthiugo3kmpa@dnevnikcluster-shard-00-00.7tatu.mongodb.net:27017,dnevnikcluster-shard-00-01.7tatu.mongodb.net:27017,dnevnikcluster-shard-00-02.7tatu.mongodb.net:27017/heroku_38n7vrr9?ssl=true&replicaSet=atlas-106r53-shard-0&authSource=admin&retryWrites=true&w=majority'
+MONGODB_URI = data["mongodb_uri"]
 
 # Токен бота в Telegram
 # bot_token = '1147506878:AAGi4Uo6IIGm55TNgG9IIcYIfRZak-HFxN4'
-BOT_TOKEN = '2036333661:AAE9ocZfHf-lkrU9SFi8d0DlnB8ftrx5ioE'
+BOT_TOKEN = data["bot_token"]
 
 ################################
 # Functions

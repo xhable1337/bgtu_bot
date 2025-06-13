@@ -1,0 +1,23 @@
+[Unit]
+Description=BGTU Telegram Bot
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User={{USER}}
+Group={{GROUP}}
+WorkingDirectory={{PROJECT_DIR}}
+ExecStart={{PYTHON_PATH}} {{PROJECT_DIR}}/bot.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=bgtu-bot
+
+# Таймауты
+TimeoutStartSec=30
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target
