@@ -1,13 +1,22 @@
-"""app/handlers/common.py
+"""app/routers/common.py
 
-Хэндлеры сообщений и команд обычных пользователей.
+Роутер для команд и сообщений обычных пользователей.
 """
 
 import re
 from html import escape
 
-from aiogram import Dispatcher, types
-from aiogram.dispatcher.filters import Text
+from aiogram import F, Router
+from aiogram.enums import ChatAction
+from aiogram.filters import Command, StateFilter
+from aiogram.types import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    MenuButtonWebApp,
+    Message,
+    ReplyKeyboardRemove,
+    WebAppInfo,
+)
 from loguru import logger
 
 from app.keyboards import kb_cancel, kbbb, kbm
@@ -15,12 +24,16 @@ from app.models import User
 from app.properties import MONGODB_URI, week_is_odd
 from app.utils.db_worker import DBWorker
 
+# Создаём роутер
+common_router = Router()
+
 db = DBWorker(MONGODB_URI)
 
 
-async def cmd_start(message: types.Message):
+@common_router.message(Command("start"))
+async def cmd_start(message: Message):
     """### [`Command`] Команда /start."""
-    await message.bot.send_chat_action(message.from_user.id, "typing")
+    await message.bot.send_chat_action(message.from_user.id, ChatAction.TYPING)
     user = db.user(message.from_user.id)
 
     if not user:
@@ -36,12 +49,14 @@ async def cmd_start(message: types.Message):
         )
         db.add_user(user, replace=False)
 
-        kb_faculty = types.InlineKeyboardMarkup()
+        kb_faculty = InlineKeyboardMarkup(inline_keyboard=[])
         for faculty in db.faculties():
-            kb_faculty.row(
-                types.InlineKeyboardButton(
-                    text=faculty["full"], callback_data=f"f_{faculty['short']}"
-                )
+            kb_faculty.inline_keyboard.append(
+                [
+                    InlineKeyboardButton(
+                        text=faculty["full"], callback_data=f"f_{faculty['short']}"
+                    )
+                ]
             )
 
         user = db.user(message.from_user.id)
@@ -58,8 +73,8 @@ async def cmd_start(message: types.Message):
         db.add_user(user.obj(), replace=True)
         user.state = "default"
 
-        btn = types.MenuButtonWebApp(
-            "Бот v2", types.WebAppInfo(url="https://tgweb.darx.zip")
+        btn = MenuButtonWebApp(
+            text="Бот v2", web_app=WebAppInfo(url="https://tgweb.darx.zip")
         )
         await message.bot.set_chat_menu_button(message.chat.id, btn)
 
@@ -73,7 +88,52 @@ async def cmd_start(message: types.Message):
         )
 
 
-async def msg_any(message: types.Message):
+@common_router.message(Command("cancel"))
+async def cmd_cancel(message: Message):
+    """### [`Command`] Команда /cancel."""
+    user = db.user(message.from_user.id)
+    user.state = "default"
+    await message.answer(
+        "Действие отменено. Для дальнейшей работы нажмите /start.",
+        reply_markup=ReplyKeyboardRemove(),
+    )
+
+
+@common_router.message(Command("support"))
+async def cmd_support(message: Message):
+    """### [`Command`] Команда /support."""
+    await message.answer(
+        "💁‍♂️ По всем вопросам, предложениям, пожеланиям и проблемам "
+        "обращаться сюда: <b>@BGTU_Feedback_bot</b>."
+    )
+
+
+@common_router.message(Command("dev"))
+async def cmd_dev(message: Message):
+    """### [`Command`] Команда /dev."""
+    await message.answer(
+        "👨‍💻 <b>Разработчик бота:</b> @xhable.\n"
+        "💻 <b>Использованные технологии:</b>:\n"
+        "└ 🤖 <b>Бот:</b> "
+        '<a href="https://www.python.org">Python 3</a> + '
+        '<a href="https://github.com/aiogram/aiogram">aiogram</a>\n'
+        "└ 🌐 <b>Веб-приложение:</b> "
+        '<a href="https://nodejs.org/en/">Node.js</a> + '
+        '<a href="https://reactjs.org">React</a>\n'
+        "🔡 <b>Исходный код:</b> "
+        "coming soon...",
+        disable_web_page_preview=True,
+    )
+
+
+@common_router.message(F.text.lower() == "отмена")
+async def msg_cancel_text(message: Message):
+    """### [`Message`] Текстовое сообщение 'отмена'."""
+    await cmd_cancel(message)
+
+
+@common_router.message()
+async def msg_any(message: Message):
     """### [`Message`] Любые сообщения, не попадающие под другие хэндлеры."""
     user = db.user(message.from_user.id)
     settings = db.settings()
@@ -216,57 +276,3 @@ async def msg_any(message: types.Message):
         )
 
         user.state = "default"
-
-
-async def cmd_cancel(message: types.Message):
-    """### [`Command`] Команда /cancel."""
-    user = db.user(message.from_user.id)
-    user.state = "default"
-    await message.answer(
-        "Действие отменено. Для дальнейшей работы нажмите /start.",
-        reply_markup=types.ReplyKeyboardRemove(),
-    )
-
-
-async def cmd_support(message: types.Message):
-    """### [`Command`] Команда /support."""
-    await message.answer(
-        "💁‍♂️ По всем вопросам, предложениям, пожеланиям и проблемам "
-        "обращаться сюда: <b>@BGTU_Feedback_bot</b>."
-    )
-
-
-async def cmd_dev(message: types.Message):
-    """### [`Command`] Команда /dev."""
-    await message.answer(
-        "👨‍💻 <b>Разработчик бота:</b> @xhable.\n"
-        "💻 <b>Использованные технологии:</b>:\n"
-        "└ 🤖 <b>Бот:</b> "
-        '<a href="https://www.python.org">Python 3</a> + '
-        '<a href="https://github.com/aiogram/aiogram">aiogram</a>\n'
-        "└ 🌐 <b>Веб-приложение:</b> "
-        '<a href="https://nodejs.org/en/">Node.js</a> + '
-        '<a href="https://reactjs.org">React</a>\n'
-        "🔡 <b>Исходный код:</b> "
-        "coming soon...",
-        disable_web_page_preview=True,
-    )
-
-
-def register_handlers_common(dp: Dispatcher):
-    """Регистрирует хэндлеры сообщений и команд обычных пользователей.
-
-    Аргументы:
-        dp (aiogram.types.Dispatcher): диспетчер aiogram
-    """
-    # pylint: disable=invalid-name
-    # dp - рекомендованное короткое имя для диспетчера
-
-    dp.register_message_handler(cmd_start, commands="start", state="*")
-    dp.register_message_handler(cmd_support, commands="support", state="*")
-    dp.register_message_handler(cmd_dev, commands="dev", state="*")
-    dp.register_message_handler(cmd_cancel, commands="cancel", state="*")
-    dp.register_message_handler(
-        cmd_cancel, Text(equals="отмена", ignore_case=True), state="*"
-    )
-    dp.register_message_handler(msg_any)

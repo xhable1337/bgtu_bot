@@ -1,24 +1,32 @@
-"""app/handlers/admin_menu.py
+"""app/routers/admin_menu.py
 
-Хэндлеры кнопок админ-меню.
+Роутер для кнопок админ-меню.
 """
 
 from html import escape
 
-from aiogram import Dispatcher, types
-from aiogram.dispatcher.filters import Text
+from aiogram import F, Router
+from aiogram.types import CallbackQuery
 
+from app.filters import IsAdminFilter
 from app.keyboards import kb_admin, kb_admin_back
 from app.properties import MONGODB_URI
 from app.utils.api_worker import APIWorker
 from app.utils.db_worker import DBWorker
 from app.utils.schedule_management import update_schedule
 
+# Создаём роутер
+admin_menu_router = Router()
+
+# Применяем фильтр администратора ко всем хэндлерам в этом роутере
+admin_menu_router.callback_query.filter(IsAdminFilter())
+
 db = DBWorker(MONGODB_URI)
 api = APIWorker()
 
 
-async def cb_force_update(call: types.CallbackQuery):
+@admin_menu_router.callback_query(F.data.startswith("force-update-"))
+async def cb_force_update(call: CallbackQuery):
     """### [`Callback`] Кнопки да/нет при обновлении расписания."""
     await call.answer()
 
@@ -40,13 +48,14 @@ async def cb_force_update(call: types.CallbackQuery):
         await call.message.answer("✅ Расписание успешно обновлено!")
 
 
-async def cb_user_list(call: types.CallbackQuery):
+@admin_menu_router.callback_query(F.data == "user_list")
+async def cb_user_list(call: CallbackQuery):
     """### [`Callback`] Кнопка получения списка пользователей."""
     count = db._users.count_documents({})
     text = f"<u>Список пользователей бота (всего {count}):</u>\n\n"
     block_count = 0
     await call.answer("Ожидайте загрузки из базы...")
-    last_msg: types.Message
+    last_msg: CallbackQuery.message
 
     for user in db._users.find():
         first_name = user["first_name"]
@@ -85,7 +94,8 @@ async def cb_user_list(call: types.CallbackQuery):
         )
 
 
-async def cb_toadmin(call: types.CallbackQuery):
+@admin_menu_router.callback_query(F.data == "toadmin")
+async def cb_toadmin(call: CallbackQuery):
     """### [`Callback`] Кнопка возврата в админ-меню."""
     m_s = db.settings().maintenance  # maintenance_state, короткое название
     count = db._users.count_documents({})
@@ -99,27 +109,10 @@ async def cb_toadmin(call: types.CallbackQuery):
     )
 
 
-async def cb_toggle_maintenance(call: types.CallbackQuery):
+@admin_menu_router.callback_query(F.data == "toggle_maintenance")
+async def cb_toggle_maintenance(call: CallbackQuery):
     """### [`Callback`] Кнопка включения/выключения техработ."""
     # TODO: вынести settings как отдельный метод DBWorker
     settings = db.settings()
     settings.maintenance = not settings.maintenance
     await cb_toadmin(call)
-
-
-def register_handlers_admin_menu(dp: Dispatcher):
-    """Регистрирует хэндлеры кнопок админ-меню.
-
-    Аргументы:
-        dp (aiogram.types.Dispatcher): диспетчер aiogram
-    """
-    # pylint: disable=invalid-name
-    # dp - рекомендованное короткое имя для диспетчера
-    dp.register_callback_query_handler(
-        cb_force_update, Text(startswith="force-update-")
-    )
-    dp.register_callback_query_handler(cb_user_list, Text("user_list"))
-    dp.register_callback_query_handler(cb_toadmin, Text("toadmin"))
-    dp.register_callback_query_handler(
-        cb_toggle_maintenance, Text("toggle_maintenance")
-    )

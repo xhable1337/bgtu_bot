@@ -1,13 +1,14 @@
-"""app/handlers/common.py
+"""app/routers/menu.py
 
-Хэндлеры кнопок меню.
+Роутер для кнопок меню.
 """
 
 import datetime
 from html import escape
 
-from aiogram import Dispatcher, types
-from aiogram.dispatcher.filters import Filter, Text
+from aiogram import F, Router
+from aiogram.filters import BaseFilter
+from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 from loguru import logger
 
 from app.keyboards import days_keyboard, kb_cancel, kb_notifications_days, kbbb, kbm
@@ -18,21 +19,31 @@ from app.utils.db_worker import DBWorker
 # TODO: Избавиться от wd_name и wd_numbers, переместив в другую точку
 from app.utils.text_generator import rings_table, schedule_text, wd_name, wd_numbers
 
+# Создаём роутер
+menu_router = Router()
+
 db = DBWorker(MONGODB_URI)
 
 
-class _Maintenance(Filter):
-    # pylint: disable=arguments-differ
-    # Hey, pylint, 2 == 2, isn't it? c:
-    key = "is_maintenance"
+class MaintenanceFilter(BaseFilter):
+    """Фильтр для проверки техработ."""
 
-    async def check(self, message: types.Message):
+    async def __call__(self, callback: CallbackQuery) -> bool:
+        """Проверка фильтра техработ."""
         settings = db.settings()
+        return settings.maintenance and callback.from_user.id not in settings.admins
 
-        return settings.maintenance and not message.from_user.id in settings.admins
+
+@menu_router.callback_query(MaintenanceFilter())
+async def dummycb_maintenance(call: CallbackQuery):
+    """### [`DummyCallback`] Обработчик на время техработ."""
+    await call.answer(
+        text="⚡ Бот находится на тех.работах. Возвращайтесь позже.", show_alert=True
+    )
 
 
-async def cb_days(call: types.CallbackQuery):
+@menu_router.callback_query(F.data == "days")
+async def cb_days(call: CallbackQuery):
     """### [`Callback`] Кнопка «Расписание по дням»."""
     if week_is_odd():
         weektype = "[Н] - нечётная"
@@ -50,13 +61,15 @@ async def cb_days(call: types.CallbackQuery):
     await call.answer()
 
 
-async def cb_rings(call: types.CallbackQuery):
+@menu_router.callback_query(F.data == "rings")
+async def cb_rings(call: CallbackQuery):
     """### [`Callback`] Кнопка «Расписание пар»."""
     await call.message.edit_text(text=rings_table(), reply_markup=kbbb)
     await call.answer()
 
 
-async def cb_today(call: types.CallbackQuery):
+@menu_router.callback_query(F.data == "today")
+async def cb_today(call: CallbackQuery):
     """### [`Callback`] Кнопка «Расписание на сегодня»."""
     user = db.user(call.from_user.id)
 
@@ -80,7 +93,8 @@ async def cb_today(call: types.CallbackQuery):
     await call.answer()
 
 
-async def cb_tomorrow(call: types.CallbackQuery):
+@menu_router.callback_query(F.data == "tomorrow")
+async def cb_tomorrow(call: CallbackQuery):
     """### [`Callback`] Кнопка «Расписание на завтра»."""
     user = db.user(call.from_user.id)
 
@@ -111,7 +125,8 @@ async def cb_tomorrow(call: types.CallbackQuery):
     await call.answer()
 
 
-async def cb_wday(call: types.CallbackQuery):
+@menu_router.callback_query(F.data.startswith("wday_"))
+async def cb_wday(call: CallbackQuery):
     """### [`Callback`] Кнопки выбора дня недели расписания."""
     user = db.user(call.from_user.id)
 
@@ -134,7 +149,8 @@ async def cb_wday(call: types.CallbackQuery):
     await call.answer()
 
 
-async def cb_tomain(call: types.CallbackQuery):
+@menu_router.callback_query(F.data == "tomain")
+async def cb_tomain(call: CallbackQuery):
     """### [`Callback`] Кнопка возврата в главное меню."""
     user = db.user(call.from_user.id)
     user.state = "default"
@@ -149,7 +165,8 @@ async def cb_tomain(call: types.CallbackQuery):
     await call.answer()
 
 
-async def cb_building(call: types.CallbackQuery):
+@menu_router.callback_query(F.data == "building")
+async def cb_building(call: CallbackQuery):
     """### [`Callback`] Кнопка поиска аудитории."""
     user = db.user(call.from_user.id)
     user.state = "find_class"
@@ -159,7 +176,8 @@ async def cb_building(call: types.CallbackQuery):
     await call.answer()
 
 
-async def cb_cancel(call: types.CallbackQuery):
+@menu_router.callback_query(F.data == "cancel")
+async def cb_cancel(call: CallbackQuery):
     """### [`Callback`] Кнопка отмены поиска аудитории."""
     user = db.user(call.from_user.id)
     user.state = "default"
@@ -174,19 +192,24 @@ async def cb_cancel(call: types.CallbackQuery):
     await call.answer()
 
 
-async def cb_change_faculty(call: types.CallbackQuery):
+@menu_router.callback_query(F.data == "change_faculty")
+async def cb_change_faculty(call: CallbackQuery):
     """### [`Callback`] Кнопка смены факультета."""
     # Выбор факультета
-    kb_faculty = types.InlineKeyboardMarkup()
+    kb_faculty = InlineKeyboardMarkup(inline_keyboard=[])
 
     for faculty in db.faculties():
-        kb_faculty.row(
-            types.InlineKeyboardButton(
-                text=faculty["full"], callback_data=f"f_{faculty['short']}"
-            )
+        kb_faculty.inline_keyboard.append(
+            [
+                InlineKeyboardButton(
+                    text=faculty["full"], callback_data=f"f_{faculty['short']}"
+                )
+            ]
         )
 
-    kb_faculty.row(types.InlineKeyboardButton(text="🚫 Отмена", callback_data="tomain"))
+    kb_faculty.inline_keyboard.append(
+        [InlineKeyboardButton(text="🚫 Отмена", callback_data="tomain")]
+    )
 
     await call.message.edit_text(
         text="Выберите факультет:",  # Выберите год поступления:
@@ -196,20 +219,23 @@ async def cb_change_faculty(call: types.CallbackQuery):
     await call.answer()
 
 
-async def cb_f(call: types.CallbackQuery):
+@menu_router.callback_query(F.data.startswith("f_"))
+async def cb_f(call: CallbackQuery):
     """### [`Callback`] Кнопка смены факультета -> выбор года."""
     # Выбор года поступления
     faculty = str(call.data[2:])
 
-    kb_years = types.InlineKeyboardMarkup()
+    kb_years = InlineKeyboardMarkup(inline_keyboard=[])
 
     for year in db.years():
         callback_year = f"y_{year}_{faculty}"
-        kb_years.row(
-            types.InlineKeyboardButton(text=str(year), callback_data=callback_year)
+        kb_years.inline_keyboard.append(
+            [InlineKeyboardButton(text=str(year), callback_data=callback_year)]
         )
 
-    kb_years.row(types.InlineKeyboardButton(text="🚫 Отмена", callback_data="tomain"))
+    kb_years.inline_keyboard.append(
+        [InlineKeyboardButton(text="🚫 Отмена", callback_data="tomain")]
+    )
 
     await call.message.edit_text(
         text="Выберите год поступления:",
@@ -219,27 +245,33 @@ async def cb_f(call: types.CallbackQuery):
     await call.answer()
 
 
-async def cb_y(call: types.CallbackQuery):
+@menu_router.callback_query(F.data.startswith("y_"))
+async def cb_y(call: CallbackQuery):
     """### [`Callback`] Кнопка смены факультета -> выбор года -> выбор группы."""
     year = call.data.split("_")[1]
     faculty = call.data.split("_")[2]
 
-    kb_group = types.InlineKeyboardMarkup()
+    kb_group = InlineKeyboardMarkup(inline_keyboard=[])
     for _faculty in db.faculties():
         if _faculty["short"] == faculty:
             faculty = _faculty["full"]
 
     for group in db.groups(faculty, year):
-        kb_group.row(types.InlineKeyboardButton(text=group, callback_data=f"g_{group}"))
+        kb_group.inline_keyboard.append(
+            [InlineKeyboardButton(text=group, callback_data=f"g_{group}")]
+        )
 
-    kb_group.row(types.InlineKeyboardButton(text="🚫 Отмена", callback_data="tomain"))
+    kb_group.inline_keyboard.append(
+        [InlineKeyboardButton(text="🚫 Отмена", callback_data="tomain")]
+    )
 
     await call.message.edit_text(text="Выберите группу:", reply_markup=kb_group)
 
     await call.answer()
 
 
-async def cb_g(call: types.CallbackQuery):
+@menu_router.callback_query(F.data.startswith("g_"))
+async def cb_g(call: CallbackQuery):
     """### [`Callback`] Кнопки выбора/удаления группы."""
     user = db.user(call.from_user.id)
     group = str(call.data).split("g_")[1]
@@ -267,27 +299,33 @@ async def cb_g(call: types.CallbackQuery):
             await cb_tomain(call)
 
 
-async def cb_add_favorite(call: types.CallbackQuery):
+@menu_router.callback_query(F.data == "add_favorite")
+async def cb_add_favorite(call: CallbackQuery):
     """### [`Callback`] Кнопка добавления группы в избранное."""
     user = db.user(call.from_user.id)
     user.state = "add_favorite"
-    kb_faculty = types.InlineKeyboardMarkup()
+    kb_faculty = InlineKeyboardMarkup(inline_keyboard=[])
 
     for faculty in db.faculties():
-        kb_faculty.row(
-            types.InlineKeyboardButton(
-                text=faculty["full"], callback_data=f"f_{faculty['short']}"
-            )
+        kb_faculty.inline_keyboard.append(
+            [
+                InlineKeyboardButton(
+                    text=faculty["full"], callback_data=f"f_{faculty['short']}"
+                )
+            ]
         )
 
-    kb_faculty.row(types.InlineKeyboardButton(text="🚫 Отмена", callback_data="tomain"))
+    kb_faculty.inline_keyboard.append(
+        [InlineKeyboardButton(text="🚫 Отмена", callback_data="tomain")]
+    )
 
     await call.message.edit_text(text="Выберите факультет:", reply_markup=kb_faculty)
 
     await call.answer()
 
 
-async def cb_notifications(call: types.CallbackQuery):
+@menu_router.callback_query(F.data == "notifications")
+async def cb_notifications(call: CallbackQuery):
     """### [`Callback`] Кнопка управления уведомлениями."""
     user = db.user(call.from_user.id)
     notification_time = user.notification_time
@@ -316,7 +354,8 @@ async def cb_notifications(call: types.CallbackQuery):
     await call.answer()
 
 
-async def cb_notify(call: types.CallbackQuery):
+@menu_router.callback_query(F.data.startswith("notify_"))
+async def cb_notify(call: CallbackQuery):
     """### [`Callback`] Кнопка управления уведомлением на конкретный день."""
     user = db.user(call.from_user.id)
     weekday = str(call.data).split("_")[1]
@@ -342,17 +381,24 @@ async def cb_notify(call: types.CallbackQuery):
         reply_markup = kb_cancel
     else:
         text = f"Изменение напоминания ({wdays.translate(weekday)}):"
-        kb_notifications = types.InlineKeyboardMarkup(row_width=1)
-        kb_notifications.add(
-            types.InlineKeyboardButton(
-                text="❌ Удалить", callback_data=f"del_notification_{weekday}"
-            ),
-            types.InlineKeyboardButton(
-                text="✍ Изменить", callback_data=f"edit_notification_{weekday}"
-            ),
-            types.InlineKeyboardButton(
-                text="🔄 В главное меню", callback_data="tomain"
-            ),
+        kb_notifications = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text="❌ Удалить", callback_data=f"del_notification_{weekday}"
+                    )
+                ],
+                [
+                    InlineKeyboardButton(
+                        text="✍ Изменить", callback_data=f"edit_notification_{weekday}"
+                    )
+                ],
+                [
+                    InlineKeyboardButton(
+                        text="🔄 В главное меню", callback_data="tomain"
+                    )
+                ],
+            ]
         )
         reply_markup = kb_notifications
 
@@ -364,7 +410,8 @@ async def cb_notify(call: types.CallbackQuery):
     await call.answer()
 
 
-async def cb_del_notification(call: types.CallbackQuery):
+@menu_router.callback_query(F.data.startswith("del_notification_"))
+async def cb_del_notification(call: CallbackQuery):
     """### [`Callback`] Кнопка удаления уведомления на конкретный день."""
     user = db.user(call.from_user.id)
     weekday = str(call.data).split("_")[2]
@@ -420,7 +467,8 @@ async def cb_del_notification(call: types.CallbackQuery):
     await call.answer()
 
 
-async def cb_edit_notification(call: types.CallbackQuery):
+@menu_router.callback_query(F.data.startswith("edit_notification_"))
+async def cb_edit_notification(call: CallbackQuery):
     """### [`Callback`] Кнопка изменения уведомления на конкретный день."""
     user = db.user(call.from_user.id)
     weekday = str(call.data).split("_")[2]
@@ -443,16 +491,10 @@ async def cb_edit_notification(call: types.CallbackQuery):
     await call.answer()
 
 
-async def dummycb_maintenance(call: types.CallbackQuery):
-    """### [`DummyCallback`] Обработчик на время техработ."""
-    await call.answer(
-        text="⚡ Бот находится на тех.работах. Возвращайтесь позже.", show_alert=True
-    )
-
-
-async def cb_favorite_groups(call: types.CallbackQuery):
+@menu_router.callback_query(F.data.startswith("favorite_groups"))
+async def cb_favorite_groups(call: CallbackQuery):
     """### [`Callback`] Кнопка "Избранные группы"."""
-    kb_favorite = types.InlineKeyboardMarkup()
+    kb_favorite = InlineKeyboardMarkup(inline_keyboard=[])
 
     user = db.user(call.from_user.id)
     fav_count = 0
@@ -460,9 +502,11 @@ async def cb_favorite_groups(call: types.CallbackQuery):
     if user.favorite_groups is not None:
         #! Пользователь уже заходил в раздел избранных групп
         for group in user.favorite_groups:
-            kb_favorite.row(
-                types.InlineKeyboardButton(text=group, callback_data=f"g_{group}"),
-                types.InlineKeyboardButton(text="❌", callback_data=f"g_{group}__del"),
+            kb_favorite.inline_keyboard.append(
+                [
+                    InlineKeyboardButton(text=group, callback_data=f"g_{group}"),
+                    InlineKeyboardButton(text="❌", callback_data=f"g_{group}__del"),
+                ]
             )
             fav_count += 1
 
@@ -470,24 +514,20 @@ async def cb_favorite_groups(call: types.CallbackQuery):
         space_left = 5 - fav_count
 
         for _ in range(space_left):
-            kb_favorite.row(
-                types.InlineKeyboardButton(
-                    text="➕ Добавить", callback_data="add_favorite"
-                )
+            kb_favorite.inline_keyboard.append(
+                [InlineKeyboardButton(text="➕ Добавить", callback_data="add_favorite")]
             )
     else:
         #! Пользователь первый раз зашёл в раздел избранных групп
         user.favorite_groups = []
 
         for _ in range(5):
-            kb_favorite.row(
-                types.InlineKeyboardButton(
-                    text="➕ Добавить", callback_data="add_favorite"
-                )
+            kb_favorite.inline_keyboard.append(
+                [InlineKeyboardButton(text="➕ Добавить", callback_data="add_favorite")]
             )
 
-    kb_favorite.row(
-        types.InlineKeyboardButton(text="🔄 В главное меню", callback_data="tomain")
+    kb_favorite.inline_keyboard.append(
+        [InlineKeyboardButton(text="🔄 В главное меню", callback_data="tomain")]
     )
 
     await call.message.edit_text(
@@ -495,40 +535,3 @@ async def cb_favorite_groups(call: types.CallbackQuery):
     )
 
     await call.answer()
-
-
-def register_handlers_menu(dp: Dispatcher):
-    """Регистрирует хэндлеры кнопок меню.
-
-    Аргументы:
-        dp (aiogram.types.Dispatcher): диспетчер aiogram
-    """
-    # pylint: disable=invalid-name
-    # dp - рекомендованное короткое имя для диспетчера
-
-    dp.bind_filter(_Maintenance)
-    dp.register_callback_query_handler(dummycb_maintenance, _Maintenance())
-    dp.register_callback_query_handler(cb_days, Text("days"))
-    dp.register_callback_query_handler(cb_today, Text("today"))
-    dp.register_callback_query_handler(cb_tomorrow, Text("tomorrow"))
-    dp.register_callback_query_handler(cb_wday, Text(startswith="wday_"))
-    dp.register_callback_query_handler(cb_rings, Text("rings"))
-    dp.register_callback_query_handler(cb_tomain, Text("tomain"))
-    dp.register_callback_query_handler(cb_building, Text("building"))
-    dp.register_callback_query_handler(cb_cancel, Text("cancel"))
-    dp.register_callback_query_handler(cb_change_faculty, Text("change_faculty"))
-    dp.register_callback_query_handler(cb_f, Text(startswith="f_"))
-    dp.register_callback_query_handler(cb_g, Text(startswith="g_"))
-    dp.register_callback_query_handler(cb_y, Text(startswith="y_"))
-    dp.register_callback_query_handler(cb_add_favorite, Text("add_favorite"))
-    dp.register_callback_query_handler(cb_notifications, Text("notifications"))
-    dp.register_callback_query_handler(cb_notify, Text(startswith="notify_"))
-    dp.register_callback_query_handler(
-        cb_del_notification, Text(startswith="del_notification_")
-    )
-    dp.register_callback_query_handler(
-        cb_edit_notification, Text(startswith="edit_notification_")
-    )
-    dp.register_callback_query_handler(
-        cb_favorite_groups, Text(startswith="favorite_groups")
-    )
