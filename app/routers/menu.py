@@ -9,7 +9,6 @@ from html import escape
 from aiogram import F, Router
 from aiogram.filters import BaseFilter
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
-from loguru import logger
 
 from app.keyboards import days_keyboard, kb_cancel, kb_notifications_days, kbbb, kbm
 from app.properties import MONGODB_URI, week_is_odd

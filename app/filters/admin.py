@@ -3,7 +3,7 @@
 Фильтр для проверки админских прав пользователя.
 """
 
-from typing import Any, Dict, Union
+from typing import Union
 
 from aiogram.filters import BaseFilter
 from aiogram.types import CallbackQuery, Message

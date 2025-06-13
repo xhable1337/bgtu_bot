@@ -59,7 +59,7 @@ async def cmd_broadcast(message: Message):
         # TODO: Вынести получение всех пользователей в отдельный метод
         for user in db._users.find({"group": group}):
             if i == 25:
-                sleep(1)
+                await sleep(1)
             user_id = user["user_id"]
             try:
                 await message.bot.send_message(user_id, text)
@@ -111,7 +111,6 @@ async def cmd_update_groups(message: Message):
 @admin_router.message(Command("force_update"))
 async def cmd_force_update(message: Message):
     """### [`Command`] Команда /force_update."""
-    groups_text = ""
     msg = await message.answer(
         text="⚙ Запущено обновление групп...\n\n"
         "Пожалуйста, ожидайте завершения. Это занимает некоторое время (обычно 1-2 минуты)."

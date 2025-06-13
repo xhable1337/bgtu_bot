@@ -6,7 +6,7 @@
 from html import escape
 
 from aiogram import F, Router
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, Message
 
 from app.filters import IsAdminFilter
 from app.keyboards import kb_admin, kb_admin_back
@@ -55,7 +55,7 @@ async def cb_user_list(call: CallbackQuery):
     text = f"<u>Список пользователей бота (всего {count}):</u>\n\n"
     block_count = 0
     await call.answer("Ожидайте загрузки из базы...")
-    last_msg: CallbackQuery.message
+    last_msg: Message | None = None
 
     for user in db._users.find():
         first_name = user["first_name"]

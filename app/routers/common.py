@@ -8,7 +8,7 @@ from html import escape
 
 from aiogram import F, Router
 from aiogram.enums import ChatAction
-from aiogram.filters import Command, StateFilter
+from aiogram.filters import Command
 from aiogram.types import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
