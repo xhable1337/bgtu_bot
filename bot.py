@@ -12,6 +12,7 @@ from asyncio import ensure_future, get_event_loop
 # Related third party imports
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
+from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.enums import ParseMode
 from aiogram.types import BotCommand
 from aiogram.types.menu_button_web_app import MenuButtonWebApp
@@ -26,8 +27,15 @@ from app.time_trigger import time_trigger
 
 # ---------------------------------------------------------------
 
+# Если в settings.json задан ключ "proxy" — используем его, иначе прямое соединение
+_bot_session = (
+    AiohttpSession(proxy=properties.PROXY_URL) if properties.PROXY_URL else None
+)
+
 bot = Bot(
-    token=properties.BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML)
+    token=properties.BOT_TOKEN,
+    session=_bot_session,
+    default=DefaultBotProperties(parse_mode=ParseMode.HTML),
 )
 dp = Dispatcher()
 
@@ -80,7 +88,14 @@ async def main():
     logging.basicConfig(handlers=[_InterceptHandler()], level=logging.INFO)
 
     _bot_info = await bot.get_me()
-    logger.warning(f"Starting bot {_bot_info.full_name} [{_bot_info.username}]...")
+    _proxy_info = (
+        f" через прокси {properties.PROXY_URL}"
+        if properties.PROXY_URL
+        else " без прокси"
+    )
+    logger.warning(
+        f"Starting bot {_bot_info.full_name} [{_bot_info.username}]{_proxy_info}..."
+    )
 
     # Регистрация роутеров
     dp.include_router(admin_menu_router)

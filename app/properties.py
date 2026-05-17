@@ -29,6 +29,10 @@ MONGODB_URI = data["mongodb_uri"]
 # bot_token = '1147506878:AAGi4Uo6IIGm55TNgG9IIcYIfRZak-HFxN4'
 BOT_TOKEN = data["bot_token"]
 
+# URL прокси-сервера (опционально, например "socks5://user:pass@host:port")
+# Если ключ отсутствует или равен null — бот запускается без прокси
+PROXY_URL: str | None = data.get("proxy") or None
+
 ################################
 # Functions
 ################################
