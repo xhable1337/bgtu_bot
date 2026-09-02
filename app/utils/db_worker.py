@@ -15,13 +15,13 @@
 
 from datetime import datetime
 from time import time
-from typing import Union, List
+from typing import List, Union
 
-from pymongo import MongoClient
 from loguru import logger
+from pymongo import MongoClient
 
 from app.config import config
-from app.models import Lesson, Schedule, User, Settings
+from app.models import Lesson, Schedule, Settings, User
 
 
 class DBInterface:
@@ -74,7 +74,6 @@ class DBUser(DBInterface):
         self.last_name: Union[str, None] = self._db_obj.get('last_name')
         self.user_id: int = self._db_obj['user_id']
         self.username: Union[str, None] = self._db_obj.get('username')
-        self._state: str = self._db_obj['state']
         self._group: str = self._db_obj['group']
         self._notification_time: dict = self._db_obj.get('notification_time')
         self._favorite_groups: Union[List[str], None] = (
@@ -88,7 +87,6 @@ class DBUser(DBInterface):
             'last_name': self.last_name,
             'user_id': self.user_id,
             'username': self.username,
-            'state': self.state,
             'group': self.group,
             'notification_time': self.notification_time,
             'favorite_groups': self.favorite_groups
@@ -111,19 +109,6 @@ class DBUser(DBInterface):
         group = self.group
 
         return f"{self.full_name} {details} - {group}"
-
-    @property
-    def state(self) -> str:
-        """Текущее состояние пользователя."""
-        return self._state
-
-    @state.setter
-    def state(self, new_state: str):
-        self._state = new_state
-        self._users.update_one(
-            {'user_id': self.user_id},
-            {'$set': {'state': new_state}}
-        )
 
     @property
     def group(self) -> str:

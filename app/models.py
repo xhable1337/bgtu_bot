@@ -21,7 +21,6 @@ class User(BaseModel):
     - `last_name` (str | None): фамилия в Telegram
     - `user_id` (int): ID в Telegram
     - `username` (str | None): юзернейм в Telegram
-    - `state` (str): состояние пользователя
     - `group` (str): текущая группа пользователя
     - `favorite_groups` (list[str] | None): список избранных групп
     """
@@ -29,7 +28,6 @@ class User(BaseModel):
     last_name: Union[str, None]
     user_id: int
     username: Union[str, None]
-    state: str
     group: str
     favorite_groups: Union[List[str], None]
 
