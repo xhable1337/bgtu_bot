@@ -6,6 +6,7 @@
 """
 
 # Standard library imports
+import asyncio
 import logging
 from asyncio import ensure_future, get_event_loop
 
@@ -106,6 +107,8 @@ async def main():
     # Установка команд
     await set_commands(bot)
 
+    asyncio.create_task(time_trigger(bot))
+
     # Пропуск апдейтов и запуск long-polling
     try:
         await dp.start_polling(bot)
@@ -117,10 +120,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    loop = get_event_loop()
-    task = ensure_future(main())
-
-    try:
-        loop.run_until_complete(time_trigger(bot))
-    except KeyboardInterrupt:
-        task.cancel()
+    asyncio.run(main())
