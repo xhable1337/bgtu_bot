@@ -2,9 +2,13 @@
 
     Этот модуль занимается работой с днями недель:
     перевод, получение isoweekday, получение названия
-    по isoweekday.
+    по isoweekday, а также определением чётности учебной недели.
 
 """
+
+from datetime import date
+
+from app.config import config
 
 
 def numbers(name: str) -> int:
@@ -93,3 +97,18 @@ def names(isoweekday: int) -> tuple[str, str]:
         wdr = 'понедельник'
         wde = 'monday'
     return wdr, wde
+
+
+def week_is_odd() -> bool:
+    """Определяет, является ли текущая учебная неделя нечётной.
+
+    Возвращает:
+        bool: True, если неделя нечётная
+    """
+    is_odd = date.today().isocalendar()[1] % 2 != 0
+
+    if config.odd_week_calendar:
+        # Если чёт/нечет совпадает с календарём
+        return is_odd
+
+    return not is_odd

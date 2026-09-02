@@ -10,10 +10,11 @@ from aiogram import F, Router
 from aiogram.filters import BaseFilter
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 
+from app.config import config
 from app.keyboards import days_keyboard, kb_cancel, kb_notifications_days, kbbb, kbm
-from app.properties import MONGODB_URI, week_is_odd
 from app.utils import wdays
 from app.utils.db_worker import DBWorker
+from app.utils.wdays import week_is_odd
 
 # TODO: Избавиться от wd_name и wd_numbers, переместив в другую точку
 from app.utils.text_generator import rings_table, schedule_text, wd_name, wd_numbers
@@ -21,7 +22,7 @@ from app.utils.text_generator import rings_table, schedule_text, wd_name, wd_num
 # Создаём роутер
 menu_router = Router()
 
-db = DBWorker(MONGODB_URI)
+db = DBWorker(config.mongodb_uri)
 
 
 class MaintenanceFilter(BaseFilter):

@@ -5,16 +5,25 @@
 """
 
 from asyncio import sleep
+from dataclasses import dataclass
 from datetime import datetime
 
 from aiogram import Bot
 from loguru import logger
 
-from app.properties import MONGODB_URI, week_is_odd
+from app.config import config
 from app.utils.db_worker import DBUser, DBWorker
 from app.utils.text_generator import schedule_text, wd_name
+from app.utils.wdays import week_is_odd
 
-db = DBWorker(MONGODB_URI)
+db = DBWorker(config.mongodb_uri)
+
+# Время еженедельного обновления расписания (воскресенье).
+SCHEDULE_UPDATE_TIME = "04:00"
+# Интервал опроса шедулера в секундах.
+POLL_INTERVAL_SECONDS = 59.99
+# Начиная с этого часа уведомления относятся к завтрашнему дню.
+TOMORROW_AFTER_HOUR = 12
 
 
 async def _scheduled_send(bot: Bot, user: DBUser, day: str):
@@ -56,6 +65,68 @@ async def _scheduled_send(bot: Bot, user: DBUser, day: str):
         logger.error(f"Scheduled message was not sent. Exception: {e}")
 
 
+@dataclass(frozen=True)
+class _TimeContext:
+    """Снимок времени, используемый в одной итерации шедулера."""
+
+    current_time: str
+    weekday_name: str
+    day: str
+    is_day_off: bool
+    need_update: bool
+
+
+def _get_time_context(now: datetime) -> _TimeContext:
+    """Вычисляет состояние времени для текущей итерации."""
+    current_time = now.strftime("%H:%M")
+    weekday_name = now.strftime("%A").lower()
+
+    day = "tomorrow" if now.hour >= TOMORROW_AFTER_HOUR else "today"
+
+    # День, для которого готовится уведомление, приходится на воскресенье —
+    # пар нет, поэтому отправлять расписание не нужно.
+    is_day_off = (
+        (day == "today" and weekday_name == "sunday")
+        or (day == "tomorrow" and weekday_name == "saturday")
+    )
+
+    need_update = (
+        weekday_name == "sunday" and current_time == SCHEDULE_UPDATE_TIME
+    )
+
+    return _TimeContext(
+        current_time=current_time,
+        weekday_name=weekday_name,
+        day=day,
+        is_day_off=is_day_off,
+        need_update=need_update,
+    )
+
+
+def _get_due_user_ids(weekday_name: str, current_time: str) -> list[int]:
+    """Возвращает user_id, для которых сейчас назначено уведомление."""
+    scheduled = db._scheduled_msg.find_one({"id": 1})
+    if not scheduled:
+        return []
+
+    timetable = scheduled.get(weekday_name)
+    if not timetable:
+        return []
+
+    return timetable.get(current_time, [])
+
+
+async def _send_notifications(bot: Bot, user_ids: list[int], day: str) -> None:
+    """Отправляет расписание всем пользователям из списка."""
+    for user_id in user_ids:
+        user = db.user(user_id)
+        if user:
+            await _scheduled_send(bot, user, day)
+        else:
+            logger.error(f"User with ID {user_id} not found!")
+        await sleep(1)
+
+
 async def time_trigger(bot: Bot):
     """Шедулер для запуска отложенных задач.
 
@@ -65,45 +136,20 @@ async def time_trigger(bot: Bot):
     logger.info("Successfully started.")
 
     while True:
-        current_time = datetime.now().strftime("%H:%M")
-        hour = datetime.now().strftime("%H")
-        weekday_name = datetime.now().strftime("%A").lower()
+        try:
+            context = _get_time_context(datetime.now())
+            logger.info("Time trigger")
 
-        need_to_update = weekday_name == "sunday" and current_time == "04:00"
+            if not context.is_day_off:
+                user_ids = _get_due_user_ids(
+                    context.weekday_name, context.current_time
+                )
+                await _send_notifications(bot, user_ids, context.day)
 
-        if int(hour) < 24 and int(hour) >= 12:
-            day = "tomorrow"
-        else:
-            day = "today"
+            if context.need_update:
+                # FIXME: update schedule in the DB
+                ...
+        except Exception:
+            logger.exception("Time trigger iteration failed")
 
-        chosen_sunday = (
-            day == "today"
-            and weekday_name == "sunday"
-            or day == "tomorrow"
-            and weekday_name == "saturday"
-        )
-
-        # Отправка уведомлений о парах
-        if not chosen_sunday:
-            timetable = db._scheduled_msg.find_one({"id": 1})
-            if not timetable:
-                return
-
-            timetable = timetable.get(weekday_name)
-            if not timetable:
-                return
-
-            if current_time in timetable:
-                for user_id in timetable[current_time]:
-                    user = db.user(user_id)
-                    if user:
-                        await _scheduled_send(bot, user, day)
-                    else:
-                        logger.error(f"User with ID {user_id} not found!")
-                    await sleep(1)
-
-        if need_to_update:
-            # FIXME: update schedule in the DB
-            ...
-
-        await sleep(60)
+        await sleep(POLL_INTERVAL_SECONDS)

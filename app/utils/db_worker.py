@@ -20,8 +20,8 @@ from typing import Union, List
 from pymongo import MongoClient
 from loguru import logger
 
+from app.config import config
 from app.models import Lesson, Schedule, User, Settings
-from app.properties import MONGODB_URI
 
 
 class DBInterface:
@@ -31,14 +31,14 @@ class DBInterface:
     # pylint: disable=too-few-public-methods
     # Это класс-интерфейс, он не требует дополнительных методов.
 
-    def __new__(cls, host: str = MONGODB_URI):
+    def __new__(cls, host: str = config.mongodb_uri):
         if not hasattr(cls, 'instance'):
             logger.debug('DBInterface created')
             cls._db_uri = host
             cls.instance = super(DBInterface, cls).__new__(cls)
         return cls.instance
 
-    def __init__(self, host: str = MONGODB_URI, db_name: str = 'bgtu_bot'):
+    def __init__(self, host: str = config.mongodb_uri, db_name: str = 'bgtu_bot'):
         # Подключение к СУБД
         self._db_uri = host
         client = MongoClient(self._db_uri)
