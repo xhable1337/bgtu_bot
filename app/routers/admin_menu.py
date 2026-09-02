@@ -9,8 +9,8 @@ from aiogram import F, Router
 from aiogram.types import CallbackQuery, Message
 
 from app.filters import IsAdminFilter
+from app.config import config
 from app.keyboards import kb_admin, kb_admin_back
-from app.properties import MONGODB_URI
 from app.utils.api_worker import APIWorker
 from app.utils.db_worker import DBWorker
 from app.utils.schedule_management import update_schedule
@@ -21,7 +21,7 @@ admin_menu_router = Router()
 # Применяем фильтр администратора ко всем хэндлерам в этом роутере
 admin_menu_router.callback_query.filter(IsAdminFilter())
 
-db = DBWorker(MONGODB_URI)
+db = DBWorker(config.mongodb_uri)
 api = APIWorker()
 
 

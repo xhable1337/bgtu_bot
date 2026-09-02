@@ -8,7 +8,7 @@ from typing import Union
 from aiogram.filters import BaseFilter
 from aiogram.types import CallbackQuery, Message
 
-from app.properties import MONGODB_URI
+from app.config import config
 from app.utils.db_worker import DBWorker
 
 
@@ -33,7 +33,7 @@ class IsAdminFilter(BaseFilter):
         Returns:
             bool: результат проверки
         """
-        db = DBWorker(MONGODB_URI)
+        db = DBWorker(config.mongodb_uri)
         settings = db.settings()
 
         user_id = update.from_user.id

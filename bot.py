@@ -19,7 +19,7 @@ from aiogram.types.menu_button_web_app import MenuButtonWebApp
 from aiogram.types.web_app_info import WebAppInfo
 from loguru import logger
 
-from app import properties
+from app.config import config
 
 # Local application/library specific imports
 from app.routers import admin_menu_router, admin_router, common_router, menu_router
@@ -27,13 +27,13 @@ from app.time_trigger import time_trigger
 
 # ---------------------------------------------------------------
 
-# Если в settings.json задан ключ "proxy" — используем его, иначе прямое соединение
+# Если задан прокси — используем его, иначе прямое соединение
 _bot_session = (
-    AiohttpSession(proxy=properties.PROXY_URL) if properties.PROXY_URL else None
+    AiohttpSession(proxy=config.proxy) if config.proxy else None
 )
 
 bot = Bot(
-    token=properties.BOT_TOKEN,
+    token=config.bot_token,
     session=_bot_session,
     default=DefaultBotProperties(parse_mode=ParseMode.HTML),
 )
@@ -89,8 +89,8 @@ async def main():
 
     _bot_info = await bot.get_me()
     _proxy_info = (
-        f" через прокси {properties.PROXY_URL}"
-        if properties.PROXY_URL
+        f" через прокси {config.proxy}"
+        if config.proxy
         else " без прокси"
     )
     logger.warning(

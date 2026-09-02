@@ -19,15 +19,16 @@ from aiogram.types import (
 )
 from loguru import logger
 
+from app.config import config
 from app.keyboards import kb_cancel, kbbb, kbm
 from app.models import User
-from app.properties import MONGODB_URI, week_is_odd
 from app.utils.db_worker import DBWorker
+from app.utils.wdays import week_is_odd
 
 # Создаём роутер
 common_router = Router()
 
-db = DBWorker(MONGODB_URI)
+db = DBWorker(config.mongodb_uri)
 
 
 @common_router.message(Command("start"))

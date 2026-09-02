@@ -22,11 +22,15 @@ class Config(BaseSettings):
     - `bot_token` (str): токен бота в Telegram
     - `mongodb_uri` (str): URI для подключения к базе данных MongoDB
     - `proxy` (str | None): URL прокси-сервера (опционально)
+    - `odd_week_calendar` (bool): совпадает ли чётность недели с календарём
     """
 
     bot_token: str = Field(validation_alias="BOT_TOKEN")
     mongodb_uri: str = Field(validation_alias="MONGODB_URI")
     proxy: str | None = Field(default=None, validation_alias="PROXY_URL")
+    odd_week_calendar: bool = Field(
+        default=False, validation_alias="ODD_WEEK_CALENDAR"
+    )
 
     model_config = SettingsConfigDict(
         env_file=".env",

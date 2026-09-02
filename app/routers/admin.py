@@ -11,9 +11,9 @@ from aiogram.filters import Command
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 from loguru import logger
 
+from app.config import config
 from app.filters import IsAdminFilter
 from app.keyboards import kb_admin, kb_update_teachers
-from app.properties import MONGODB_URI
 from app.utils.api_worker import APIWorker
 from app.utils.db_worker import DBWorker
 from app.utils.schedule_management import update_groups
@@ -24,7 +24,7 @@ admin_router = Router()
 # Применяем фильтр администратора ко всем хэндлерам в этом роутере
 admin_router.message.filter(IsAdminFilter())
 
-db = DBWorker(MONGODB_URI)
+db = DBWorker(config.mongodb_uri)
 api = APIWorker()
 
 

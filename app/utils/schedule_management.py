@@ -4,11 +4,11 @@
 """
 from datetime import datetime
 
-from app.properties import MONGODB_URI
+from app.config import config
 from app.utils.api_worker import APIWorker
 from app.utils.db_worker import DBWorker
 
-db = DBWorker(MONGODB_URI)
+db = DBWorker(config.mongodb_uri)
 api = APIWorker()
 
 

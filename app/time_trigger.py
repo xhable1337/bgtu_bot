@@ -10,11 +10,12 @@ from datetime import datetime
 from aiogram import Bot
 from loguru import logger
 
-from app.properties import MONGODB_URI, week_is_odd
+from app.config import config
 from app.utils.db_worker import DBUser, DBWorker
 from app.utils.text_generator import schedule_text, wd_name
+from app.utils.wdays import week_is_odd
 
-db = DBWorker(MONGODB_URI)
+db = DBWorker(config.mongodb_uri)
 
 
 async def _scheduled_send(bot: Bot, user: DBUser, day: str):
