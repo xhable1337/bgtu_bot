@@ -4,14 +4,8 @@
 """
 
 from datetime import datetime
-from json import load
 
-################################
-# settings.json load
-################################
-with open("app/settings.json", "r", encoding="UTF8") as file:
-    data = load(file)
-
+from app.config import config
 
 ################################
 # Constants
@@ -20,18 +14,16 @@ with open("app/settings.json", "r", encoding="UTF8") as file:
 # Совпадает ли чет/нечет с календарем
 ODD_WEEK_CALENDAR = False
 
-# ANCHOR: переместить URI БД к настройкам
 # URI для подключения к базе данных MongoDB
 # pylint: disable=line-too-long
-MONGODB_URI = data["mongodb_uri"]
+MONGODB_URI = config.mongodb_uri
 
 # Токен бота в Telegram
-# bot_token = '1147506878:AAGi4Uo6IIGm55TNgG9IIcYIfRZak-HFxN4'
-BOT_TOKEN = data["bot_token"]
+BOT_TOKEN = config.bot_token
 
 # URL прокси-сервера (опционально, например "socks5://user:pass@host:port")
-# Если ключ отсутствует или равен null — бот запускается без прокси
-PROXY_URL: str | None = data.get("proxy") or None
+# Если значение не задано — бот запускается без прокси
+PROXY_URL: str | None = config.proxy
 
 ################################
 # Functions
