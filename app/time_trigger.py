@@ -138,7 +138,6 @@ async def time_trigger(bot: Bot):
     while True:
         try:
             context = _get_time_context(datetime.now())
-            logger.info("Time trigger")
 
             if not context.is_day_off:
                 user_ids = _get_due_user_ids(

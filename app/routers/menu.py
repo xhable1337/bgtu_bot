@@ -7,17 +7,19 @@ import datetime
 from html import escape
 
 from aiogram import F, Router
-from aiogram.filters import BaseFilter
+from aiogram.filters import BaseFilter, StateFilter
+from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 
 from app.config import config
 from app.keyboards import days_keyboard, kb_cancel, kb_notifications_days, kbbb, kbm
+from app.states import AddFavorite, AddNotification, FindClass
 from app.utils import wdays
 from app.utils.db_worker import DBWorker
-from app.utils.wdays import week_is_odd
 
 # TODO: Избавиться от wd_name и wd_numbers, переместив в другую точку
 from app.utils.text_generator import rings_table, schedule_text, wd_name, wd_numbers
+from app.utils.wdays import week_is_odd
 
 # Создаём роутер
 menu_router = Router()
@@ -150,10 +152,10 @@ async def cb_wday(call: CallbackQuery):
 
 
 @menu_router.callback_query(F.data == "tomain")
-async def cb_tomain(call: CallbackQuery):
+async def cb_tomain(call: CallbackQuery, state: FSMContext):
     """### [`Callback`] Кнопка возврата в главное меню."""
     user = db.user(call.from_user.id)
-    user.state = "default"
+    await state.clear()
     weekname = "нечётная" if week_is_odd() else "чётная"
     await call.message.edit_text(
         text=f"Привет, {escape(user.full_name)}!\n"
@@ -166,10 +168,9 @@ async def cb_tomain(call: CallbackQuery):
 
 
 @menu_router.callback_query(F.data == "building")
-async def cb_building(call: CallbackQuery):
+async def cb_building(call: CallbackQuery, state: FSMContext):
     """### [`Callback`] Кнопка поиска аудитории."""
-    user = db.user(call.from_user.id)
-    user.state = "find_class"
+    await state.set_state(FindClass.choosing_number)
     await call.message.edit_text(
         text="Отправьте номер аудитории:", reply_markup=kb_cancel
     )
@@ -177,10 +178,10 @@ async def cb_building(call: CallbackQuery):
 
 
 @menu_router.callback_query(F.data == "cancel")
-async def cb_cancel(call: CallbackQuery):
+async def cb_cancel(call: CallbackQuery, state: FSMContext):
     """### [`Callback`] Кнопка отмены поиска аудитории."""
     user = db.user(call.from_user.id)
-    user.state = "default"
+    await state.clear()
     weekname = "нечётная" if week_is_odd() else "чётная"
     await call.message.edit_text(
         text=f"Привет, {escape(user.full_name)}!\n"
@@ -270,40 +271,41 @@ async def cb_y(call: CallbackQuery):
     await call.answer()
 
 
-@menu_router.callback_query(F.data.startswith("g_"))
-async def cb_g(call: CallbackQuery):
-    """### [`Callback`] Кнопки выбора/удаления группы."""
+@menu_router.callback_query(F.data.startswith("g_"), StateFilter(None))
+async def cb_g(call: CallbackQuery, state: FSMContext):
+    """### [`Callback`] Кнопки выбора/удаления группы (главное меню)."""
     user = db.user(call.from_user.id)
     group = str(call.data).split("g_")[1]
     if str(call.data).endswith("__del"):
         #! Группа удаляется из избранных
         group = group.split("__")[0]
-        user = db.user(call.from_user.id)
         favorite_groups = user.favorite_groups
         favorite_groups.pop(favorite_groups.index(group))
         user.favorite_groups = favorite_groups
 
-        await cb_tomain(call)
+        await cb_tomain(call, state)
 
         await call.answer(f"❌ Группа {group} удалена из избранных!", show_alert=True)
     else:
-        if user.state == "default":
-            user.group = group
-            await cb_tomain(call)
+        user.group = group
+        await cb_tomain(call, state)
 
-        elif user.state == "add_favorite":
-            #! Группа добавляется в избранные
-            favorite_groups = user.favorite_groups
-            favorite_groups.append(call.data.split("g_")[1])
-            user.favorite_groups = favorite_groups
-            await cb_tomain(call)
+
+@menu_router.callback_query(F.data.startswith("g_"), AddFavorite.choosing_group)
+async def cb_g_add_favorite(call: CallbackQuery, state: FSMContext):
+    """### [`Callback`] Добавление группы в избранные."""
+    user = db.user(call.from_user.id)
+    #! Группа добавляется в избранные
+    favorite_groups = user.favorite_groups
+    favorite_groups.append(call.data.split("g_")[1])
+    user.favorite_groups = favorite_groups
+    await cb_tomain(call, state)
 
 
 @menu_router.callback_query(F.data == "add_favorite")
-async def cb_add_favorite(call: CallbackQuery):
+async def cb_add_favorite(call: CallbackQuery, state: FSMContext):
     """### [`Callback`] Кнопка добавления группы в избранное."""
-    user = db.user(call.from_user.id)
-    user.state = "add_favorite"
+    await state.set_state(AddFavorite.choosing_group)
     kb_faculty = InlineKeyboardMarkup(inline_keyboard=[])
 
     for faculty in db.faculties():
@@ -355,7 +357,7 @@ async def cb_notifications(call: CallbackQuery):
 
 
 @menu_router.callback_query(F.data.startswith("notify_"))
-async def cb_notify(call: CallbackQuery):
+async def cb_notify(call: CallbackQuery, state: FSMContext):
     """### [`Callback`] Кнопка управления уведомлением на конкретный день."""
     user = db.user(call.from_user.id)
     weekday = str(call.data).split("_")[1]
@@ -368,7 +370,8 @@ async def cb_notify(call: CallbackQuery):
     )
 
     if notification_is_empty:
-        user.state = f"add_notification_{weekday}"
+        await state.set_state(AddNotification.choosing_time)
+        await state.update_data(weekday=weekday)
         text = (
             f"Добавление напоминания ({wdays.translate(weekday)})\n\n"
             "Введите время, в которое вы хотите получать расписание:\n"
@@ -468,7 +471,7 @@ async def cb_del_notification(call: CallbackQuery):
 
 
 @menu_router.callback_query(F.data.startswith("edit_notification_"))
-async def cb_edit_notification(call: CallbackQuery):
+async def cb_edit_notification(call: CallbackQuery, state: FSMContext):
     """### [`Callback`] Кнопка изменения уведомления на конкретный день."""
     user = db.user(call.from_user.id)
     weekday = str(call.data).split("_")[2]
@@ -484,7 +487,8 @@ async def cb_edit_notification(call: CallbackQuery):
         "то расписание на завтра."
     )
 
-    user.state = f"add_notification_{weekday}"
+    await state.set_state(AddNotification.choosing_time)
+    await state.update_data(weekday=weekday)
 
     await call.message.edit_text(text=text, reply_markup=kb_cancel)
 
